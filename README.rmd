@@ -30,3 +30,9 @@ An adaptation of `maxmin` to ranked distances will produce a landmark set for co
 
 * a minimum number of neighborhoods of roughly fixed common cardinality
 * a fixed number of neighborhoods of minimal roughly common cardinality
+
+# workflow
+
+Foundations have been adapted from `peekxc/Mapper`, with `landmarks()` renamed to `get_landmarks_maxmin()` to avoid variable overloading.
+We should each edit only our respective functions `get_landmarks_lastfirst_*()` as we attempt to implement the algorithm discussed on 2020-05-21.
+If changes must be made to other files then they should be committed to a new branch first.
