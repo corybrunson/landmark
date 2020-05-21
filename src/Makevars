@@ -1,0 +1,6 @@
+CXX_STD = CXX11
+CC = gcc
+CXX = g++
+CXX11 = g++
+CXX1X = g++
+CXX14 = g++
