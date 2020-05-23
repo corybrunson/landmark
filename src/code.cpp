@@ -16,12 +16,12 @@ inline double sq_dist(const NumericVector& x, const NumericVector& y){
 //' @rdname landmarks_maxmin
 //' @export
 // [[Rcpp::export]]
-IntegerVector landmark_maxmin(const NumericMatrix& x, const int n, const int seed = 0) {
+IntegerVector landmark_maxmin(const NumericMatrix& x, const int n, const int seed_index = 0) {
   const size_t n_pts = x.nrow();
   std::vector< double > lm_dist(n_pts, std::numeric_limits<double>::infinity());
   IntegerVector landmark_idx = no_init_vector(n);
-  //landmark_idx[seed] = 0;
-  landmark_idx[0] = seed;
+  //landmark_idx[seed_index] = 0;
+  landmark_idx[0] = seed_index;
   IntegerVector::iterator c_landmark = landmark_idx.begin();
   double new_min_dist;
   std::generate(landmark_idx.begin()+1, landmark_idx.end(), [&](){

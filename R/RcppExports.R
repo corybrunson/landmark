@@ -3,7 +3,7 @@
 
 #' @rdname landmarks_maxmin
 #' @export
-landmark_maxmin <- function(x, n, seed = 0L) {
-    .Call('_maxmin_landmark_maxmin', PACKAGE = 'maxmin', x, n, seed)
+landmark_maxmin <- function(x, n, seed_index = 0L) {
+    .Call('_maxmin_landmark_maxmin', PACKAGE = 'maxmin', x, n, seed_index)
 }
 

@@ -5,7 +5,7 @@
 \alias{landmarks_maxmin}
 \title{Maxmin-generated Landmarks}
 \usage{
-landmark_maxmin(x, n, seed = 0L)
+landmark_maxmin(x, n, seed_index = 0L)
 
 landmarks_maxmin(
   x,
@@ -21,12 +21,12 @@ landmarks_maxmin(
 
 \item{n}{the number of landmarks requested.}
 
+\item{seed_index}{the first landmark to seed the algorithm.}
+
 \item{eps}{the desired radius of balls in the cover set.}
 
 \item{dist_method}{the distance metric to use. Any distance measure in the
 \code{proxy} package is supported.}
-
-\item{seed_index}{the first landmark to seed the algorithm.}
 
 \item{shuffle_data}{whether to first randomly shuffle the data.}
 }

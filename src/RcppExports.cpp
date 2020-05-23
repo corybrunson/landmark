@@ -6,15 +6,15 @@
 using namespace Rcpp;
 
 // landmark_maxmin
-IntegerVector landmark_maxmin(const NumericMatrix& x, const int n, const int seed);
-RcppExport SEXP _maxmin_landmark_maxmin(SEXP xSEXP, SEXP nSEXP, SEXP seedSEXP) {
+IntegerVector landmark_maxmin(const NumericMatrix& x, const int n, const int seed_index);
+RcppExport SEXP _maxmin_landmark_maxmin(SEXP xSEXP, SEXP nSEXP, SEXP seed_indexSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const NumericMatrix& >::type x(xSEXP);
     Rcpp::traits::input_parameter< const int >::type n(nSEXP);
-    Rcpp::traits::input_parameter< const int >::type seed(seedSEXP);
-    rcpp_result_gen = Rcpp::wrap(landmark_maxmin(x, n, seed));
+    Rcpp::traits::input_parameter< const int >::type seed_index(seed_indexSEXP);
+    rcpp_result_gen = Rcpp::wrap(landmark_maxmin(x, n, seed_index));
     return rcpp_result_gen;
 END_RCPP
 }
