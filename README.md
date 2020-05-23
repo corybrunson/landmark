@@ -28,9 +28,12 @@ covers:
 
 # workflow
 
-Foundations have been adapted from `peekxc/Mapper`, with `landmarks()`
-renamed to `get_landmarks_maxmin()` to avoid variable overloading. We
-should each edit only our respective functions
-`get_landmarks_lastfirst_*()` as we attempt to implement the algorithm
-discussed on 2020-05-21. If changes must be made to other files then
-they should be committed to a new branch first.
+Foundations have been adapted from `peekxc/Mapper`.
+
+We should each edit only our respective functions
+`landmarks_lastfirst_*()` as we attempt to implement the algorithm
+discussed on 2020-05-21, in the branches `lastfirst/*` (`cory` and
+`yara`: experimental; `main`: consolidated).
+
+If changes are made to other files then they should be committed to a
+new branch first.
