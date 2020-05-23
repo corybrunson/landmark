@@ -1,4 +1,5 @@
 #include <Rcpp.h>
+
 using namespace Rcpp;
 
 #include <functional>
@@ -11,26 +12,9 @@ inline double sq_dist(const NumericVector& x, const NumericVector& y){
   return(sum(pow(diff, 2.0)));
 }
 
-// Eccentricity
-// Computes a distance measure from the barycenter of the data, or from a given
-// center, if provided.
-// [[Rcpp::export]]
-NumericVector eccentricity(const NumericMatrix& from, const NumericMatrix& x, const int type = 1) {
-  if (from.ncol() != x.ncol()){ stop("Matrices must have identical number of columns."); }
-  const size_t n_pts = x.nrow();
-  const size_t n_src_pts = from.nrow();
-  std::vector< double > pt_ecc(n_src_pts);
-  std::vector< double > pt_dist(n_pts);
-  for (size_t i = 0; i < n_src_pts; ++i){
-    for (size_t j = 0; j < n_pts; ++j){
-      pt_dist.at(j) = sq_dist(from.row(i), x.row(j));
-    }
-    pt_ecc.at(i) = accumulate(begin(pt_dist), end(pt_dist), 0.0, std::plus< double >())/n_pts;
-  }
-  return(wrap(pt_ecc));
-}
-
 // Uses the euclidean maxmin procedure to choose n landmarks.
+//' @rdname landmarks_maxmin
+//' @export
 // [[Rcpp::export]]
 IntegerVector landmark_maxmin(const NumericMatrix& x, const int n, const int seed = 0) {
   const size_t n_pts = x.nrow();

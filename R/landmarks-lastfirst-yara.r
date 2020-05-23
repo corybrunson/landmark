@@ -3,6 +3,7 @@
 #' @details This function adapts the maxmin procedure to produce landmark points
 #'   dispersed according to the orders in which they are reached from each
 #'   other, rather than to their distances from each other. (Say more.)
+#' @name landmarks_lastfirst
 #' @param x a data matrix.
 #' @param n the number of landmarks requested.
 #' @param k the desired cardinality of each cover set.
@@ -11,7 +12,7 @@
 #' @param seed_index the first landmark to seed the algorithm.
 #' @param shuffle_data whether to first randomly shuffle the data.
 #' @export
-get_landmarks_lastfirst_yara <- function(
+landmarks_lastfirst_yara <- function(
   x, n=NULL, k=NULL,
   dist_method = "euclidean", seed_index = 1, shuffle_data=FALSE
 ){

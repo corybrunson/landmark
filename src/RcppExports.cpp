@@ -5,19 +5,6 @@
 
 using namespace Rcpp;
 
-// eccentricity
-NumericVector eccentricity(const NumericMatrix& from, const NumericMatrix& x, const int type);
-RcppExport SEXP _maxmin_eccentricity(SEXP fromSEXP, SEXP xSEXP, SEXP typeSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type from(fromSEXP);
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const int >::type type(typeSEXP);
-    rcpp_result_gen = Rcpp::wrap(eccentricity(from, x, type));
-    return rcpp_result_gen;
-END_RCPP
-}
 // landmark_maxmin
 IntegerVector landmark_maxmin(const NumericMatrix& x, const int n, const int seed);
 RcppExport SEXP _maxmin_landmark_maxmin(SEXP xSEXP, SEXP nSEXP, SEXP seedSEXP) {
@@ -33,7 +20,6 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_maxmin_eccentricity", (DL_FUNC) &_maxmin_eccentricity, 3},
     {"_maxmin_landmark_maxmin", (DL_FUNC) &_maxmin_landmark_maxmin, 3},
     {NULL, NULL, 0}
 };

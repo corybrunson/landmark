@@ -5,9 +5,10 @@
 #'   a simple greedy algorithm that is relatively efficient, but it has a
 #'   tendency to pick out extremal points. If the distance metric is euclidean,
 #'   an efficient Rcpp implementation is used. If another metric is requested,
-#'   the algorithm is performed in R. Alternatively, a radius \deqn{\epsilon}
+#'   the algorithm is performed in R. Alternatively, a radius \eqn{\epsilon}
 #'   can be specified so that the landmark set is computed to cover the space
-#'   with \deqn{\epsilon}-balls centered at the landmarks.
+#'   with \eqn{\epsilon}-balls centered at the landmarks.
+#' @name landmarks_maxmin
 #' @param x a data matrix.
 #' @param n the number of landmarks requested.
 #' @param eps the desired radius of balls in the cover set.
@@ -20,7 +21,7 @@
 #' @references Dłotko, Paweł. "Ball Mapper: A Shape Summary for Topological Data
 #'   Analysis." (2019). Web.
 #' @export
-get_landmarks_maxmin <- function(
+landmarks_maxmin <- function(
   x, n=NULL, eps=NULL,
   dist_method = "euclidean", seed_index = 1, shuffle_data=FALSE
 ){

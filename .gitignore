@@ -1,1 +1,9 @@
+
+# Mac OS X
+.DS_Store
+
+# R session
+.Rhistory
+.Rapp.history
+.RData
 .Rproj.user
