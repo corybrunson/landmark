@@ -17,6 +17,16 @@ test_that("complete landmark set grows leftward before righward", {
   expect_identical(lf_all, c(1L, 6L, 3L, 2L, 4L, 5L))
 })
 
+# firstlast chebycenter
+
+test_that("chebyshev center prefers double-points to farther points", {
+  expect_identical(chebycenter_firstlast_cory(peg), 2L)
+})
+
+test_that("landmark set is obtained starting from duplicate point", {
+  expect_error(landmarks_lastfirst_cory(peg, seed_index = 3L), NA)
+})
+
 # lastfirst landmarks
 
 test_that("2-set cover uses endpoints", {
