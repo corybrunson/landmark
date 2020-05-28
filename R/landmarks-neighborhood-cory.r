@@ -1,4 +1,5 @@
 #' @title Neighborhood-based Landmark Sets
+#' @author Jason Cory Brunson
 #' @description Compute landmark sets based on nearest neighborhoods.
 #' @details These functions adapt the maxmin procedure to produce landmark
 #'   points dispersed according to the orders in which they are reached from
@@ -67,14 +68,9 @@ landmarks_lastfirst_cory <- function(
   lf_idx <- seed_index
   landmark_idx <- vector(mode = "integer", nrow(x))
   free_idx <- seq(nrow(x))
-  free_idx[duplicated(x)] <- 0L
-  # handle a seed index that is a duplicate point
-  if (free_idx[[lf_idx]] == 0L) {
-    rm_idx <- which(apply(
-      sweep(x[free_idx, , drop = FALSE], 2, x[lf_idx, , drop = FALSE], "=="),
-      1, all))[[1]]
-    free_idx[[rm_idx]] <- 0L
-  }
+  # strike seed and (other) duplicates index from free indices
+  perm_idx <- c(lf_idx, free_idx[-lf_idx])
+  free_idx[perm_idx[duplicated(x[perm_idx])]] <- 0L
   landmark_rank <- matrix(NA, nrow = nrow(x), ncol = 0)
 
   # require a number of neighborhoods or a neighborhood cardinality (or both)
@@ -88,11 +84,9 @@ landmarks_lastfirst_cory <- function(
     landmark_idx[[i]] <- lf_idx[[1L]]
 
     # update vector of free points
-    if (free_idx[[landmark_idx[[i]]]] != 0L) {
-      free_idx[[landmark_idx[[i]]]] <- 0L
-    } else {
-      if (i > 1L) stop("Landmark choice is a duplicate point.")
-    }
+    if (free_idx[[landmark_idx[[i]]]] == 0L)
+      stop("Landmark choice is a duplicate point.")
+    free_idx[[landmark_idx[[i]]]] <- 0L
 
     # augment ranks from new landmark point
     landmark_rank <- cbind(
@@ -102,14 +96,13 @@ landmarks_lastfirst_cory <- function(
                        method = dist_method),
            ties.method = "max")
     )
-
     # sort the points' rankings
-    landmark_sort <- apply(landmark_rank, 1, sort)
-    landmark_sort <- if (is.matrix(landmark_sort)) t(landmark_sort) else
-      matrix(landmark_sort)
+    landmark_rank[] <- t(apply(landmark_rank, 1L, sort))
 
     # refresh the minimum cardinality
-    min_cardinality <- max(landmark_sort[c(free_idx, landmark_idx), 1])
+    min_cardinality <- max(landmark_rank[c(free_idx, landmark_idx), 1L])
+    if (min_cardinality < ncol(landmark_rank))
+      landmark_rank <- landmark_rank[, seq(min_cardinality), drop = FALSE]
 
     # exhaustion breaks
     if (all(free_idx == 0L)) break
@@ -132,9 +125,9 @@ landmarks_lastfirst_cory <- function(
 
     # obtain the lastfirst subset
     lf_idx <- free_idx[free_idx != 0L]
-    for (j in seq(ncol(landmark_sort))) {
-      lf_idx <- lf_idx[landmark_sort[lf_idx, j] ==
-                         max(landmark_sort[lf_idx, j])]
+    for (j in seq(ncol(landmark_rank))) {
+      lf_idx <- lf_idx[landmark_rank[lf_idx, j] ==
+                         max(landmark_rank[lf_idx, j])]
       if (length(lf_idx) == 1L) break
     }
 
