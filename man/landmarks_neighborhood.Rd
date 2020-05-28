@@ -48,3 +48,6 @@ neighborhoods that do not cover \code{x}, then, effectively, \code{number} is
 increased until the cardinality necessary to cover \code{x} is at most
 \code{cardinality}.
 }
+\author{
+Jason Cory Brunson
+}
