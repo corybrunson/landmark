@@ -66,12 +66,12 @@ landmarks_lastfirst_cory <- function(
 
   # initialize lastfirst, free, and landmark index sets
   lf_idx <- seed_index
-  landmark_idx <- vector(mode = "integer", nrow(x))
+  lmk_idx <- vector(mode = "integer", nrow(x))
   free_idx <- seq(nrow(x))
   # strike seed and (other) duplicates index from free indices
   perm_idx <- c(lf_idx, free_idx[-lf_idx])
   free_idx[perm_idx[duplicated(x[perm_idx])]] <- 0L
-  landmark_rank <- matrix(NA, nrow = nrow(x), ncol = 0)
+  lmk_rank <- matrix(NA, nrow = nrow(x), ncol = 0)
 
   # require a number of neighborhoods or a neighborhood cardinality (or both)
   #if (is.null(number) && is.null(cardinality)) number <- length(free_idx)
@@ -81,28 +81,28 @@ landmarks_lastfirst_cory <- function(
   for (i in seq_along(free_idx)) {
 
     # update vector of landmark points
-    landmark_idx[[i]] <- lf_idx[[1L]]
+    lmk_idx[[i]] <- lf_idx[[1L]]
 
     # update vector of free points
-    if (free_idx[[landmark_idx[[i]]]] == 0L)
+    if (free_idx[[lmk_idx[[i]]]] == 0L)
       stop("Landmark choice is a duplicate point.")
-    free_idx[[landmark_idx[[i]]]] <- 0L
+    free_idx[[lmk_idx[[i]]]] <- 0L
 
     # augment ranks from new landmark point
-    landmark_rank <- cbind(
-      landmark_rank,
+    lmk_rank <- cbind(
+      lmk_rank,
       rank(proxy::dist(x,
-                       x[landmark_idx[[i]], , drop = FALSE],
+                       x[lmk_idx[[i]], , drop = FALSE],
                        method = dist_method),
            ties.method = "max")
     )
-    # sort the points' rankings
-    landmark_rank[] <- t(apply(landmark_rank, 1L, sort))
 
+    # sort the points' rankings
+    lmk_rank[] <- t(apply(lmk_rank, 1L, sort))
     # refresh the minimum cardinality
-    min_cardinality <- max(landmark_rank[c(free_idx, landmark_idx), 1L])
-    if (min_cardinality < ncol(landmark_rank))
-      landmark_rank <- landmark_rank[, seq(min_cardinality), drop = FALSE]
+    min_card <- max(lmk_rank[c(free_idx, lmk_idx), 1L])
+    if (min_card < ncol(lmk_rank))
+      lmk_rank <- lmk_rank[, seq(min_card), drop = FALSE]
 
     # exhaustion breaks
     if (all(free_idx == 0L)) break
@@ -115,23 +115,22 @@ landmarks_lastfirst_cory <- function(
           break
         } else {
           # continue if desired cardinality requires a greater number of sets
-          if (min_cardinality <= cardinality) break
+          if (min_card <= cardinality) break
         }
       }
     } else {
       # continue if desired cardinality requires more sets
-      if (min_cardinality <= cardinality) break
+      if (min_card <= cardinality) break
     }
 
     # obtain the lastfirst subset
     lf_idx <- free_idx[free_idx != 0L]
-    for (j in seq(ncol(landmark_rank))) {
-      lf_idx <- lf_idx[landmark_rank[lf_idx, j] ==
-                         max(landmark_rank[lf_idx, j])]
+    for (j in seq(ncol(lmk_rank))) {
+      lf_idx <- lf_idx[lmk_rank[lf_idx, j] == max(lmk_rank[lf_idx, j])]
       if (length(lf_idx) == 1L) break
     }
 
   }
 
-  landmark_idx[seq(i)]
+  lmk_idx[seq(i)]
 }
