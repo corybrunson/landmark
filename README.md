@@ -1,11 +1,20 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# maxmin
+# landmark
 
 Calculate landmark sets for finite metric spaces using the maxmin
 procedure (for fixed-radius balls) or an adaptation of it for rank data
 (for roughly fixed-cardinality nearest neighborhoods).
+
+``` r
+(x <- matrix(c(1, 2, 4, 4), dimnames = list(letters[1:4], "x")))
+#>   x
+#> a 1
+#> b 2
+#> c 4
+#> d 4
+```
 
 ## `maxmin` procedure
 
@@ -14,6 +23,17 @@ point cloud with either of two minimal ball covers:
 
   - a minimum number of balls of fixed common radius
   - a fixed number of balls of minimum common radius
+
+<!-- end list -->
+
+``` r
+landmarks_maxmin(x, eps = 3.5)
+#> [1] 1
+landmarks_maxmin(x, eps = 1.5)
+#> [1] 1 3
+landmarks_maxmin(x, eps = 0.5)
+#> [1] 1 3 2
+```
 
 ## “`lastfirst`” procedure
 

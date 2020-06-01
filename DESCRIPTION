@@ -1,5 +1,5 @@
-Package: maxmin
-Title: maxmin procedures to generate landmark sets for finite metric spaces
+Package: landmark
+Title: procedures to generate landmark sets from finite metric spaces
 Version: 0.0.0.9000
 Authors@R: 
     c(
