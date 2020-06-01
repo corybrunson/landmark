@@ -4,7 +4,7 @@ output: github_document
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-```{r, include = FALSE}
+```{r, include=FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
@@ -13,9 +13,17 @@ knitr::opts_chunk$set(
 )
 ```
 
-# maxmin
+# landmark
+
+```{r, echo=FALSE, message=FALSE}
+devtools::load_all()
+```
 
 Calculate landmark sets for finite metric spaces using the maxmin procedure (for fixed-radius balls) or an adaptation of it for rank data (for roughly fixed-cardinality nearest neighborhoods).
+
+```{r example}
+(x <- matrix(c(1, 2, 4, 4), dimnames = list(letters[1:4], "x")))
+```
 
 ## `maxmin` procedure
 
@@ -23,6 +31,12 @@ The original `maxmin` procedure produces a landmark set for covering a point clo
 
 * a minimum number of balls of fixed common radius
 * a fixed number of balls of minimum common radius
+
+```{r maxmin example}
+landmarks_maxmin(x, eps = 3.5)
+landmarks_maxmin(x, eps = 1.5)
+landmarks_maxmin(x, eps = 0.5)
+```
 
 ## "`lastfirst`" procedure
 

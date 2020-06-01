@@ -2,6 +2,6 @@
 data-raw
 
 # project infrastructure
-^maxmin\.Rproj$
+^landmark\.Rproj$
 ^\.Rproj\.user$
 ^README\.Rmd$

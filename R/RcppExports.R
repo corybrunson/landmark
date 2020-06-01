@@ -4,6 +4,6 @@
 #' @rdname landmarks_maxmin
 #' @export
 landmark_maxmin <- function(x, n, seed_index = 0L) {
-    .Call('_maxmin_landmark_maxmin', PACKAGE = 'maxmin', x, n, seed_index)
+    .Call('_landmark_landmark_maxmin', PACKAGE = 'landmark', x, n, seed_index)
 }
 

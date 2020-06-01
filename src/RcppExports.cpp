@@ -7,7 +7,7 @@ using namespace Rcpp;
 
 // landmark_maxmin
 IntegerVector landmark_maxmin(const NumericMatrix& x, const int n, const int seed_index);
-RcppExport SEXP _maxmin_landmark_maxmin(SEXP xSEXP, SEXP nSEXP, SEXP seed_indexSEXP) {
+RcppExport SEXP _landmark_landmark_maxmin(SEXP xSEXP, SEXP nSEXP, SEXP seed_indexSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -20,11 +20,11 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_maxmin_landmark_maxmin", (DL_FUNC) &_maxmin_landmark_maxmin, 3},
+    {"_landmark_landmark_maxmin", (DL_FUNC) &_landmark_landmark_maxmin, 3},
     {NULL, NULL, 0}
 };
 
-RcppExport void R_init_maxmin(DllInfo *dll) {
+RcppExport void R_init_landmark(DllInfo *dll) {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }

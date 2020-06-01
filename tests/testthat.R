@@ -1,4 +1,4 @@
 library(testthat)
-library(maxmin)
+library(landmark)
 
-test_check("maxmin")
+test_check("landmark")
