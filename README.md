@@ -46,6 +46,19 @@ covers:
   - a fixed number of neighborhoods of minimal roughly common
     cardinality
 
+<!-- end list -->
+
+``` r
+landmarks_lastfirst_cory(x, cardinality = 4)
+#> [1] 1
+landmarks_lastfirst_cory(x, cardinality = 3)
+#> [1] 1 3
+landmarks_lastfirst_cory(x, cardinality = 2)
+#> [1] 1 3
+landmarks_lastfirst_cory(x, cardinality = 1)
+#> [1] 1 3 2
+```
+
 # workflow
 
 Foundations have been adapted from `peekxc/Mapper`.

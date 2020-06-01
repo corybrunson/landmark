@@ -45,6 +45,13 @@ An adaptation of `maxmin` to ranked distances will produce a landmark set for co
 * a minimum number of neighborhoods of roughly fixed common cardinality
 * a fixed number of neighborhoods of minimal roughly common cardinality
 
+```{r lastfirst example}
+landmarks_lastfirst_cory(x, cardinality = 4)
+landmarks_lastfirst_cory(x, cardinality = 3)
+landmarks_lastfirst_cory(x, cardinality = 2)
+landmarks_lastfirst_cory(x, cardinality = 1)
+```
+
 # workflow
 
 Foundations have been adapted from `peekxc/Mapper`.
