@@ -34,48 +34,144 @@ inline double dist_euc(std::vector<double> x, std::vector<double> y){
 
 // q_hat(x,y) = |{z in Y | d(x,z) <= d(x,y)}|
 // cardinality of smallest ball centered at 2 that contains y
-int q_hat(vector<double> x, vector<double> y){
-    return(0);
+int q_hat(vector<double> x, vector<double> y, map<int, vector<double>> Y_all){
+    int q = 0;
+    for(const auto& z : Y_all){
+        if(dist_euc(x,z) <= dist_euc(x,y)){q++;}
+    }
+    return(q);
 }
 
 // q_check(x,y) = |{z in Y | d(x,z) < d(x,y)}| + 1
-int q_check(vector<double> x, vector<double> y){
-    return(0);
+int q_check(vector<double> x, vector<double> y, map<int, vector<double>> Y_all){
+    int q = 0;
+    for(const auto& z : Y_all){
+        if(dist_euc(x,z) < dist_euc(x,y)){q++;}
+    }
+
+    return(q+1);
 }
 
 // Nk_hat_plus(x,Y',k) = {y in Y' | q_hat(x,y) <= k}
 map<int, vector<double>> Nk_hat_plus(pair<int, vector<double>> x, map<int, vector<double>> Yp, int k){
     map<int, vector<double>> Nk;
+
+    for(const auto& y : Yp){
+        int q = q_hat(x,y);
+        if(q <= k){Nk.insert(y)}
+    }
+
     return(Nk);
 }
 
-// Nk_check_minus(x,Y',k) = {y in Y' | q_hat(y,x) <= k}
+// Nk_check_minus(x,Y',k) = {y in Y' | q_check(y,x) <= k}
 map<int, vector<double>> Nk_check_minus(pair<int, vector<double>> x, map<int, vector<double>> Yp, int k){
     map<int, vector<double>> Nk;
+
+    for(const auto& y : Yp){
+        int q = q_check(y,x);
+        if(q <= k){Nk.insert(y)}
+    }
+
     return(Nk);
 }
 
 // Q_hat_plus(x,Y') = (|Nk_hat_plus(x,Y',1)|, ..., |Nk_hat_plus(x,Y',N)|)
-vector<int> Q_hat_plus(pair<int, vector<double>> x, map<int, vector<double>> Yp){
+vector<int> Q_hat_plus(pair<int, vector<double>> x, map<int, vector<double>> Yp, int bigN){
     vector<int> q;
+
+    // Compute Nk for k=0 up to N
+    for(int i = 0; i < bigN; i++){
+        map<int, vector<double>> Nk = Nk_hat_plus(x, Yp, i);
+        q.emplace(i, Nk.size());
+    }
+
     return(q);
 }
 
 // Q_check_minus(x,Y') = (|Nk_check_minus(x,Y',1)|, ..., |Nk_check_minus(x,Y',N)|)
-vector<int> Q_check_minus(pair<int, vector<double>> x, map<int, vector<double>> Yp){
+vector<int> Q_check_minus(pair<int, vector<double>> x, map<int, vector<double>> Yp, int bigN){
     vector<int> q;
+
+    // Compute Nk for k=0 up to N
+    for(int i = 0; i < bigN; i++){
+        map<int, vector<double>> Nk = Nk_check_minus(x, Yp, i);
+        q.emplace(i, Nk.size());
+    }
+
     return(q);
+}
+
+// return -1 if an < bn
+// return 0 if an == bn
+// return +1 if an > bn
+int revlex(vector<int> an, vector<int> bn){
+    return(0)
+}
+
+// return -1 if an < bn
+// return 0 if an == bn
+// return +1 if an > bn
+int colex(vector<int> an, vector<int> bn){
+    return(0)
 }
 
 // fl(Y') = {x in Y | Q_hat_plus(x,Y') = min Q_hat_plus(x',Y') for x' in Y}
 map<int, vector<double>> firstlast(map<int, vector<double>> Yp, map<int, vector<double>> Y_all){
     map<int, vector<double>> fl;
+    int length = Y_all.size();
+    //map<int, vector<int>> Qs;
+
+    // compute all Q(x,Y') and find the min
+    vector<int> minQ(length, 0);
+    for(const auto& y : Y_all){
+        newQ = Q_hat_plus(y,Yp,length);
+        //Qs.insert(y.first, newQ);
+
+        // this Q is equal to the old min -> add this point to fl
+        if(colex(newQ, minQ) == 0){
+            fl.insert(y.first, Y_all.at(y.first));
+        }
+
+        // we have a new min -> clear out fl and add this point instead
+        if(colex(newQ, minQ) < 0){
+            minQ = newQ;
+            fl.clear();
+            fl.insert(y.first, Y_all.at(y.first));
+        }
+    }
+
+    // // add any x where Q(x,y') == minQ to fl(Y')
+    // for(const auto& q : Qs){
+    //     if(q.second == minQ){fl.insert(q.first, Y_all.at(q.first))}
+    // }
+
     return(fl);
 }
 
 // lf(Y') = {x in Y | Q_check_minus(x,Y') = max Q_check_minus(x',Y') for x' in Y}
 map<int, vector<double>> lastfirst(map<int, vector<double>> Yp, map<int, vector<double>> Y_all){
     map<int, vector<double>> lf;
+    int length = Y_all.size();
+
+    // compute all Q(x,Y') and find the min
+    vector<int> maxQ(Y_all.size(), 0);
+    for(const auto& y : Y_all){
+        newQ = Q_check_minus(y,Yp,length);
+
+        // this Q is equal to the old max -> add this point to lf
+        if(colex(newQ, maxQ) == 0){
+            lf.insert(y.first, Y_all.at(y.first));
+        }
+
+        // we have a new max -> clear out lf and add this point instead
+        if(colex(newQ, maxQ) > 0){
+            maxQ = newQ;
+            lf.clear();
+            lf.insert(y.first, Y_all.at(y.first));
+        }
+    }
+
     return(lf);
 }
 
