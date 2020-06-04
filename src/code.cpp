@@ -74,7 +74,7 @@ map<int, vector<double>> firstlast(map<int, vector<double>> Yp, map<int, vector<
 }
 
 // lf(Y') = {x in Y | Q_check_minus(x,Y') = max Q_check_minus(x',Y') for x' in Y}
-map<int, vector<double>> lastfirstfirstlast(map<int, vector<double>> Yp, map<int, vector<double>> Y_all){
+map<int, vector<double>> lastfirst(map<int, vector<double>> Yp, map<int, vector<double>> Y_all){
     map<int, vector<double>> lf;
     return(lf);
 }
