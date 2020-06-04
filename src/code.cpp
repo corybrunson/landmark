@@ -53,13 +53,7 @@ IntegerVector landmarks_maxmin_cpp(const NumericMatrix& x, int n = 0, float eps 
     }
     if(eps == 0){eps = FLT_MAX;}
 
-    std::vector<double> cppX = as<std::vector<double>>(x);
-
     // store indices and values of X\L
-    // std::map<int, double> pts_left;
-    // for(int i = 0; i < num_pts; i++){pts_left.emplace(i, cppX[i]);}
-    // cout << "pts_left:\n";
-    // for (const auto& x : pts_left) {std::cout << x.first << ": " << x.second << "\n";}
     std::map<int, std::vector<double>> pts_left;
     for(int i = 0; i < num_pts; i++){
         NumericVector vec = x.row(i);
@@ -67,41 +61,20 @@ IntegerVector landmarks_maxmin_cpp(const NumericMatrix& x, int n = 0, float eps 
         pts_left.emplace(i, point);
     }
 
-    // std::vector<int> landmarks; // dynamic vector of int to store landmarks
-    // landmarks.push_back(seed_index); // add seed to landmarks
-
     // store indices and values of landmark set L
-    // std::map<int, double> landmarks;
-    // landmarks.emplace(seed_index, x[seed_index]);
     std::map<int, std::vector<double>> landmarks;
     landmarks.emplace(seed_index, pts_left.at(seed_index));
     pts_left.erase(seed_index); // remove seed landmark from X\L
 
-    // cout << "pts_left:\n";
-    // for (const auto& x : pts_left) {
-    //     cout << "\n" << x.first << ": ";
-    //     for(const auto& v : x.second){cout << v << " ";}
-    // }
-    // cout << "\n";
-    //
-    // cout << "landmarks:\n";
-    // for (const auto& x : landmarks) {
-    //     cout << "\n" << x.first << ": ";
-    //     for(const auto& v : x.second){cout << v << " ";}
-    // }
-    // cout << "\n";
-
     // compute remaining landmarks
     while(true){
         double d_max = 0;
-        //std::pair<int, double> max;
         std::pair<int, std::vector<double>> max;
         // find max(d(x,L)) for x in X
         for(const auto& pt : pts_left){
             double d_min = DBL_MAX;
             // find min(d(x,l)) for l in L
             for(const auto& l : landmarks){
-                //double d = dist_euc(wrap(l.second), wrap(pt.second));
                 double d = dist_euc(l.second, pt.second);
                 if(d < d_min){d_min = d;}
             }
@@ -114,14 +87,8 @@ IntegerVector landmarks_maxmin_cpp(const NumericMatrix& x, int n = 0, float eps 
         if(d_max <= eps && landmarks.size() >= n){break;} // TODO: this occurs one extra time because of c
 
         // otherwise add new max to L and remove from X\L
-        //landmarks.insert(max);
-        landmarks.insert(std::pair<int,std::vector<double>>(max.first, max.second));
+        landmarks.insert(max);
         pts_left.erase(max.first);
-
-        // cout << "\n\nlandmarks:\n";
-        // for (const auto& x : landmarks) {std::cout << x.first << ": " << x.second << "\n";}
-        // cout << "pts_left:\n";
-        // for (const auto& x : pts_left) {std::cout << x.first << ": " << x.second << "\n";}
     }
     // only return the indices of landmarks (not the values)
     std::vector<int> landmark_idx;
