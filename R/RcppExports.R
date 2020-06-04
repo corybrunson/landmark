@@ -9,8 +9,8 @@ landmarks_maxmin_cpp <- function(x, n = 0L, eps = 0, seed_index = 0L) {
 
 #' @rdname landmarks_lastfirst_cpp
 #' @export
-landmarks_lastfirst_cpp <- function(x, n, seed_index = 0L) {
-    .Call('_landmark_landmarks_lastfirst_cpp', PACKAGE = 'landmark', x, n, seed_index)
+landmarks_lastfirst_cpp <- function(x, k, seed_index = 0L) {
+    .Call('_landmark_landmarks_lastfirst_cpp', PACKAGE = 'landmark', x, k, seed_index)
 }
 
 #' @rdname landmarks_maxmin
