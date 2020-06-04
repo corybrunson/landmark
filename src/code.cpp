@@ -106,14 +106,40 @@ vector<int> Q_check_minus(pair<int, vector<double>> x, map<int, vector<double>> 
 // return 0 if an == bn
 // return +1 if an > bn
 int revlex(vector<int> an, vector<int> bn){
-    return(0)
+    int ret = 0;
+    for(int i = an.size()-1; i >= 0; i--){
+        if(an[i] != bn[i]){
+            if(an[i] > bn[i]){
+                ret = -1;
+                break;
+            }
+            else{
+                ret = 1;
+                break;
+            }
+        }
+    }
+    return(ret);
 }
 
 // return -1 if an < bn
 // return 0 if an == bn
 // return +1 if an > bn
 int colex(vector<int> an, vector<int> bn){
-    return(0)
+    int ret = 0;
+    for(int i = 0; i < an.size(); i++){
+        if(an[i] != bn[i]){
+            if(an[i] < bn[i]){
+                ret = -1;
+                break;
+            }
+            else{
+                ret = 1;
+                break;
+            }
+        }
+    }
+    return(ret);
 }
 
 // fl(Y') = {x in Y | Q_hat_plus(x,Y') = min Q_hat_plus(x',Y') for x' in Y}
