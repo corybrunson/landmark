@@ -5,6 +5,33 @@
 
 using namespace Rcpp;
 
+// landmarks_maxmin_cpp
+IntegerVector landmarks_maxmin_cpp(const NumericMatrix& x, int n, float eps, const int seed_index);
+RcppExport SEXP _landmark_landmarks_maxmin_cpp(SEXP xSEXP, SEXP nSEXP, SEXP epsSEXP, SEXP seed_indexSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< float >::type eps(epsSEXP);
+    Rcpp::traits::input_parameter< const int >::type seed_index(seed_indexSEXP);
+    rcpp_result_gen = Rcpp::wrap(landmarks_maxmin_cpp(x, n, eps, seed_index));
+    return rcpp_result_gen;
+END_RCPP
+}
+// landmarks_lastfirst_cpp
+IntegerVector landmarks_lastfirst_cpp(const NumericMatrix& x, const int n, const int seed_index);
+RcppExport SEXP _landmark_landmarks_lastfirst_cpp(SEXP xSEXP, SEXP nSEXP, SEXP seed_indexSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< const int >::type seed_index(seed_indexSEXP);
+    rcpp_result_gen = Rcpp::wrap(landmarks_lastfirst_cpp(x, n, seed_index));
+    return rcpp_result_gen;
+END_RCPP
+}
 // landmark_maxmin
 IntegerVector landmark_maxmin(const NumericMatrix& x, const int n, const int seed_index);
 RcppExport SEXP _landmark_landmark_maxmin(SEXP xSEXP, SEXP nSEXP, SEXP seed_indexSEXP) {
@@ -20,6 +47,8 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_landmark_landmarks_maxmin_cpp", (DL_FUNC) &_landmark_landmarks_maxmin_cpp, 4},
+    {"_landmark_landmarks_lastfirst_cpp", (DL_FUNC) &_landmark_landmarks_lastfirst_cpp, 3},
     {"_landmark_landmark_maxmin", (DL_FUNC) &_landmark_landmark_maxmin, 3},
     {NULL, NULL, 0}
 };
