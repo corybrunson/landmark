@@ -24,7 +24,7 @@ NULL
 
 #' @rdname landmarks_neighborhood
 #' @export
-chebycenter_firstlast_cory <- function(
+chebycenter_firstlast_R <- function(
   x, y = NULL,
   dist_method = "euclidean"
 ) {
@@ -50,7 +50,7 @@ chebycenter_firstlast_cory <- function(
 
 #' @rdname landmarks_neighborhood
 #' @export
-landmarks_lastfirst_cory <- function(
+landmarks_lastfirst_R <- function(
   x, number = NULL, cardinality = NULL,
   dist_method = "euclidean", seed_index = 1L, shuffle_data = FALSE
 ) {

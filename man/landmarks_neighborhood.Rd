@@ -2,13 +2,13 @@
 % Please edit documentation in R/landmarks-neighborhood-cory.r
 \name{landmarks_neighborhood}
 \alias{landmarks_neighborhood}
-\alias{chebycenter_firstlast_cory}
-\alias{landmarks_lastfirst_cory}
+\alias{chebycenter_firstlast_R}
+\alias{landmarks_lastfirst_R}
 \title{Neighborhood-based Landmark Sets}
 \usage{
-chebycenter_firstlast_cory(x, y = NULL, dist_method = "euclidean")
+chebycenter_firstlast_R(x, y = NULL, dist_method = "euclidean")
 
-landmarks_lastfirst_cory(
+landmarks_lastfirst_R(
   x,
   number = NULL,
   cardinality = NULL,
