@@ -94,13 +94,14 @@ landmarks_lastfirst_cory <- function(
       rank(proxy::dist(x,
                        x[lmk_idx[[i]], , drop = FALSE],
                        method = dist_method),
-           ties.method = "max")
+           ties.method = "min")
     )
 
     # sort the points' rankings
     lmk_rank[] <- t(apply(lmk_rank, 1L, sort))
     # refresh the minimum cardinality
     min_card <- max(lmk_rank[c(free_idx, lmk_idx), 1L])
+    # drop ranks past minimum cardinality
     if (min_card < ncol(lmk_rank))
       lmk_rank <- lmk_rank[, seq(min_card), drop = FALSE]
 
@@ -130,6 +131,17 @@ landmarks_lastfirst_cory <- function(
       if (length(lf_idx) == 1L) break
     }
 
+  }
+
+  # print warnings if a parameter was adjusted
+  if (! is.null(number)) {
+    if (i > number) {
+      warning("Cover required ", i, " (> number = ", number, ") ",
+              "sets of cardinality ", cardinality, ".")
+    } else if (i < number) {
+      warning("Only ", i, " (< number = ", number, ") ",
+              "distinct landmark points were found.")
+    }
   }
 
   lmk_idx[seq(i)]

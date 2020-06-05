@@ -49,13 +49,13 @@ covers:
 <!-- end list -->
 
 ``` r
-landmarks_lastfirst_cory(x, cardinality = 4)
+landmarks_lastfirst_cory(x, cardinality = 4L, seed_index = 1L)
 #> [1] 1
-landmarks_lastfirst_cory(x, cardinality = 3)
+landmarks_lastfirst_cory(x, cardinality = 3L, seed_index = 1L)
+#> [1] 1
+landmarks_lastfirst_cory(x, cardinality = 2L, seed_index = 1L)
 #> [1] 1 3
-landmarks_lastfirst_cory(x, cardinality = 2)
-#> [1] 1 3
-landmarks_lastfirst_cory(x, cardinality = 1)
+landmarks_lastfirst_cory(x, cardinality = 1L, seed_index = 1L)
 #> [1] 1 3 2
 ```
 
