@@ -57,3 +57,8 @@ discussed on 2020-05-21, in the branches `lastfirst/*` (`cory` and
 
 If changes are made to other files then they should be committed to a
 new branch first.
+
+# reference
+
+Rigorous definitions, algorithms, examples, and exposition are underway
+at [this Overleaf project](https://www.overleaf.com/read/fpjrtgfjstyx).
