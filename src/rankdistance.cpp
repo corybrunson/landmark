@@ -52,6 +52,16 @@ map<int, vector<double>> Nk_hat_plus(pair<int, vector<double>> x, map<int, vecto
     return(Nk);
 }
 
+// Nk_check_plus(x,Y',k) = {y in Y' | q_check(x,y) <= k}
+map<int, vector<double>> Nk_check_plus(pair<int, vector<double>> x, map<int, vector<double>> Yp, int k,  map<int, vector<double>> Y_all){
+    map<int, vector<double>> Nk;
+    for(const auto& y : Yp){
+        int q = q_check(x.second, y.second, Y_all);
+        if(q <= k){Nk.insert(y);}
+    }
+    return(Nk);
+}
+
 // Nk_check_minus(x,Y',k) = {y in Y' | q_check(y,x) <= k}
 map<int, vector<double>> Nk_check_minus(pair<int, vector<double>> x, map<int, vector<double>> Yp, int k,  map<int, vector<double>> Y_all){
     map<int, vector<double>> Nk;

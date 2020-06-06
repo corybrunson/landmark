@@ -8,6 +8,7 @@ int q_hat(std::vector<double> x, std::vector<double> y, std::map<int, std::vecto
 int q_check(std::vector<double> x, std::vector<double> y, std::map<int, std::vector<double>> Y_all);
 
 std::map<int, std::vector<double>> Nk_hat_plus(std::pair<int, std::vector<double>> x, std::map<int, std::vector<double>> Yp, int k, std::map<int, std::vector<double>> Y_all);
+std::map<int, std::vector<double>> Nk_check_plus(std::pair<int, std::vector<double>> x, std::map<int, std::vector<double>> Yp, int k, std::map<int, std::vector<double>> Y_all);
 std::map<int, std::vector<double>> Nk_check_minus(std::pair<int, std::vector<double>> x, std::map<int, std::vector<double>> Yp, int k, std::map<int, std::vector<double>> Y_all);
 
 std::vector<int> Q_hat_plus(std::pair<int, std::vector<double>> x, std::map<int, std::vector<double>> Yp, std::map<int, std::vector<double>> Y_all);
