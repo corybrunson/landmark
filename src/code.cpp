@@ -110,31 +110,38 @@ IntegerVector landmarks_lastfirst_cpp(const NumericMatrix& x, const int k, const
     if(k < 1 || k > num_pts){stop("Parameter 'k' must be >= 1 and <= number of data points.");}
     if(seed_index < 0 || seed_index >= num_pts){stop("Parameter 'seed_index' must be >=1 and <= number of data points.");}
 
+    map<int, vector<double>> Y_all; // whole space Y
+    map<int, vector<double>> landmarks; // landmark set L
+    map<int, vector<double>> covered; // store union of Nk check plus over all landmarks
+
     // store indices and values of X\L
-    std::map<int, std::vector<double>> pts_left;
     for(int i = 0; i < num_pts; i++){
         NumericVector vec = x.row(i);
         std::vector<double> point(vec.begin(),vec.end());
-        pts_left.emplace(i, point);
+        Y_all.emplace(i, point);
     }
+    map<int, vector<double>> pts_left(Y_all); // store indices and values of Y\L
 
+    // choose l0 and add it to L
+    pair<int, vector<double>> l_0(seed_index, Y_all.at(seed_index));
+    landmarks.insert(l_0);
+    pts_left.erase(l_0.first); // remove l0 from list of points left
 
-    // store indices and values of landmark set L
-    std::map<int, std::vector<double>> landmarks;
-    landmarks.emplace(seed_index, pts_left.at(seed_index));
-    pts_left.erase(seed_index); // remove seed landmark from X\L
+    pair<int, vector<double>> l_i = l_0;
+    while(true){
+        // update the list of covered points
+        map<int, vector<double>> Nk = Nk_check_plus(l_i, Y_all, k, Y_all);
+        for(const auto& x : Nk){ covered.insert(x); }
+        if(covered.size() >= num_pts){break;}
 
-    // map<int, vector<double>> lf = lastfirst(Y_all, Y_all);
-    // std::pair<int, std::vector<double>> l0 = lf.at(0);
-    // landmarks.insert(l0);
-    // // compute remaining landmarks
-    // while(true){
-    //     map<int, vector<double>> lf = lastfirst(landmarks, Y_all);
-    //     std::pair<int, std::vector<double>> li = lf.at(0);
-    //     landmarks.insert(li);
-    //
-    //     // break when ...
-    // }
+        // compute lf(L)
+        map<int, vector<double>> lf = lastfirst(landmarks, Y_all);
+
+        // choose li from lf(L) and add it to L
+        l_i = make_pair(lf.begin()->first, lf.begin()->second);
+        landmarks.insert(l_i);
+        pts_left.erase(l_i.first);
+    }
 
     // only return the indices of landmarks (not the values)
     std::vector<int> landmark_idx;
