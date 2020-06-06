@@ -13,56 +13,86 @@
 #'   `cardinality`.
 #' @name landmarks_neighborhood
 #' @param x a data matrix.
-#' @param y a data matrix, or `NULL` to recycle `x`.
-#' @param number the number of landmarks requested.
-#' @param cardinality the desired cardinality of each cover set.
-#' @param dist_method the distance metric to use. Any distance measure in the
-#'   \code{proxy} package is supported.
-#' @param seed_index the first landmark to seed the algorithm.
-#' @param shuffle_data whether to first randomly shuffle the data.
+#' @param dist_method a character string specifying the distance metric to use;
+#'   passed to `proxy::dist(method)`. Any distance measure in the \code{proxy}
+#'   package is supported.
+#' @param ties_method a character string specifying the method for handling
+#'   ties; passed to `rank(ties.method)`. Only `"min"` has been tested and is
+#'   recommended.
+#' @param pick_method a character string specifying the method for selecting
+#'   from indistinguishable points, either `"first"` (the default) or
+#'   `"random"`.
+#' @param number a positive integer; the desired number of landmark points, or
+#'   of sets in a neighborhood cover.
+#' @param cardinality a positive integer; the desired cardinality of each
+#'   landmark neighborhood, or of each set in a landmark cover.
+#' @param seed_index an integer (the first landmark to seed the algorithm) or
+#'   one of the character strings `"random"` (to select a seed uniformly at
+#'   random) and `"firstlast"` (to select a seed from the firstlast set).
+#' @param shuffle_data logical; whether to randomly shuffle the data before
+#'   running a procedure.
 NULL
 
 #' @rdname landmarks_neighborhood
 #' @export
-chebycenter_firstlast_R <- function(
-  x, y = NULL,
-  dist_method = "euclidean"
+firstlast_R <- function(
+  x,
+  dist_method = "euclidean", ties_method = "min"
 ) {
-  # validate inputs
-  stopifnot(is.matrix(x))
-  if (is.null(y)) y <- x
-  stopifnot(is.matrix(y))
 
-  # obtain the firstlast subset
-  # points in `x` that maximize the maximum-rank distance points in `y`
-  fl_idx <- seq(nrow(x))
-  for (i in rev(seq(nrow(y)))) {
-    rk_i <- apply(x[fl_idx, , drop = FALSE], 1, function(r) {
-      length(which(rank(proxy::dist(t(r), y, method = dist_method),
-                        ties.method = "max") == i))
-    })
-    fl_idx <- fl_idx[which(rk_i == min(rk_i))]
-    if (length(fl_idx) == 1L) break
+  # initialize colex-minimum out-rank-distance sequence
+  seq_min <- rep(nrow(x), nrow(x))
+  # initialize firstlast set
+  fl_idx <- integer(0)
+
+  # across all points
+  for (idx in seq(nrow(x))) {
+
+    # out-rank-distance sequence
+    seq_idx <- sort(rank(proxy::dist(x[idx, , drop = FALSE], x,
+                                     method = dist_method),
+                         ties.method = ties_method))
+    # latest rank at which it disagrees with the reigning minimum sequence
+    diff_last <- suppressWarnings(max(which(seq_idx != seq_min)))
+
+    if (diff_last == -Inf) {
+      # if equal to reigning minimum sequence, append to firstlast set
+      fl_idx <- c(fl_idx, idx)
+    } else if (seq_idx[[diff_last]] < seq_min[[diff_last]]) {
+      # if less than reigning minimum sequence, replace and reinitialize
+      seq_min <- seq_idx
+      fl_idx <- c(idx)
+    }
+
   }
 
-  fl_idx[[1L]]
+  # return firstlast subset
+  fl_idx
 }
 
 #' @rdname landmarks_neighborhood
 #' @export
 landmarks_lastfirst_R <- function(
-  x, number = NULL, cardinality = NULL,
-  dist_method = "euclidean", seed_index = 1L, shuffle_data = FALSE
+  x,
+  dist_method = "euclidean", ties_method = "min", pick_method = "first",
+  number = NULL, cardinality = NULL,
+  seed_index = 1L, shuffle_data = FALSE
 ) {
   # validate inputs
   stopifnot(is.matrix(x))
   stopifnot(toupper(dist_method) %in% toupper(proxy::pr_DB$get_entry_names()))
-  stopifnot(seed_index >= 1L && seed_index <= nrow(x))
 
-  # shuffle data if desired
-  if (shuffle_data){
-    x <- x[sample(nrow(x)), , drop = FALSE]
+  # handle seed selection
+  if (is.character(seed_index)) {
+    seed_index <- switch (
+      match.arg(seed_index, c("random", "firstlast")),
+      random = sample(nrow(x), size = 1L),
+      firstlast = firstlast_R(x,
+                              dist_method = dist_method,
+                              ties_method = ties_method)
+    )
   }
+  stopifnot(seed_index >= 1L && seed_index <= nrow(x))
 
   # initialize lastfirst, free, and landmark index sets
   lf_idx <- seed_index
@@ -81,24 +111,29 @@ landmarks_lastfirst_R <- function(
   for (i in seq_along(free_idx)) {
 
     # update vector of landmark points
-    lmk_idx[[i]] <- lf_idx[[1L]]
+    lmk_idx[[i]] <- lf_idx[[switch(
+      match.arg(pick_method, c("first", "random")),
+      first = 1L,
+      random = sample(length(lf_idx), 1L)
+    )]]
 
     # update vector of free points
     if (free_idx[[lmk_idx[[i]]]] == 0L)
-      stop("Landmark choice is a duplicate point.")
+      stop("A duplicate landmark point was selected, in error.")
     free_idx[[lmk_idx[[i]]]] <- 0L
 
-    # augment ranks from new landmark point
+    # augment in-ranks from new landmark point
     lmk_rank <- cbind(
+      # each row contains the in-ranks from previous landmark points
       lmk_rank,
-      rank(proxy::dist(x,
-                       x[lmk_idx[[i]], , drop = FALSE],
+      # in-ranks of all points from newest landmark point
+      rank(proxy::dist(x[lmk_idx[[i]], , drop = FALSE], x,
                        method = dist_method),
-           ties.method = "min")
+           ties.method = ties_method)
     )
-
-    # sort the points' rankings
+    # sort each available point's in-ranks to the landmark points
     lmk_rank[] <- t(apply(lmk_rank, 1L, sort))
+
     # refresh the minimum cardinality
     min_card <- max(lmk_rank[c(free_idx, lmk_idx), 1L])
     # drop ranks past minimum cardinality
@@ -127,6 +162,9 @@ landmarks_lastfirst_R <- function(
     # obtain the lastfirst subset
     lf_idx <- free_idx[free_idx != 0L]
     for (j in seq(ncol(lmk_rank))) {
+      # points with maximum revlex rank-in-distance counts
+      # = points with minimum lex rank-in-distance counts
+      # = points with maximum lex rank-in-distance sequence
       lf_idx <- lf_idx[lmk_rank[lf_idx, j] == max(lmk_rank[lf_idx, j])]
       if (length(lf_idx) == 1L) break
     }

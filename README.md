@@ -5,16 +5,23 @@
 
 Calculate landmark sets for finite metric spaces using the maxmin
 procedure (for fixed-radius balls) or an adaptation of it for rank data
-(for roughly fixed-cardinality nearest neighborhoods).
+(for roughly fixed-cardinality nearest
+neighborhoods).
 
 ``` r
-(x <- matrix(c(1, 2, 4, 4), dimnames = list(letters[1:4], "x")))
-#>   x
-#> a 1
-#> b 2
-#> c 4
-#> d 4
+(x <- matrix(c(-1, -.5, 0, .75, .875, 1), dimnames = list(letters[1:6], "x")))
+#>        x
+#> a -1.000
+#> b -0.500
+#> c  0.000
+#> d  0.750
+#> e  0.875
+#> f  1.000
+plot(cbind(x, 0), asp = 1, pch = 16)
+text(cbind(x, .05), labels = rownames(x))
 ```
+
+<img src="man/figures/README-example-1.png" width="100%" />
 
 ## `maxmin` procedure
 
@@ -27,51 +34,75 @@ point cloud with either of two minimal ball covers:
 <!-- end list -->
 
 ``` r
-landmarks_maxmin(x, eps = 3.5)
-#> [1] 1
-landmarks_maxmin(x, eps = 1.5)
-#> [1] 1 3
-landmarks_maxmin(x, eps = 0.5)
-#> [1] 1 3 2
+x[landmarks_maxmin(x, eps = 1.5), , drop = FALSE]
+#>    x
+#> a -1
+#> f  1
+x[landmarks_maxmin(x, eps = 0.5), , drop = FALSE]
+#>      x
+#> a -1.0
+#> f  1.0
+#> c  0.0
+#> b -0.5
+x[landmarks_maxmin(x, eps = 0.25), , drop = FALSE]
+#>       x
+#> a -1.00
+#> f  1.00
+#> c  0.00
+#> b -0.50
+#> d  0.75
+x[landmarks_maxmin(x, eps = 0.125), , drop = FALSE]
+#>        x
+#> a -1.000
+#> f  1.000
+#> c  0.000
+#> b -0.500
+#> d  0.750
+#> e  0.875
 ```
 
-## “`lastfirst`” procedure
+## `lastfirst` procedure
 
 An adaptation of `maxmin` to ranked distances will produce a landmark
 set for covering a point cloud with either of two minimal neighborhood
 covers:
 
-  - a minimum number of neighborhoods of roughly fixed common
+  - a minimum number of neighborhoods of fixed common approximate
     cardinality
-  - a fixed number of neighborhoods of minimal roughly common
-    cardinality
+  - a fixed number of neighborhoods of minimal approximate cardinality
 
-<!-- end list -->
+(Cardinality is only exact up to ties, which may be handled different
+ways.)
 
 ``` r
-landmarks_lastfirst_cory(x, cardinality = 4L, seed_index = 1L)
-#> [1] 1
-landmarks_lastfirst_cory(x, cardinality = 3L, seed_index = 1L)
-#> [1] 1
-landmarks_lastfirst_cory(x, cardinality = 2L, seed_index = 1L)
-#> [1] 1 3
-landmarks_lastfirst_cory(x, cardinality = 1L, seed_index = 1L)
-#> [1] 1 3 2
+x[landmarks_lastfirst_R(x, cardinality = 4L, seed_index = 1L), , drop = FALSE]
+#>    x
+#> a -1
+#> f  1
+x[landmarks_lastfirst_R(x, cardinality = 3L, seed_index = 1L), , drop = FALSE]
+#>    x
+#> a -1
+#> f  1
+x[landmarks_lastfirst_R(x, cardinality = 2L, seed_index = 1L), , drop = FALSE]
+#>       x
+#> a -1.00
+#> f  1.00
+#> c  0.00
+#> d  0.75
+x[landmarks_lastfirst_R(x, cardinality = 1L, seed_index = 1L), , drop = FALSE]
+#>        x
+#> a -1.000
+#> f  1.000
+#> c  0.000
+#> d  0.750
+#> b -0.500
+#> e  0.875
 ```
 
-# workflow
+# references
 
-Foundations have been adapted from `peekxc/Mapper`.
+This package was spun off from [the Mapper
+package](https://github.com/peekxc/Mapper/).
 
-We should each edit only our respective functions
-`landmarks_lastfirst_*()` as we attempt to implement the algorithm
-discussed on 2020-05-21, in the branches `lastfirst/*` (`cory` and
-`yara`: experimental; `main`: consolidated).
-
-If changes are made to other files then they should be committed to a
-new branch first.
-
-# reference
-
-Rigorous definitions, algorithms, examples, and exposition are underway
-at [this Overleaf project](https://www.overleaf.com/read/fpjrtgfjstyx).
+A rigorous mathematical treatment is underway at [this Overleaf
+project](https://www.overleaf.com/read/fpjrtgfjstyx).

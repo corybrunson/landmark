@@ -22,7 +22,9 @@ devtools::load_all()
 Calculate landmark sets for finite metric spaces using the maxmin procedure (for fixed-radius balls) or an adaptation of it for rank data (for roughly fixed-cardinality nearest neighborhoods).
 
 ```{r example}
-(x <- matrix(c(1, 2, 4, 4), dimnames = list(letters[1:4], "x")))
+(x <- matrix(c(-1, -.5, 0, .75, .875, 1), dimnames = list(letters[1:6], "x")))
+plot(cbind(x, 0), asp = 1, pch = 16)
+text(cbind(x, .05), labels = rownames(x))
 ```
 
 ## `maxmin` procedure
@@ -33,33 +35,30 @@ The original `maxmin` procedure produces a landmark set for covering a point clo
 * a fixed number of balls of minimum common radius
 
 ```{r maxmin example}
-landmarks_maxmin(x, eps = 3.5)
-landmarks_maxmin(x, eps = 1.5)
-landmarks_maxmin(x, eps = 0.5)
+x[landmarks_maxmin(x, eps = 1.5), , drop = FALSE]
+x[landmarks_maxmin(x, eps = 0.5), , drop = FALSE]
+x[landmarks_maxmin(x, eps = 0.25), , drop = FALSE]
+x[landmarks_maxmin(x, eps = 0.125), , drop = FALSE]
 ```
 
-## "`lastfirst`" procedure
+## `lastfirst` procedure
 
 An adaptation of `maxmin` to ranked distances will produce a landmark set for covering a point cloud with either of two minimal neighborhood covers:
 
-* a minimum number of neighborhoods of roughly fixed common cardinality
-* a fixed number of neighborhoods of minimal roughly common cardinality
+* a minimum number of neighborhoods of fixed common approximate cardinality
+* a fixed number of neighborhoods of minimal approximate cardinality
+
+(Cardinality is only exact up to ties, which may be handled different ways.)
 
 ```{r lastfirst example}
-landmarks_lastfirst_cory(x, cardinality = 4L, seed_index = 1L)
-landmarks_lastfirst_cory(x, cardinality = 3L, seed_index = 1L)
-landmarks_lastfirst_cory(x, cardinality = 2L, seed_index = 1L)
-landmarks_lastfirst_cory(x, cardinality = 1L, seed_index = 1L)
+x[landmarks_lastfirst_R(x, cardinality = 4L, seed_index = 1L), , drop = FALSE]
+x[landmarks_lastfirst_R(x, cardinality = 3L, seed_index = 1L), , drop = FALSE]
+x[landmarks_lastfirst_R(x, cardinality = 2L, seed_index = 1L), , drop = FALSE]
+x[landmarks_lastfirst_R(x, cardinality = 1L, seed_index = 1L), , drop = FALSE]
 ```
 
-# workflow
+# references
 
-Foundations have been adapted from `peekxc/Mapper`.
+This package was spun off from [the Mapper package](https://github.com/peekxc/Mapper/).
 
-We should each edit only our respective functions `landmarks_lastfirst_*()` as we attempt to implement the algorithm discussed on 2020-05-21, in the branches `lastfirst/*` (`cory` and `yara`: experimental; `main`: consolidated).
-
-If changes are made to other files then they should be committed to a new branch first.
-
-# reference
-
-Rigorous definitions, algorithms, examples, and exposition are underway at [this Overleaf project](https://www.overleaf.com/read/fpjrtgfjstyx).
+A rigorous mathematical treatment is underway at [this Overleaf project](https://www.overleaf.com/read/fpjrtgfjstyx).
