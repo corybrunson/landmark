@@ -4,14 +4,22 @@
 #include <Rcpp.h>
 #include <vector>
 
+enum Type {HAT, CHECK};
+enum Sign {PLUS, MINUS};
+
 int q_hat(std::vector<double> x, std::vector<double> y, std::map<int, std::vector<double>> Y_all);
 int q_check(std::vector<double> x, std::vector<double> y, std::map<int, std::vector<double>> Y_all);
 
+std::map<int, std::vector<double>> get_Nk(std::pair<int, std::vector<double>> x, std::map<int, std::vector<double>> Yp, int k, std::map<int, std::vector<double>> Y_all, Type t, Sign s);
 std::map<int, std::vector<double>> Nk_hat_plus(std::pair<int, std::vector<double>> x, std::map<int, std::vector<double>> Yp, int k, std::map<int, std::vector<double>> Y_all);
+std::map<int, std::vector<double>> Nk_hat_minus(std::pair<int, std::vector<double>> x, std::map<int, std::vector<double>> Yp, int k, std::map<int, std::vector<double>> Y_all);
 std::map<int, std::vector<double>> Nk_check_plus(std::pair<int, std::vector<double>> x, std::map<int, std::vector<double>> Yp, int k, std::map<int, std::vector<double>> Y_all);
 std::map<int, std::vector<double>> Nk_check_minus(std::pair<int, std::vector<double>> x, std::map<int, std::vector<double>> Yp, int k, std::map<int, std::vector<double>> Y_all);
 
+std::vector<int> get_Q(std::pair<int, std::vector<double>> x, std::map<int, std::vector<double>> Yp, std::map<int, std::vector<double>> Y_all, Type t, Sign s);
 std::vector<int> Q_hat_plus(std::pair<int, std::vector<double>> x, std::map<int, std::vector<double>> Yp, std::map<int, std::vector<double>> Y_all);
+std::vector<int> Q_hat_minus(std::pair<int, std::vector<double>> x, std::map<int, std::vector<double>> Yp, std::map<int, std::vector<double>> Y_all);
+std::vector<int> Q_check_plus(std::pair<int, std::vector<double>> x, std::map<int, std::vector<double>> Yp, std::map<int, std::vector<double>> Y_all);
 std::vector<int> Q_check_minus(std::pair<int, std::vector<double>> x, std::map<int, std::vector<double>> Yp, std::map<int, std::vector<double>> Y_all);
 
 int colex(std::vector<int> an, std::vector<int> bn);

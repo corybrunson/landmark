@@ -8,13 +8,7 @@ using namespace Rcpp;
 
 #include <iostream>
 using namespace std;
-
 using std::size_t;
-
-// follows the example from "Neighborhood draft" in detail
-
-enum Type {HAT, CHECK};
-enum Sign {PLUS, MINUS};
 
 void prettyprint_pts(map<int, vector<double>> s);
 void prettyprint_q(map<int, vector<double>> Y_all, Type t);
