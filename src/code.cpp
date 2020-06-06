@@ -120,12 +120,12 @@ IntegerVector landmarks_lastfirst_cpp(const NumericMatrix& x, const int k, const
         std::vector<double> point(vec.begin(),vec.end());
         Y_all.emplace(i, point);
     }
-    map<int, vector<double>> pts_left(Y_all); // store indices and values of Y\L
+    //map<int, vector<double>> pts_left(Y_all); // store indices and values of Y\L
 
     // choose l0 and add it to L
     pair<int, vector<double>> l_0(seed_index, Y_all.at(seed_index));
     landmarks.insert(l_0);
-    pts_left.erase(l_0.first); // remove l0 from list of points left
+    //pts_left.erase(l_0.first); // remove l0 from list of points left
 
     pair<int, vector<double>> l_i = l_0;
     while(true){
@@ -140,7 +140,7 @@ IntegerVector landmarks_lastfirst_cpp(const NumericMatrix& x, const int k, const
         // choose li from lf(L) and add it to L
         l_i = make_pair(lf.begin()->first, lf.begin()->second);
         landmarks.insert(l_i);
-        pts_left.erase(l_i.first);
+        //pts_left.erase(l_i.first);
     }
 
     // only return the indices of landmarks (not the values)
