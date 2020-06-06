@@ -13,7 +13,7 @@ inline double sq_dist(const NumericVector& x, const NumericVector& y){
 }
 
 // Uses the euclidean maxmin procedure to choose n landmarks.
-//' @rdname landmarks_maxmin
+//' @rdname landmarks_ball
 //' @export
 // [[Rcpp::export]]
 IntegerVector landmark_maxmin(const NumericMatrix& x, const int n, const int seed_index = 0) {

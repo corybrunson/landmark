@@ -27,11 +27,20 @@ point cloud with either of two minimal ball covers:
 <!-- end list -->
 
 ``` r
-landmarks_maxmin(x, eps = 3.5)
+landmarks_maxmin(x, radius = 3.5)
 #> [1] 1
-landmarks_maxmin(x, eps = 1.5)
+landmarks_maxmin(x, radius = 1.5)
 #> [1] 1 3
-landmarks_maxmin(x, eps = 0.5)
+landmarks_maxmin(x, radius = 0.5)
+#> [1] 1 3 2
+```
+
+``` r
+landmarks_maxmin_R(x, radius = 3.5)
+#> [1] 1
+landmarks_maxmin_R(x, radius = 1.5)
+#> [1] 1 3
+landmarks_maxmin_R(x, radius = 0.5)
 #> [1] 1 3 2
 ```
 

@@ -33,9 +33,15 @@ The original `maxmin` procedure produces a landmark set for covering a point clo
 * a fixed number of balls of minimum common radius
 
 ```{r maxmin example}
-landmarks_maxmin(x, eps = 3.5)
-landmarks_maxmin(x, eps = 1.5)
-landmarks_maxmin(x, eps = 0.5)
+landmarks_maxmin(x, radius = 3.5)
+landmarks_maxmin(x, radius = 1.5)
+landmarks_maxmin(x, radius = 0.5)
+```
+
+```{r maxmin example in R}
+landmarks_maxmin_R(x, radius = 3.5)
+landmarks_maxmin_R(x, radius = 1.5)
+landmarks_maxmin_R(x, radius = 0.5)
 ```
 
 ## "`lastfirst`" procedure
