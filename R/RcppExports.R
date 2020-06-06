@@ -19,3 +19,9 @@ landmark_maxmin <- function(x, n, seed_index = 0L) {
     .Call('_landmark_landmark_maxmin', PACKAGE = 'landmark', x, n, seed_index)
 }
 
+#' @rdname run_lf_example
+#' @export
+run_lf_example <- function(y, nhd_size) {
+    invisible(.Call('_landmark_run_lf_example', PACKAGE = 'landmark', y, nhd_size))
+}
+

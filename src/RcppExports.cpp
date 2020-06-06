@@ -45,11 +45,23 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// run_lf_example
+void run_lf_example(const NumericMatrix& y, int nhd_size);
+RcppExport SEXP _landmark_run_lf_example(SEXP ySEXP, SEXP nhd_sizeSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< int >::type nhd_size(nhd_sizeSEXP);
+    run_lf_example(y, nhd_size);
+    return R_NilValue;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_landmark_landmarks_maxmin_cpp", (DL_FUNC) &_landmark_landmarks_maxmin_cpp, 4},
     {"_landmark_landmarks_lastfirst_cpp", (DL_FUNC) &_landmark_landmarks_lastfirst_cpp, 3},
     {"_landmark_landmark_maxmin", (DL_FUNC) &_landmark_landmark_maxmin, 3},
+    {"_landmark_run_lf_example", (DL_FUNC) &_landmark_run_lf_example, 2},
     {NULL, NULL, 0}
 };
 
