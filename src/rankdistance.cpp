@@ -36,7 +36,6 @@ int q_check(vector<double> x, vector<double> y, map<int, vector<double>> Y_all){
     for(const auto& z : Y_all){
         if(dist_euc(x,z.second) < dist_euc(x,y)){q++;}
     }
-
     return(q+1);
 }
 
@@ -44,11 +43,9 @@ int q_check(vector<double> x, vector<double> y, map<int, vector<double>> Y_all){
 map<int, vector<double>> Nk_hat_plus(pair<int, vector<double>> x, map<int, vector<double>> Yp, int k,  map<int, vector<double>> Y_all){
     map<int, vector<double>> Nk;
     for(const auto& y : Yp){
-        //int q = q_hat(x.second, y.second, Yp);
         int q = q_hat(x.second, y.second, Y_all);
         if(q <= k){Nk.insert(y);}
     }
-
     return(Nk);
 }
 
@@ -70,7 +67,6 @@ map<int, vector<double>> Nk_check_minus(pair<int, vector<double>> x, map<int, ve
         int q = q_check(y.second, x.second, Y_all);
         if(q <= k){Nk.insert(y);}
     }
-
     return(Nk);
 }
 
@@ -83,7 +79,6 @@ vector<int> Q_hat_plus(pair<int, vector<double>> x, map<int, vector<double>> Yp,
         map<int, vector<double>> Nk = Nk_hat_plus(x, Yp, i, Y_all);
         q[i-1] = Nk.size();
     }
-
     return(q);
 }
 
@@ -94,10 +89,8 @@ vector<int> Q_check_minus(pair<int, vector<double>> x, map<int, vector<double>> 
     // Compute Nk for k=0 up to N
     for(int i = 1; i <= bigN; i++){
         map<int, vector<double>> Nk = Nk_check_minus(x, Yp, i, Y_all);
-        //q.emplace(i, Nk.size());
         q[i-1] = Nk.size();
     }
-
     return(q);
 }
 
@@ -109,12 +102,10 @@ int colex(vector<int> an, vector<int> bn){
     for(int i = an.size()-1; i >= 0; i--){
         if(an[i] != bn[i]){
             if(an[i] < bn[i]){
-                //cout << "\n"<< i << " : " << an[i] << " < " << bn[i];
                 ret = -1;
                 break;
             }
             else{
-                //cout << "\n"<< i << " : " << an[i] << " > " << bn[i];
                 ret = 1;
                 break;
             }
@@ -147,7 +138,6 @@ int revlex(vector<int> an, vector<int> bn){
 map<int, vector<double>> firstlast(map<int, vector<double>> Yp, map<int, vector<double>> Y_all){
     map<int, vector<double>> fl;
     int length = Y_all.size();
-    //map<int, vector<int>> Qs;
 
     map<int, vector<double>> pts_left(Y_all);
     for(const auto& y : Yp){
@@ -155,12 +145,9 @@ map<int, vector<double>> firstlast(map<int, vector<double>> Yp, map<int, vector<
     }
 
     // compute all Q(x,Y') and find the min
-    //vector<int> minQ(length, 0);
     vector<int> minQ(length, INT_MAX);
-    //for(const auto& y : Y_all){
     for(const auto& y : pts_left){
         vector<int> newQ = Q_hat_plus(y, Yp, Y_all);
-        //Qs.insert(y.first, newQ);
 
         // this Q is equal to the old min -> add this point to fl
         if(colex(newQ, minQ) == 0){
@@ -174,12 +161,6 @@ map<int, vector<double>> firstlast(map<int, vector<double>> Yp, map<int, vector<
             fl.emplace(y.first, Y_all.at(y.first));
         }
     }
-
-    // // add any x where Q(x,y') == minQ to fl(Y')
-    // for(const auto& q : Qs){
-    //     if(q.second == minQ){fl.insert(q.first, Y_all.at(q.first))}
-    // }
-
     return(fl);
 }
 
@@ -195,7 +176,6 @@ map<int, vector<double>> lastfirst(map<int, vector<double>> Yp, map<int, vector<
 
     // compute all Q(x,Y') and find the min
     vector<int> maxQ(length, INT_MAX);
-    //for(const auto& y : Y_all){
     for(const auto& y : pts_left){
         vector<int> newQ = Q_check_minus(y, Yp, Y_all);
 
@@ -211,6 +191,5 @@ map<int, vector<double>> lastfirst(map<int, vector<double>> Yp, map<int, vector<
             lf.emplace(y.first, Y_all.at(y.first));
         }
     }
-
     return(lf);
 }
