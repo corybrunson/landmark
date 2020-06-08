@@ -5,6 +5,33 @@
 
 using namespace Rcpp;
 
+// landmarks_maxmin_cpp
+IntegerVector landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets, float radius, const int seed_index);
+RcppExport SEXP _landmark_landmarks_maxmin_cpp(SEXP xSEXP, SEXP num_setsSEXP, SEXP radiusSEXP, SEXP seed_indexSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< int >::type num_sets(num_setsSEXP);
+    Rcpp::traits::input_parameter< float >::type radius(radiusSEXP);
+    Rcpp::traits::input_parameter< const int >::type seed_index(seed_indexSEXP);
+    rcpp_result_gen = Rcpp::wrap(landmarks_maxmin_cpp(x, num_sets, radius, seed_index));
+    return rcpp_result_gen;
+END_RCPP
+}
+// landmarks_lastfirst_cpp
+IntegerVector landmarks_lastfirst_cpp(const NumericMatrix& x, const int cardinality, const int seed_index);
+RcppExport SEXP _landmark_landmarks_lastfirst_cpp(SEXP xSEXP, SEXP cardinalitySEXP, SEXP seed_indexSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const int >::type cardinality(cardinalitySEXP);
+    Rcpp::traits::input_parameter< const int >::type seed_index(seed_indexSEXP);
+    rcpp_result_gen = Rcpp::wrap(landmarks_lastfirst_cpp(x, cardinality, seed_index));
+    return rcpp_result_gen;
+END_RCPP
+}
 // landmark_maxmin
 IntegerVector landmark_maxmin(const NumericMatrix& x, const int n, const int seed_index);
 RcppExport SEXP _landmark_landmark_maxmin(SEXP xSEXP, SEXP nSEXP, SEXP seed_indexSEXP) {
@@ -18,9 +45,23 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// run_lf_example
+void run_lf_example(const NumericMatrix& y, int nhd_size);
+RcppExport SEXP _landmark_run_lf_example(SEXP ySEXP, SEXP nhd_sizeSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< int >::type nhd_size(nhd_sizeSEXP);
+    run_lf_example(y, nhd_size);
+    return R_NilValue;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_landmark_landmarks_maxmin_cpp", (DL_FUNC) &_landmark_landmarks_maxmin_cpp, 4},
+    {"_landmark_landmarks_lastfirst_cpp", (DL_FUNC) &_landmark_landmarks_lastfirst_cpp, 3},
     {"_landmark_landmark_maxmin", (DL_FUNC) &_landmark_landmark_maxmin, 3},
+    {"_landmark_run_lf_example", (DL_FUNC) &_landmark_run_lf_example, 2},
     {NULL, NULL, 0}
 };
 
