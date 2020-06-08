@@ -24,10 +24,12 @@ landmarks_maxmin_cpp <- function(x, num_sets = 0L, radius = 0, seed_index = 0L) 
 #' @param x a data matrix.
 #' @param cardinality a positive integer; the desired cardinality of each
 #'   landmark neighborhood, or of each set in a landmark cover.
+#' @param num_sets a positive integer; the desired number of landmark points, or
+#'   number of sets in a neighborhood cover.
 #' @param seed_index an integer (the first landmark to seed the algorithm)
 #' @export
-landmarks_lastfirst_cpp <- function(x, cardinality, seed_index = 0L) {
-    .Call('_landmark_landmarks_lastfirst_cpp', PACKAGE = 'landmark', x, cardinality, seed_index)
+landmarks_lastfirst_cpp <- function(x, num_sets = 0L, cardinality = 0L, seed_index = 0L) {
+    .Call('_landmark_landmarks_lastfirst_cpp', PACKAGE = 'landmark', x, num_sets, cardinality, seed_index)
 }
 
 #' @rdname landmarks_maxmin
