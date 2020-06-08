@@ -106,15 +106,25 @@ IntegerVector landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, flo
 //' @param x a data matrix.
 //' @param cardinality a positive integer; the desired cardinality of each
 //'   landmark neighborhood, or of each set in a landmark cover.
+//' @param num_sets a positive integer; the desired number of landmark points, or
+//'   number of sets in a neighborhood cover.
 //' @param seed_index an integer (the first landmark to seed the algorithm)
 //' @export
 // [[Rcpp::export]]
-IntegerVector landmarks_lastfirst_cpp(const NumericMatrix& x, const int cardinality, const int seed_index = 0) {
+IntegerVector landmarks_lastfirst_cpp(const NumericMatrix& x, int num_sets = 0, int cardinality = 0, const int seed_index = 0) {
     int num_pts = x.nrow();
 
     // error handling
-    if(cardinality < 1 || cardinality > num_pts){stop("Parameter 'k' must be >= 1 and <= number of data points.");}
+    if(cardinality < 1 || cardinality > num_pts){stop("Parameter 'cardinality' must be >= 1 and <= number of data points.");}
+    if(num_sets < 0){stop("Parameter 'num_sets' must be >= 1.");}
     if(seed_index < 0 || seed_index >= num_pts){stop("Parameter 'seed_index' must be >=1 and <= number of data points.");}
+
+    // additional parameter handling
+    if(num_sets > num_pts){
+        warning("Warning: parameter 'num_sets' was > max allowable value. Setting num_sets = number of data points.");
+        num_sets = num_pts;
+    }
+    if(cardinality == 0){cardinality = num_pts;}
 
     map<int, vector<double>> Y_all; // whole space Y
     map<int, vector<double>> landmarks; // landmark set L
@@ -139,8 +149,8 @@ IntegerVector landmarks_lastfirst_cpp(const NumericMatrix& x, const int cardinal
         map<int, vector<double>> Nk = Nk_check_plus(l_i, Y_all, cardinality, Y_all);
         for(const auto& x : Nk){ covered.insert(x); }
 
-        // exit if all points in X are covered
-        if(covered.size() >= num_pts){break;}
+        // exit if all points in X are covered and enough landmarks have been chosen
+        if(covered.size() >= num_pts && landmarks.size() >= num_sets){break;}
 
         // compute lf(L), then choose li from lf(L) and add it to L
         map<int, vector<double>> lf = lastfirst(landmarks, Y_all);
