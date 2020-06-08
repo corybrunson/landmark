@@ -1,4 +1,5 @@
 #' @title Maxmin-generated Landmarks
+#' @author Matt Piekenbrock
 #' @description Computes a set of \code{n} landmarks of a point cloud.
 #' @details This function uses the greedy maxmin procedure to produce a set of
 #'   \code{n} evenly spaced landmark points in the data set \code{x}. Maxmin is

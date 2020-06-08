@@ -50,3 +50,6 @@ using witness complexes." SPBG 4 (2004): 157-166.
 Dłotko, Paweł. "Ball Mapper: A Shape Summary for Topological Data
 Analysis." (2019). Web.
 }
+\author{
+Matt Piekenbrock
+}
