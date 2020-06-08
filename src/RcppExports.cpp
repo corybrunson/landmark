@@ -6,29 +6,29 @@
 using namespace Rcpp;
 
 // landmarks_maxmin_cpp
-IntegerVector landmarks_maxmin_cpp(const NumericMatrix& x, int n, float eps, const int seed_index);
-RcppExport SEXP _landmark_landmarks_maxmin_cpp(SEXP xSEXP, SEXP nSEXP, SEXP epsSEXP, SEXP seed_indexSEXP) {
+IntegerVector landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets, float radius, const int seed_index);
+RcppExport SEXP _landmark_landmarks_maxmin_cpp(SEXP xSEXP, SEXP num_setsSEXP, SEXP radiusSEXP, SEXP seed_indexSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const NumericMatrix& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< int >::type n(nSEXP);
-    Rcpp::traits::input_parameter< float >::type eps(epsSEXP);
+    Rcpp::traits::input_parameter< int >::type num_sets(num_setsSEXP);
+    Rcpp::traits::input_parameter< float >::type radius(radiusSEXP);
     Rcpp::traits::input_parameter< const int >::type seed_index(seed_indexSEXP);
-    rcpp_result_gen = Rcpp::wrap(landmarks_maxmin_cpp(x, n, eps, seed_index));
+    rcpp_result_gen = Rcpp::wrap(landmarks_maxmin_cpp(x, num_sets, radius, seed_index));
     return rcpp_result_gen;
 END_RCPP
 }
 // landmarks_lastfirst_cpp
-IntegerVector landmarks_lastfirst_cpp(const NumericMatrix& x, const int k, const int seed_index);
-RcppExport SEXP _landmark_landmarks_lastfirst_cpp(SEXP xSEXP, SEXP kSEXP, SEXP seed_indexSEXP) {
+IntegerVector landmarks_lastfirst_cpp(const NumericMatrix& x, const int cardinality, const int seed_index);
+RcppExport SEXP _landmark_landmarks_lastfirst_cpp(SEXP xSEXP, SEXP cardinalitySEXP, SEXP seed_indexSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const NumericMatrix& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const int >::type k(kSEXP);
+    Rcpp::traits::input_parameter< const int >::type cardinality(cardinalitySEXP);
     Rcpp::traits::input_parameter< const int >::type seed_index(seed_indexSEXP);
-    rcpp_result_gen = Rcpp::wrap(landmarks_lastfirst_cpp(x, k, seed_index));
+    rcpp_result_gen = Rcpp::wrap(landmarks_lastfirst_cpp(x, cardinality, seed_index));
     return rcpp_result_gen;
 END_RCPP
 }

@@ -3,6 +3,9 @@
 
 #include <Rcpp.h>
 #include <vector>
+#include <functional>
+#include <algorithm>
+#include <iostream>
 
 enum Type {HAT, CHECK};
 enum Sign {PLUS, MINUS};
