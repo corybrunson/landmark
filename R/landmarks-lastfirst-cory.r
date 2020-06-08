@@ -1,4 +1,5 @@
 #' @title Firstlast-generated Landmarks
+#' @author Jason Cory Brunson
 #' @description Computes a landmark set based on nearest neighborhoods.
 #' @details This function adapts the maxmin procedure to produce landmark points
 #'   dispersed according to the orders in which they are reached from each

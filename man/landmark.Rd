@@ -9,3 +9,10 @@ Calculate landmark sets for finite metric spaces using the
 maxmin procedure (for fixed-radius balls) or an adaptation of it for rank
 data (for roughly fixed-cardinality nearest neighborhoods).
 }
+\author{
+Matt Piekenbrock
+
+Jason Cory Brunson
+
+Yara Skaf
+}
