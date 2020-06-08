@@ -52,4 +52,6 @@ Analysis." (2019). Web.
 }
 \author{
 Matt Piekenbrock
+
+Jason Cory Brunson
 }

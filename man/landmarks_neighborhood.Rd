@@ -64,4 +64,6 @@ increased until the cardinality necessary to cover \code{x} is at most
 }
 \author{
 Jason Cory Brunson
+
+Yara Skaf
 }

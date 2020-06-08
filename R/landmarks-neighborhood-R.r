@@ -1,5 +1,6 @@
 #' @title Neighborhood-based Landmark Sets
 #' @author Jason Cory Brunson
+#' @author Yara Skaf
 #' @description Compute landmark sets based on nearest neighborhoods.
 #' @details These functions adapt the maxmin procedure to produce landmark
 #'   points dispersed according to the orders in which they are reached from
