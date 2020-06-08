@@ -1,8 +1,8 @@
 ////////////////////////////////////////////////////////////////////////////////
-// ' @title Maxmin + Neighborhood-based Landmark Sets
-// ' @author Matt Piekenbrock
-// ' @author Jason Cory Brunson
-// ' @author Yara Skaf
+//' @title Maxmin + Neighborhood-based Landmark Sets
+//' @author Matt Piekenbrock
+//' @author Jason Cory Brunson
+//' @author Yara Skaf
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "rankdistance.h"
@@ -28,14 +28,14 @@ inline double dist_euc(vector<double> x, vector<double> y){
 // Uses the maxmin procedure to choose num_sets landmarks for balls of radius radius.
 // NOTE: Rcpp does now allow use of c++ constant (e.g. FLT_MAX) in parameters
 //      -> must specify default radius=INF within function
-// ' @rdname landmarks_maxmin_cpp
-// ' @description Compute landmark points using maxmin procedure.
-// ' @param x a data matrix.
-// ' @param num_sets a positive integer; the desired number of landmark points, or
-// '   number of sets in a ball cover.
-// ' @param radius a positive real number; the desired radius of each cover set.
-// ' @param seed_index an integer (the first landmark to seed the algorithm)
-// ' @export
+//' @rdname landmarks_maxmin
+//' @description Compute landmark points using maxmin procedure.
+//' @param x a data matrix.
+//' @param num_sets a positive integer; the desired number of landmark points, or
+//'   number of sets in a ball cover.
+//' @param radius a positive real number; the desired radius of each cover set.
+//' @param seed_index an integer (the first landmark to seed the algorithm)
+//' @export
 // [[Rcpp::export]]
 IntegerVector landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, float radius = 0, const int seed_index = 0) {
     int num_pts = x.nrow();
@@ -101,13 +101,13 @@ IntegerVector landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, flo
 
 
 // Uses the euclidean lastfirst procedure to choose landmarks for nhds of size cardinality.
-// ' @rdname landmarks_lastfirst_cpp
-// ' @description Compute landmark points using maxmin procedure.
-// ' @param x a data matrix.
-// ' @param cardinality a positive integer; the desired cardinality of each
-// '   landmark neighborhood, or of each set in a landmark cover.
-// ' @param seed_index an integer (the first landmark to seed the algorithm)
-// ' @export
+//' @rdname landmarks_lastfirst
+//' @description Compute landmark points using maxmin procedure.
+//' @param x a data matrix.
+//' @param cardinality a positive integer; the desired cardinality of each
+//'   landmark neighborhood, or of each set in a landmark cover.
+//' @param seed_index an integer (the first landmark to seed the algorithm)
+//' @export
 // [[Rcpp::export]]
 IntegerVector landmarks_lastfirst_cpp(const NumericMatrix& x, const int cardinality, const int seed_index = 0) {
     int num_pts = x.nrow();
