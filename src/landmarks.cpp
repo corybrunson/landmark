@@ -62,8 +62,11 @@ IntegerVector landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, flo
 
     // store indices and values of landmark set L
     map<int, vector<double>> landmarks;
-    landmarks.emplace(seed_index, pts_left.at(seed_index));
-    pts_left.erase(seed_index); // remove seed landmark from X\L
+    vector<double> seed_val = pts_left.at(seed_index);
+    landmarks.emplace(seed_index, seed_val);
+
+    // remove seed landmark (and any duplicates) from X\L
+    for (const auto& x : pts_left){ if(x.second == seed_val){pts_left.erase(x.first);} }
 
     // keep track of order in which landmarks were added
     vector<int> ordered_landmarks;
@@ -71,8 +74,9 @@ IntegerVector landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, flo
 
     // compute remaining landmarks
     while(true){
+        map<int, vector<double>> maxmin;
         double d_max = 0;
-        std::pair<int, std::vector<double>> max;
+
         // find max(d(x,L)) for x in X
         for(const auto& pt : pts_left){
             double d_min = DBL_MAX;
@@ -81,18 +85,31 @@ IntegerVector landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, flo
                 double d = dist_euc(l.second, pt.second);
                 if(d < d_min){d_min = d;}
             }
+
+            // d_min is equal to the old max -> add this point to maxmin
+            if(d_min == d_max){
+                maxmin.insert(pt);
+            }
+
+            // TODO: potential issue if two distinct points have identical distances to L
+            // we have a new max -> clear out maxmin and add this point instead
             if(d_min > d_max){
                 d_max = d_min;
-                max = pt;
+                maxmin.clear();
+                maxmin.insert(pt);
             }
         }
         // done if farthest point is within radius and we have enough landmarks
         if(d_max <= radius && landmarks.size() >= num_sets){break;} // TODO: this occurs one extra time because of c
 
         // otherwise add new max to L and remove from X\L
-        ordered_landmarks.push_back(max.first);
-        landmarks.insert(max);
-        pts_left.erase(max.first);
+        pair<int, vector<double>> l_i = make_pair(maxmin.begin()->first, maxmin.begin()->second);
+        ordered_landmarks.push_back(l_i.first);
+        landmarks.insert(l_i);
+
+        // remove all points at this center
+        for(const auto& pt : maxmin){ pts_left.erase(pt.first); }
+        if(pts_left.size() <= 0){break;} // exit if all points are covered
     }
     // only return the indices of landmarks (not the values)
     IntegerVector ret = wrap(ordered_landmarks); // wrap into R data type
