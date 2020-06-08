@@ -13,12 +13,12 @@ test_that("landmarks are generated", {
   # maxmin landmarks in C++
   expect_silent(mm_lmk_cpp <- landmarks_maxmin_cpp(
     multipoints,
-    num_sets = length(multipoints)
+    num_sets = nrow(multipoints)
   ))
   # maxmin landmarks in R
   expect_silent(mm_lmk_r <- landmarks_maxmin(
     multipoints,
-    n = length(multipoints)
+    n = nrow(multipoints)
   ))
 })
 
@@ -32,12 +32,12 @@ test_that("landmarks are generated", {
   # lastfirst landmarks in C++
   expect_silent(lf_lmk_cpp <- landmarks_lastfirst_cpp(
     multipoints,
-    num_sets = length(multipoints)
+    num_sets = nrow(multipoints)
   ))
   # lastfirst landmarks in R
   expect_silent(lf_lmk_r <- landmarks_lastfirst_cory(
     multipoints,
-    number = length(multipoints)
+    number = nrow(multipoints)
   ))
 })
 
