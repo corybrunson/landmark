@@ -65,6 +65,10 @@ IntegerVector landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, flo
     landmarks.emplace(seed_index, pts_left.at(seed_index));
     pts_left.erase(seed_index); // remove seed landmark from X\L
 
+    // keep track of order in which landmarks were added
+    vector<int> ordered_landmarks;
+    ordered_landmarks.push_back(seed_index);
+
     // compute remaining landmarks
     while(true){
         double d_max = 0;
@@ -86,14 +90,12 @@ IntegerVector landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, flo
         if(d_max <= radius && landmarks.size() >= num_sets){break;} // TODO: this occurs one extra time because of c
 
         // otherwise add new max to L and remove from X\L
+        ordered_landmarks.push_back(max.first);
         landmarks.insert(max);
         pts_left.erase(max.first);
     }
     // only return the indices of landmarks (not the values)
-    vector<int> landmark_idx;
-    for (const auto& l : landmarks){landmark_idx.push_back(l.first);}
-
-    IntegerVector ret = wrap(landmark_idx); // wrap into R data type
+    IntegerVector ret = wrap(ordered_landmarks); // wrap into R data type
     return(ret+1); // switch to 1-based indexing for return
 }
 
@@ -117,6 +119,7 @@ IntegerVector landmarks_lastfirst_cpp(const NumericMatrix& x, const int cardinal
     map<int, vector<double>> Y_all; // whole space Y
     map<int, vector<double>> landmarks; // landmark set L
     map<int, vector<double>> covered; // store union of Nk check plus over all landmarks
+    vector<int> ordered_landmarks; // keep track of order in which landmarks were added
 
     // store indices and values of X\L
     for(int i = 0; i < num_pts; i++){
@@ -124,34 +127,29 @@ IntegerVector landmarks_lastfirst_cpp(const NumericMatrix& x, const int cardinal
         vector<double> point(vec.begin(),vec.end());
         Y_all.emplace(i, point);
     }
-    //map<int, vector<double>> pts_left(Y_all); // store indices and values of Y\L
 
     // choose l0 and add it to L
     pair<int, vector<double>> l_0(seed_index, Y_all.at(seed_index));
+    ordered_landmarks.push_back(seed_index);
     landmarks.insert(l_0);
-    //pts_left.erase(l_0.first); // remove l0 from list of points left
 
     pair<int, vector<double>> l_i = l_0;
     while(true){
         // update the list of covered points
         map<int, vector<double>> Nk = Nk_check_plus(l_i, Y_all, cardinality, Y_all);
         for(const auto& x : Nk){ covered.insert(x); }
+
+        // exit if all points in X are covered
         if(covered.size() >= num_pts){break;}
 
-        // compute lf(L)
+        // compute lf(L), then choose li from lf(L) and add it to L
         map<int, vector<double>> lf = lastfirst(landmarks, Y_all);
-
-        // choose li from lf(L) and add it to L
         l_i = make_pair(lf.begin()->first, lf.begin()->second);
+        ordered_landmarks.push_back(l_i.first);
         landmarks.insert(l_i);
-        //pts_left.erase(l_i.first);
     }
-
     // only return the indices of landmarks (not the values)
-    vector<int> landmark_idx;
-    for (const auto& l : landmarks){landmark_idx.push_back(l.first);}
-
-    IntegerVector ret = wrap(landmark_idx); // wrap into R data type
+    IntegerVector ret = wrap(ordered_landmarks); // wrap into R data type
     return(ret+1); // switch to 1-based indexing for return
 }
 
