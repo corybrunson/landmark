@@ -57,3 +57,6 @@ This function adapts the maxmin procedure to produce landmark points
 dispersed according to the orders in which they are reached from each
 other, rather than to their distances from each other. (Say more.)
 }
+\author{
+Jason Cory Brunson
+}

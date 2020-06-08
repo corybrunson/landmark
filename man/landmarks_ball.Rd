@@ -70,5 +70,7 @@ Dłotko, Paweł. "Ball Mapper: A Shape Summary for Topological Data
 Analysis." (2019). Web.
 }
 \author{
-Matt Piekenbrock and Jason Cory Brunson
+Matt Piekenbrock
+
+Jason Cory Brunson
 }

@@ -1,5 +1,6 @@
 #' @title Ball-based Landmark Sets
-#' @author Matt Piekenbrock and Jason Cory Brunson
+#' @author Matt Piekenbrock
+#' @author Jason Cory Brunson
 #' @description Compute landmark sets based on fixed-radius balls.
 #' @details This function uses the maxmin procedure to produce a set of evenly
 #'   spaced landmark points from a data set}. Maxmin is a simple greedy
