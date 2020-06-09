@@ -8,7 +8,7 @@
 \alias{landmarks_lastfirst_yara}
 \title{Firstlast-generated Landmarks}
 \usage{
-landmarks_lastfirst_cpp(x, cardinality, seed_index = 0L)
+landmarks_lastfirst_cpp(x, num_sets = 0L, cardinality = 0L, seed_index = 0L)
 
 landmarks_lastfirst_cory(
   x,
@@ -30,6 +30,9 @@ landmarks_lastfirst_yara(
 }
 \arguments{
 \item{x}{a data matrix.}
+
+\item{num_sets}{a positive integer; the desired number of landmark points, or
+number of sets in a neighborhood cover.}
 
 \item{cardinality}{the desired cardinality of each cover set.}
 
