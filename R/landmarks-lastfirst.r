@@ -6,13 +6,13 @@
 #'   points dispersed according to the orders in which they are reached from
 #'   each other, rather than to their distances from each other. (Say more.)
 #'
-#'   One, both, or neither of `number` and `cardinality` may be passed values.
+#'   One, both, or neither of `num_sets` and `cardinality` may be passed values.
 #'   If neither is specified, then `cardinality` is internally set to `1L` so
 #'   that a complete landmark set is generated. If the values yield
-#'   neighborhoods that do not cover `x`, then, effectively, `number` is
+#'   neighborhoods that do not cover `x`, then, effectively, `num_sets` is
 #'   increased until the cardinality necessary to cover `x` is at most
 #'   `cardinality`.
-#' @name landmarks_neighborhood
+#' @name landmarks_lastfirst
 #' @param x a data matrix.
 #' @param dist_method a character string specifying the distance metric to use;
 #'   passed to `proxy::dist(method)`. Any distance measure in the \code{proxy}
@@ -23,7 +23,7 @@
 #' @param pick_method a character string specifying the method for selecting
 #'   from indistinguishable points, either `"first"` (the default) or
 #'   `"random"`.
-#' @param number a positive integer; the desired number of landmark points, or
+#' @param num_sets a positive integer; the desired number of landmark points, or
 #'   of sets in a neighborhood cover.
 #' @param cardinality a positive integer; the desired cardinality of each
 #'   landmark neighborhood, or of each set in a landmark cover.
@@ -34,7 +34,7 @@
 #'   running a procedure.
 NULL
 
-#' @rdname landmarks_neighborhood
+#' @rdname landmarks_lastfirst
 #' @export
 firstlast_R <- function(
   x,
@@ -71,12 +71,12 @@ firstlast_R <- function(
   fl_idx
 }
 
-#' @rdname landmarks_neighborhood
+#' @rdname landmarks_lastfirst
 #' @export
 landmarks_lastfirst_R <- function(
   x,
   dist_method = "euclidean", ties_method = "min", pick_method = "first",
-  number = NULL, cardinality = NULL,
+  num_sets = NULL, cardinality = NULL,
   seed_index = 1L, shuffle_data = FALSE
 ) {
   # validate inputs
@@ -105,8 +105,8 @@ landmarks_lastfirst_R <- function(
   lmk_rank <- matrix(NA, nrow = nrow(x), ncol = 0)
 
   # require a number of neighborhoods or a neighborhood cardinality (or both)
-  #if (is.null(number) && is.null(cardinality)) number <- length(free_idx)
-  if (is.null(number) && is.null(cardinality)) cardinality <- 1L
+  #if (is.null(num_sets) && is.null(cardinality)) num_sets <- length(free_idx)
+  if (is.null(num_sets) && is.null(cardinality)) cardinality <- 1L
 
   # recursively construct landmark set
   for (i in seq_along(free_idx)) {
@@ -144,9 +144,9 @@ landmarks_lastfirst_R <- function(
     # exhaustion breaks
     if (all(free_idx == 0L)) break
     # parameter breaks
-    if (! is.null(number)) {
+    if (! is.null(num_sets)) {
       # discontinue if the desired number of sets has been reached
-      if (i >= number) {
+      if (i >= num_sets) {
         # discontinue if there is no cardinality requirement
         if (is.null(cardinality)) {
           break
@@ -173,12 +173,12 @@ landmarks_lastfirst_R <- function(
   }
 
   # print warnings if a parameter was adjusted
-  if (! is.null(number)) {
-    if (i > number) {
-      warning("Cover required ", i, " (> number = ", number, ") ",
+  if (! is.null(num_sets)) {
+    if (i > num_sets) {
+      warning("Cover required ", i, " (> num_sets = ", num_sets, ") ",
               "sets of cardinality ", cardinality, ".")
-    } else if (i < number) {
-      warning("Only ", i, " (< number = ", number, ") ",
+    } else if (i < num_sets) {
+      warning("Only ", i, " (< num_sets = ", num_sets, ") ",
               "distinct landmark points were found.")
     }
   }

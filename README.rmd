@@ -34,11 +34,17 @@ The original `maxmin` procedure produces a landmark set for covering a point clo
 * a minimum number of balls of fixed common radius
 * a fixed number of balls of minimum common radius
 
-```{r maxmin example}
-x[landmarks_maxmin(x, eps = 1.5), , drop = FALSE]
-x[landmarks_maxmin(x, eps = 0.5), , drop = FALSE]
-x[landmarks_maxmin(x, eps = 0.25), , drop = FALSE]
-x[landmarks_maxmin(x, eps = 0.125), , drop = FALSE]
+```{r maxmin example in C++}
+x[landmarks_maxmin_cpp(x, radius = 1.5), , drop = FALSE]
+x[landmarks_maxmin_cpp(x, radius = 0.5), , drop = FALSE]
+x[landmarks_maxmin_cpp(x, radius = 0.25), , drop = FALSE]
+x[landmarks_maxmin_cpp(x, radius = 0.125), , drop = FALSE]
+```
+
+```{r maxmin example in R}
+x[landmarks_maxmin_R(x, radius = 3.5), , drop = FALSE]
+x[landmarks_maxmin_R(x, radius = 1.5), , drop = FALSE]
+x[landmarks_maxmin_R(x, radius = 0.5), , drop = FALSE]
 ```
 
 ## `lastfirst` procedure
@@ -50,10 +56,16 @@ An adaptation of `maxmin` to ranked distances will produce a landmark set for co
 
 (Cardinality is only exact up to ties, which may be handled different ways.)
 
-```{r lastfirst example}
-x[landmarks_lastfirst_R(x, cardinality = 4L, seed_index = 1L), , drop = FALSE]
+```{r lastfirst example in C++}
+x[landmarks_lastfirst_cpp(x, cardinality = 4L, seed_index = 1L), , drop = FALSE]
+x[landmarks_lastfirst_cpp(x, cardinality = 3L, seed_index = 1L), , drop = FALSE]
+x[landmarks_lastfirst_cpp(x, cardinality = 2L, seed_index = 1L), , drop = FALSE]
+x[landmarks_lastfirst_cpp(x, cardinality = 1L, seed_index = 1L), , drop = FALSE]
+```
+
+```{r lastfirst example in R}
+x[landmarks_lastfirst_R(x, cardinality = 5L, seed_index = 1L), , drop = FALSE]
 x[landmarks_lastfirst_R(x, cardinality = 3L, seed_index = 1L), , drop = FALSE]
-x[landmarks_lastfirst_R(x, cardinality = 2L, seed_index = 1L), , drop = FALSE]
 x[landmarks_lastfirst_R(x, cardinality = 1L, seed_index = 1L), , drop = FALSE]
 ```
 

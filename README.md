@@ -34,31 +34,45 @@ point cloud with either of two minimal ball covers:
 <!-- end list -->
 
 ``` r
-x[landmarks_maxmin(x, eps = 1.5), , drop = FALSE]
+x[landmarks_maxmin_cpp(x, radius = 1.5), , drop = FALSE]
 #>    x
 #> a -1
 #> f  1
-x[landmarks_maxmin(x, eps = 0.5), , drop = FALSE]
+x[landmarks_maxmin_cpp(x, radius = 0.5), , drop = FALSE]
+#>    x
+#> a -1
+#> f  1
+#> c  0
+x[landmarks_maxmin_cpp(x, radius = 0.25), , drop = FALSE]
 #>      x
 #> a -1.0
 #> f  1.0
 #> c  0.0
 #> b -0.5
-x[landmarks_maxmin(x, eps = 0.25), , drop = FALSE]
+x[landmarks_maxmin_cpp(x, radius = 0.125), , drop = FALSE]
 #>       x
 #> a -1.00
 #> f  1.00
 #> c  0.00
 #> b -0.50
 #> d  0.75
-x[landmarks_maxmin(x, eps = 0.125), , drop = FALSE]
+```
+
+``` r
+x[landmarks_maxmin_R(x, radius = 3.5), , drop = FALSE]
+#>    x
+#> a -1
+x[landmarks_maxmin_R(x, radius = 1.5), , drop = FALSE]
+#>    x
+#> a -1
+#> f  1
+x[landmarks_maxmin_R(x, radius = 0.5), , drop = FALSE]
 #>        x
 #> a -1.000
 #> f  1.000
-#> c  0.000
-#> b -0.500
-#> d  0.750
 #> e  0.875
+#> d  0.750
+#> c  0.000
 ```
 
 ## `lastfirst` procedure
@@ -75,7 +89,31 @@ covers:
 ways.)
 
 ``` r
-x[landmarks_lastfirst_R(x, cardinality = 4L, seed_index = 1L), , drop = FALSE]
+x[landmarks_lastfirst_cpp(x, cardinality = 4L, seed_index = 1L), , drop = FALSE]
+#>      x
+#> b -0.5
+#> f  1.0
+x[landmarks_lastfirst_cpp(x, cardinality = 3L, seed_index = 1L), , drop = FALSE]
+#>      x
+#> b -0.5
+#> f  1.0
+x[landmarks_lastfirst_cpp(x, cardinality = 2L, seed_index = 1L), , drop = FALSE]
+#>       x
+#> b -0.50
+#> f  1.00
+#> d  0.75
+x[landmarks_lastfirst_cpp(x, cardinality = 1L, seed_index = 1L), , drop = FALSE]
+#>        x
+#> b -0.500
+#> f  1.000
+#> d  0.750
+#> a -1.000
+#> c  0.000
+#> e  0.875
+```
+
+``` r
+x[landmarks_lastfirst_R(x, cardinality = 5L, seed_index = 1L), , drop = FALSE]
 #>    x
 #> a -1
 #> f  1
@@ -83,12 +121,6 @@ x[landmarks_lastfirst_R(x, cardinality = 3L, seed_index = 1L), , drop = FALSE]
 #>    x
 #> a -1
 #> f  1
-x[landmarks_lastfirst_R(x, cardinality = 2L, seed_index = 1L), , drop = FALSE]
-#>       x
-#> a -1.00
-#> f  1.00
-#> c  0.00
-#> d  0.75
 x[landmarks_lastfirst_R(x, cardinality = 1L, seed_index = 1L), , drop = FALSE]
 #>        x
 #> a -1.000
