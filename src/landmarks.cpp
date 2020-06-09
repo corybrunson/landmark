@@ -131,17 +131,17 @@ IntegerVector landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, flo
 IntegerVector landmarks_lastfirst_cpp(const NumericMatrix& x, int num_sets = 0, int cardinality = 0, const int seed_index = 0) {
     int num_pts = x.nrow();
 
-    // error handling
-    if(cardinality < 1 || cardinality > num_pts){stop("Parameter 'cardinality' must be >= 1 and <= number of data points.");}
-    if(num_sets < 0){stop("Parameter 'num_sets' must be >= 1.");}
-    if(seed_index < 0 || seed_index >= num_pts){stop("Parameter 'seed_index' must be >=1 and <= number of data points.");}
-
     // additional parameter handling
     if(num_sets > num_pts){
         warning("Warning: parameter 'num_sets' was > max allowable value. Setting num_sets = number of data points.");
         num_sets = num_pts;
     }
     if(cardinality == 0){cardinality = num_pts;}
+
+    // error handling
+    if(cardinality < 1 || cardinality > num_pts){stop("Parameter 'cardinality' must be >= 1 and <= number of data points.");}
+    if(num_sets < 0){stop("Parameter 'num_sets' must be >= 1.");}
+    if(seed_index < 0 || seed_index >= num_pts){stop("Parameter 'seed_index' must be >=1 and <= number of data points.");}
 
     map<int, vector<double>> Y_all; // whole space Y
     map<int, vector<double>> landmarks; // landmark set L
