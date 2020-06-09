@@ -7,20 +7,20 @@
 #'   algorithm that is relatively efficient, but it has a tendency to pick out
 #'   extremal points.
 #'
-#'   One, both, or neither of `number` and `radius` may be passed values. If
+#'   One, both, or neither of `num_sets` and `radius` may be passed values. If
 #'   neither is specified, then `radius` is internally set to `0` so that a
 #'   complete landmark set is generated. If the values yield balls that do not
 #'   cover `x`, then their number is increased until the radius necessary to
 #'   cover `x` is at most `radius`.
-#' @name landmarks_ball
+#' @name landmarks_maxmin
 #' @param x a data matrix.
-#'@param dist_method a character string specifying the distance metric to use;
+#' @param dist_method a character string specifying the distance metric to use;
 #'   passed to `proxy::dist(method)`. Any distance measure in the \code{proxy}
 #'   package is supported.
 #' @param pick_method a character string specifying the method for selecting
 #'   from indistinguishable points, either `"first"` (the default) or
 #'   `"random"`.
-#' @param number a positive integer; the desired number of landmark points, or
+#' @param num_sets a positive integer; the desired number of landmark points, or
 #'   of sets in a ball cover.
 #' @param radius a positive number; the desired radius of each
 #'   landmark ball, or of each set in a ball cover.
@@ -34,7 +34,7 @@
 #'   Analysis." (2019). Web.
 NULL
 
-#' @rdname landmarks_ball
+#' @rdname landmarks_maxmin
 #' @export
 minmax_R <- function(
   x,
@@ -69,22 +69,22 @@ minmax_R <- function(
   mm_idx
 }
 
-#' @rdname landmarks_ball
+#' @rdname landmarks_maxmin
 #' @export
 chebyshev_center_R <- minmax_R
 
-#' @rdname landmarks_ball
+#' @rdname landmarks_maxmin
 #' @export
 landmarks_maxmin <- function(
   x,
   dist_method = "euclidean",
-  number = NULL, radius = NULL,
+  num_sets = NULL, radius = NULL,
   seed_index = 1L, shuffle_data = FALSE
 ) {
   stopifnot(is.matrix(x))
   stopifnot(seed_index >= 1L && seed_index <= nrow(x))
   # must specify a number of balls or a radius
-  stopifnot(! is.null(number) || ! is.null(radius))
+  stopifnot(! is.null(num_sets) || ! is.null(radius))
 
   shuffle_idx <- NA
   if (shuffle_data){
@@ -92,16 +92,16 @@ landmarks_maxmin <- function(
     x <- x[, , drop = FALSE]
   }
 
-  if (!is.null(number)) {
+  if (!is.null(num_sets)) {
     if (missing(dist_method) || toupper(dist_method) == "EUCLIDEAN") {
-      lmk_idx <- landmark_maxmin(x, number, seed_index - 1L)
+      lmk_idx <- landmark_maxmin(x, num_sets, seed_index - 1L)
     } else if (requireNamespace("proxy", quietly = TRUE)) {
       stopifnot(toupper(dist_method) %in%
                   toupper(proxy::pr_DB$get_entry_names()))
-      lmk_idx <- vector(mode="integer", number)
+      lmk_idx <- vector(mode="integer", num_sets)
       lmk_idx[1L] <- seed_index
       lmk_min_dist <- rep(Inf, nrow(x))
-      for (i in 2L:number) {
+      for (i in 2L:num_sets) {
         lmk_dist <- proxy::dist(x, x[lmk_idx[i - 1L], , drop = FALSE],
                                      method = dist_method)
         lmk_min_dist <- pmin(lmk_dist, lmk_min_dist)
@@ -139,12 +139,12 @@ landmarks_maxmin <- function(
   if (is.na(shuffle_idx)) { lmk_idx } else { shuffle_idx[lmk_idx] }
 }
 
-#' @rdname landmarks_ball
+#' @rdname landmarks_maxmin
 #' @export
 landmarks_maxmin_R <- function(
   x,
   dist_method = "euclidean", pick_method = "first",
-  number = NULL, radius = NULL,
+  num_sets = NULL, radius = NULL,
   seed_index = 1L
 ) {
   # validate inputs
@@ -173,8 +173,8 @@ landmarks_maxmin_R <- function(
   lmk_dist <- matrix(NA, nrow = nrow(x), ncol = 0L)
 
   # require a number of balls or a ball radius (or both)
-  #if (is.null(number) && is.null(radius)) number <- length(free_idx)
-  if (is.null(number) && is.null(radius)) radius <- 0L
+  #if (is.null(num_sets) && is.null(radius)) num_sets <- length(free_idx)
+  if (is.null(num_sets) && is.null(radius)) radius <- 0L
 
   for (i in seq_along(free_idx)) {
 
@@ -205,9 +205,9 @@ landmarks_maxmin_R <- function(
     # exhaustion breaks
     if (all(free_idx == 0L)) break
     # parameter breaks
-    if (! is.null(number)) {
+    if (! is.null(num_sets)) {
       # discontinue if the desired number of sets has been reached
-      if (i >= number) {
+      if (i >= num_sets) {
         # discontinue if there is no radius requirement
         if (is.null(radius)) {
           break
@@ -234,12 +234,12 @@ landmarks_maxmin_R <- function(
   }
 
   # print warnings if a parameter was adjusted
-  if (! is.null(number)) {
-    if (i > number) {
-      warning("Cover required ", i, " (> number = ", number, ") ",
+  if (! is.null(num_sets)) {
+    if (i > num_sets) {
+      warning("Cover required ", i, " (> num_sets = ", num_sets, ") ",
               "balls of radius ", radius, ".")
-    } else if (i < number) {
-      warning("Only ", i, " (< number = ", number, ") ",
+    } else if (i < num_sets) {
+      warning("Only ", i, " (< num_sets = ", num_sets, ") ",
               "distinct landmark points were found.")
     }
   }
