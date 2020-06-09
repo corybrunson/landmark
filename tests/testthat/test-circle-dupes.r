@@ -4,33 +4,33 @@ context("sample from circle with multiplicity")
 
 set.seed(0)
 x <- tdaunif::sample_circle(n = 12L)
-m <- rbind(x, x[sample(nrow(x), 12L, replace = TRUE), , drop = FALSE])
-plot(m, asp = 1, pch = 16, col = "#00000033")
+y <- rbind(x, x[sample(nrow(x), 12L, replace = TRUE), , drop = FALSE])
+plot(y, asp = 1, pch = 16, col = "#00000033")
 
 # maxmin landmarks
 
 test_that("landmarks are generated", {
   # maxmin landmarks in C++
-  expect_silent(landmarks_maxmin_cpp(m, num_sets = nrow(m)))
+  expect_silent(landmarks_maxmin_cpp(y, num_sets = nrow(y)))
   # maxmin landmarks in R
-  expect_silent(landmarks_maxmin(m, n = nrow(m)))
+  expect_silent(landmarks_maxmin(y, n = nrow(y)))
 })
 
 test_that("landmark sets agree", {
-  expect_equal(landmarks_maxmin_cpp(m, num_sets = nrow(m)),
-               landmarks_maxmin(m, n = nrow(m)))
+  expect_equal(landmarks_maxmin_cpp(y, num_sets = nrow(y)),
+               landmarks_maxmin(y, n = nrow(y)))
 })
 
 # lastfirst landmarks
 
 test_that("landmarks are generated", {
   # lastfirst landmarks in C++
-  expect_silent(landmarks_lastfirst_cpp(m, num_sets = nrow(m)))
+  expect_silent(landmarks_lastfirst_cpp(y, num_sets = nrow(y)))
   # lastfirst landmarks in R
-  expect_silent(landmarks_lastfirst_cory(m, number = nrow(m)))
+  expect_silent(landmarks_lastfirst_cory(y, number = nrow(y)))
 })
 
 test_that("landmark sets agree", {
-  expect_equal(landmarks_lastfirst_cpp(m, num_sets = nrow(m)),
-               landmarks_lastfirst_cory(m, number = nrow(m)))
+  expect_equal(landmarks_lastfirst_cpp(y, num_sets = nrow(y)),
+               landmarks_lastfirst_cory(y, number = nrow(y)))
 })
