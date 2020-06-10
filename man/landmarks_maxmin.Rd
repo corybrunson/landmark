@@ -9,7 +9,7 @@
 \alias{landmarks_maxmin_R}
 \title{Ball-based Landmark Sets}
 \usage{
-landmarks_maxmin_cpp(x, num_sets = 0L, radius = 0, seed_index = 0L)
+landmarks_maxmin_cpp(x, num_sets = 0L, radius = -1, seed_index = 0L)
 
 landmark_maxmin(x, n, seed_index = 0L)
 
@@ -65,15 +65,15 @@ Compute landmark sets based on fixed-radius balls.
 }
 \details{
 This function uses the maxmin procedure to produce a set of evenly
-spaced landmark points from a data set. Maxmin is a simple greedy
-algorithm that is relatively efficient, but it has a tendency to pick out
-extremal points.
+spaced landmark points from a data set. Maxmin is a simple greedy algorithm
+that is relatively efficient, but it has a tendency to pick out extremal
+points.
 
 One, both, or neither of \code{num_sets} and \code{radius} may be passed values. If
-neither is specified, then \code{radius} is internally set to \code{0} so that a
-complete landmark set is generated. If the values yield balls that do not
-cover \code{x}, then their number is increased until the radius necessary to
-cover \code{x} is at most \code{radius}.
+neither is specified, then \code{num_sets} is defaulted to \code{24L}. If the values
+yield balls that do not cover \code{x}, then their number is increased until the
+radius necessary to cover \code{x} is at most \code{radius}. To generte a complete
+landmark set, use \code{radius = 0L}.
 }
 \references{
 De Silva, Vin, and Gunnar E. Carlsson. "Topological estimation
@@ -86,4 +86,6 @@ Analysis." (2019). Web.
 Matt Piekenbrock
 
 Jason Cory Brunson
+
+Yara Skaf
 }

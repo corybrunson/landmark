@@ -37,11 +37,11 @@ inline double dist_euc(vector<double> x, vector<double> y){
 //' @param seed_index an integer (the first landmark to seed the algorithm)
 //' @export
 // [[Rcpp::export]]
-IntegerVector landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, float radius = 0, const int seed_index = 0) {
+IntegerVector landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, float radius = -1, const int seed_index = 0) {
     int num_pts = x.nrow();
 
     // error handling
-    if(radius < 0){stop("Parameter 'radius' must be a positive number.");}
+    if(radius < 0 && radius != -1){stop("Parameter 'radius' must be a positive number.");}
     if(num_sets < 0){stop("Parameter 'num_sets' must be >= 1.");}
     if(seed_index < 0 || seed_index >= num_pts){stop("Parameter 'seed_index' must be >=1 and <= number of data points.");}
 
@@ -50,7 +50,8 @@ IntegerVector landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, flo
         warning("Warning: parameter 'num_sets' was > max allowable value. Setting num_sets = number of data points.");
         num_sets = num_pts;
     }
-    if(radius == 0){radius = FLT_MAX;}
+    if(num_sets == 0 && radius == -1){num_sets = std::min(num_pts,24);} // no parameters passed -> default behavior
+    if(radius == -1){radius = FLT_MAX;}
 
     // store indices and values of X\L
     map<int, vector<double>> pts_left;
@@ -91,7 +92,6 @@ IntegerVector landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, flo
                 maxmin.insert(pt);
             }
 
-            // TODO: potential issue if two distinct points have identical distances to L
             // we have a new max -> clear out maxmin and add this point instead
             if(d_min > d_max){
                 d_max = d_min;
@@ -108,7 +108,9 @@ IntegerVector landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, flo
         landmarks.insert(l_i);
 
         // remove all points at this center
-        for(const auto& pt : maxmin){ pts_left.erase(pt.first); }
+        for(const auto& pt : maxmin){
+            if(pt.second == l_i.second){ pts_left.erase(pt.first); }
+        }
         if(pts_left.size() <= 0){break;} // exit if all points are covered
     }
     // only return the indices of landmarks (not the values)
@@ -136,7 +138,9 @@ IntegerVector landmarks_lastfirst_cpp(const NumericMatrix& x, int num_sets = 0, 
         warning("Warning: parameter 'num_sets' was > max allowable value. Setting num_sets = number of data points.");
         num_sets = num_pts;
     }
-    if(cardinality == 0){cardinality = num_pts;}
+    if(num_sets == 0 && cardinality == 0){num_sets = std::min(num_pts,24);}
+    if(cardinality == 0){cardinality = 1;}
+    if(num_sets == 0){num_sets = num_pts;}
 
     // error handling
     if(cardinality < 1 || cardinality > num_pts){stop("Parameter 'cardinality' must be >= 1 and <= number of data points.");}
@@ -163,11 +167,11 @@ IntegerVector landmarks_lastfirst_cpp(const NumericMatrix& x, int num_sets = 0, 
     pair<int, vector<double>> l_i = l_0;
     while(true){
         // update the list of covered points
-        map<int, vector<double>> Nk = Nk_check_plus(l_i, Y_all, cardinality, Y_all);
+        map<int, vector<double>> Nk = Nk_check_plus(l_i, Y_all, cardinality, Y_all); // expensive operation
         for(const auto& x : Nk){ covered.insert(x); }
 
         // exit if all points in X are covered and enough landmarks have been chosen
-        if(covered.size() >= num_pts && landmarks.size() >= num_sets){break;}
+        if(covered.size() >= num_pts || landmarks.size() >= num_sets){break;}
 
         // compute lf(L), then choose li from lf(L) and add it to L
         map<int, vector<double>> lf = lastfirst(landmarks, Y_all);

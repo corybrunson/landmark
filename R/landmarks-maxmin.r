@@ -1,17 +1,18 @@
 #' @title Ball-based Landmark Sets
 #' @author Matt Piekenbrock
 #' @author Jason Cory Brunson
+#' @author Yara Skaf
 #' @description Compute landmark sets based on fixed-radius balls.
 #' @details This function uses the maxmin procedure to produce a set of evenly
-#'   spaced landmark points from a data set. Maxmin is a simple greedy
-#'   algorithm that is relatively efficient, but it has a tendency to pick out
-#'   extremal points.
+#'   spaced landmark points from a data set. Maxmin is a simple greedy algorithm
+#'   that is relatively efficient, but it has a tendency to pick out extremal
+#'   points.
 #'
 #'   One, both, or neither of `num_sets` and `radius` may be passed values. If
-#'   neither is specified, then `radius` is internally set to `0` so that a
-#'   complete landmark set is generated. If the values yield balls that do not
-#'   cover `x`, then their number is increased until the radius necessary to
-#'   cover `x` is at most `radius`.
+#'   neither is specified, then `num_sets` is defaulted to `24L`. If the values
+#'   yield balls that do not cover `x`, then their number is increased until the
+#'   radius necessary to cover `x` is at most `radius`. To generte a complete
+#'   landmark set, use `radius = 0L`.
 #' @name landmarks_maxmin
 #' @param x a data matrix.
 #' @param dist_method a character string specifying the distance metric to use;
@@ -173,8 +174,8 @@ landmarks_maxmin_R <- function(
   lmk_dist <- matrix(NA, nrow = nrow(x), ncol = 0L)
 
   # require a number of balls or a ball radius (or both)
-  #if (is.null(num_sets) && is.null(radius)) num_sets <- length(free_idx)
-  if (is.null(num_sets) && is.null(radius)) radius <- 0L
+  if (is.null(num_sets) && is.null(radius)) num_sets <- 24L
+  #if (is.null(num_sets) && is.null(radius)) radius <- 0L
 
   for (i in seq_along(free_idx)) {
 

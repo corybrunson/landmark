@@ -61,11 +61,10 @@ points dispersed according to the orders in which they are reached from
 each other, rather than to their distances from each other. (Say more.)
 
 One, both, or neither of \code{num_sets} and \code{cardinality} may be passed values.
-If neither is specified, then \code{cardinality} is internally set to \code{1L} so
-that a complete landmark set is generated. If the values yield
-neighborhoods that do not cover \code{x}, then, effectively, \code{num_sets} is
-increased until the cardinality necessary to cover \code{x} is at most
-\code{cardinality}.
+If neither is specified, then \code{num_sets} is defaulted to \code{24L}. If the
+values yield neighborhoods that do not cover \code{x}, then, effectively,
+\code{num_sets} is increased until the cardinality necessary to cover \code{x} is at
+most \code{cardinality}. To generte a complete landmark set, use \code{cardinality = 1L}.
 }
 \author{
 Jason Cory Brunson
