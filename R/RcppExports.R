@@ -15,7 +15,7 @@ NULL
 #' @param radius a positive real number; the desired radius of each cover set.
 #' @param seed_index an integer (the first landmark to seed the algorithm)
 #' @export
-landmarks_maxmin_cpp <- function(x, num_sets = 0L, radius = 0, seed_index = 0L) {
+landmarks_maxmin_cpp <- function(x, num_sets = 0L, radius = -1, seed_index = 0L) {
     .Call('_landmark_landmarks_maxmin_cpp', PACKAGE = 'landmark', x, num_sets, radius, seed_index)
 }
 

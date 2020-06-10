@@ -7,11 +7,11 @@
 #'   each other, rather than to their distances from each other. (Say more.)
 #'
 #'   One, both, or neither of `num_sets` and `cardinality` may be passed values.
-#'   If neither is specified, then `cardinality` is internally set to `1L` so
-#'   that a complete landmark set is generated. If the values yield
-#'   neighborhoods that do not cover `x`, then, effectively, `num_sets` is
-#'   increased until the cardinality necessary to cover `x` is at most
-#'   `cardinality`.
+#'   If neither is specified, then `num_sets` is defaulted to `24L`. If the
+#'   values yield neighborhoods that do not cover `x`, then, effectively,
+#'   `num_sets` is increased until the cardinality necessary to cover `x` is at
+#'   most `cardinality`. To generte a complete landmark set, use `cardinality =
+#'   1L`.
 #' @name landmarks_lastfirst
 #' @param x a data matrix.
 #' @param dist_method a character string specifying the distance metric to use;
@@ -105,8 +105,8 @@ landmarks_lastfirst_R <- function(
   lmk_rank <- matrix(NA, nrow = nrow(x), ncol = 0)
 
   # require a number of neighborhoods or a neighborhood cardinality (or both)
-  #if (is.null(num_sets) && is.null(cardinality)) num_sets <- length(free_idx)
-  if (is.null(num_sets) && is.null(cardinality)) cardinality <- 1L
+  if (is.null(num_sets) && is.null(cardinality)) num_sets <- 24L
+  #if (is.null(num_sets) && is.null(cardinality)) cardinality <- 1L
 
   # recursively construct landmark set
   for (i in seq_along(free_idx)) {

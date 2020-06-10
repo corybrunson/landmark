@@ -37,11 +37,11 @@ inline double dist_euc(vector<double> x, vector<double> y){
 //' @param seed_index an integer (the first landmark to seed the algorithm)
 //' @export
 // [[Rcpp::export]]
-IntegerVector landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, float radius = 0, const int seed_index = 0) {
+IntegerVector landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, float radius = -1, const int seed_index = 0) {
     int num_pts = x.nrow();
 
     // error handling
-    if(radius < 0){stop("Parameter 'radius' must be a positive number.");}
+    if(radius < 0 && radius != -1){stop("Parameter 'radius' must be a positive number.");}
     if(num_sets < 0){stop("Parameter 'num_sets' must be >= 1.");}
     if(seed_index < 0 || seed_index >= num_pts){stop("Parameter 'seed_index' must be >=1 and <= number of data points.");}
 
@@ -50,7 +50,8 @@ IntegerVector landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, flo
         warning("Warning: parameter 'num_sets' was > max allowable value. Setting num_sets = number of data points.");
         num_sets = num_pts;
     }
-    if(radius == 0){radius = FLT_MAX;}
+    if(num_sets == 0 && radius == -1){num_sets = std::min(num_pts,24);}
+    if(radius == -1){radius = FLT_MAX;}
 
     // store indices and values of X\L
     map<int, vector<double>> pts_left;
@@ -136,6 +137,7 @@ IntegerVector landmarks_lastfirst_cpp(const NumericMatrix& x, int num_sets = 0, 
         warning("Warning: parameter 'num_sets' was > max allowable value. Setting num_sets = number of data points.");
         num_sets = num_pts;
     }
+    if(num_sets == 0 && cardinality == 0){num_sets = std::min(num_pts,24);}
     if(cardinality == 0){cardinality = num_pts;}
 
     // error handling
