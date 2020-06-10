@@ -50,7 +50,7 @@ IntegerVector landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, flo
         warning("Warning: parameter 'num_sets' was > max allowable value. Setting num_sets = number of data points.");
         num_sets = num_pts;
     }
-    if(num_sets == 0 && radius == -1){num_sets = std::min(num_pts,24);}
+    if(num_sets == 0 && radius == -1){num_sets = std::min(num_pts,24);} // no parameters passed -> default behavior
     if(radius == -1){radius = FLT_MAX;}
 
     // store indices and values of X\L
@@ -92,7 +92,6 @@ IntegerVector landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, flo
                 maxmin.insert(pt);
             }
 
-            // TODO: potential issue if two distinct points have identical distances to L
             // we have a new max -> clear out maxmin and add this point instead
             if(d_min > d_max){
                 d_max = d_min;
@@ -109,7 +108,9 @@ IntegerVector landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, flo
         landmarks.insert(l_i);
 
         // remove all points at this center
-        for(const auto& pt : maxmin){ pts_left.erase(pt.first); }
+        for(const auto& pt : maxmin){
+            if(pt.second == l_i.second){ pts_left.erase(pt.first); }
+        }
         if(pts_left.size() <= 0){break;} // exit if all points are covered
     }
     // only return the indices of landmarks (not the values)
