@@ -139,7 +139,8 @@ IntegerVector landmarks_lastfirst_cpp(const NumericMatrix& x, int num_sets = 0, 
         num_sets = num_pts;
     }
     if(num_sets == 0 && cardinality == 0){num_sets = std::min(num_pts,24);}
-    if(cardinality == 0){cardinality = num_pts;}
+    if(cardinality == 0){cardinality = 1;}
+    if(num_sets == 0){num_sets = num_pts;}
 
     // error handling
     if(cardinality < 1 || cardinality > num_pts){stop("Parameter 'cardinality' must be >= 1 and <= number of data points.");}
@@ -166,11 +167,11 @@ IntegerVector landmarks_lastfirst_cpp(const NumericMatrix& x, int num_sets = 0, 
     pair<int, vector<double>> l_i = l_0;
     while(true){
         // update the list of covered points
-        map<int, vector<double>> Nk = Nk_check_plus(l_i, Y_all, cardinality, Y_all);
+        map<int, vector<double>> Nk = Nk_check_plus(l_i, Y_all, cardinality, Y_all); // expensive operation
         for(const auto& x : Nk){ covered.insert(x); }
 
         // exit if all points in X are covered and enough landmarks have been chosen
-        if(covered.size() >= num_pts && landmarks.size() >= num_sets){break;}
+        if(covered.size() >= num_pts || landmarks.size() >= num_sets){break;}
 
         // compute lf(L), then choose li from lf(L) and add it to L
         map<int, vector<double>> lf = lastfirst(landmarks, Y_all);
