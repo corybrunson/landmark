@@ -8,18 +8,21 @@ print(table(m))
 
 # maxmin landmarks
 
-test_that("landmarks are generated", {
+test_that("full landmark sets are generated", {
   # maxmin landmarks in C++
-  expect_silent(landmarks_maxmin_cpp(m, num_sets = nrow(m)))
-  expect_silent(landmark_maxmin(m, n = nrow(m)))
+  expect_silent(landmarks_maxmin_cpp(m))
   # maxmin landmarks in R
-  expect_silent(landmarks_maxmin(m, num_sets = nrow(m)))
-  expect_silent(landmarks_maxmin_R(m, num_sets = nrow(m)))
+  expect_silent(landmarks_maxmin_R(m))
 })
 
-test_that("landmark sets agree", {
-  expect_equal(landmarks_maxmin_cpp(m, num_sets = nrow(m)),
-               landmarks_maxmin_R(m, num_sets = nrow(m)))
+test_that("warnings are generated", {
+  expect_warning(landmarks_maxmin_cpp(m, num_sets = nrow(m)))
+  expect_warning(landmarks_maxmin_R(m, num_sets = nrow(m)))
+})
+
+test_that("full landmark sets agree", {
+  expect_equal(landmarks_maxmin_cpp(m),
+               landmarks_maxmin_R(m))
 })
 
 # lastfirst landmarks

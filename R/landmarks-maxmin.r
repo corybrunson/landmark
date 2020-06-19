@@ -170,10 +170,10 @@ landmarks_maxmin_R <- function(
   # strike seed and (other) duplicates index from free indices
   perm_idx <- c(mm_idx, free_idx[-mm_idx])
   free_idx[perm_idx[duplicated(x[perm_idx])]] <- 0L
-  lmk_dist <- matrix(NA, nrow = nrow(x), ncol = 0L)
+  lmk_dist <- rep(Inf, times = nrow(x))
 
   # require a number of balls or a ball radius (or both)
-  if (is.null(num_sets) && is.null(radius)) num_sets <- 24L
+  #if (is.null(num_sets) && is.null(radius)) num_sets <- 24L
   #if (is.null(num_sets) && is.null(radius)) radius <- 0L
 
   for (i in seq_along(free_idx)) {
@@ -191,17 +191,13 @@ landmarks_maxmin_R <- function(
       stop("A duplicate landmark point was selected, in error.")
     free_idx[[lmk_idx[[i]]]] <- 0L
 
-    # augment distances from new landmark point
-    lmk_dist <- cbind(
-      # each row contains distances from previous landmark points
-      lmk_dist,
-      # distances of all (free) points from newest landmark point
-      t(proxy::dist(x[lmk_idx[[i]], , drop = FALSE],
-                    x,
-                    method = dist_method))
-    )
+    # update landmark distances with distances from new landmark point
+    lmk_dist <- pmin(lmk_dist,
+                     proxy::dist(x[lmk_idx[[i]], , drop = FALSE],
+                                 x,
+                                 method = dist_method))
     # refresh the minimum radius
-    min_rad <- max(apply(lmk_dist, 1L, min))
+    min_rad <- max(lmk_dist)
 
     # exhaustion breaks
     if (all(free_idx == 0L)) break
@@ -218,19 +214,18 @@ landmarks_maxmin_R <- function(
         }
       }
     } else {
-      # continue if desired radius requires more sets
-      if (min_rad <= radius) break
+      if (is.null(radius)) {
+        # if neither parameter is specified, limit the set to 24 landmarks
+        if (i >= 24L) break
+      } else {
+        # continue if desired radius requires more sets
+        if (min_rad <= radius) break
+      }
     }
 
     # obtain the maxmin subset
     mm_idx <- free_idx[free_idx != 0L]
-    for (j in seq(ncol(lmk_dist))) {
-      # points with maximum revlex rank-in-distance counts
-      # = points with minimum lex rank-in-distance counts
-      # = points with maximum lex rank-in-distance sequence
-      mm_idx <- mm_idx[lmk_dist[mm_idx, j] == max(lmk_dist[mm_idx, j])]
-      if (length(mm_idx) == 1L) break
-    }
+    mm_idx <- mm_idx[lmk_dist[mm_idx] == min_rad]
 
   }
 
