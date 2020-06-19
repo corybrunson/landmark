@@ -19,7 +19,7 @@
 #'   passed to `proxy::dist(method)`. Any distance measure in the \code{proxy}
 #'   package is supported.
 #' @param pick_method a character string specifying the method for selecting
-#'   from indistinguishable points, either `"first"` (the default) or
+#'   from indistinguishable points, either `"first"` (the default), `"last"`, or
 #'   `"random"`.
 #' @param num_sets a positive integer; the desired number of landmark points, or
 #'   of sets in a ball cover.
@@ -158,8 +158,7 @@ landmarks_maxmin_R <- function(
       match.arg(seed_index, c("random", "minmax")),
       random = sample(nrow(x), size = 1L),
       minmax = sample(minmax_R(x,
-                               dist_method = dist_method,
-                               ties_method = ties_method), size = 1L)
+                               dist_method = dist_method), size = 1L)
     )
   }
   stopifnot(seed_index >= 1L && seed_index <= nrow(x))
@@ -180,9 +179,10 @@ landmarks_maxmin_R <- function(
   for (i in seq_along(free_idx)) {
 
     # update vector of landmark points
-    lmk_idx[[i]] <- mm_idx[[switch(
-      match.arg(pick_method, c("first", "random")),
+    lmk_idx[[i]] <- mm_idx[[switch (
+      match.arg(pick_method, c("first", "last", "random")),
       first = 1L,
+      last = length(mm_idx),
       random = sample(length(mm_idx), 1L)
     )]]
 

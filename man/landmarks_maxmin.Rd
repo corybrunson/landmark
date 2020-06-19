@@ -55,7 +55,7 @@ package is supported.}
 \item{shuffle_data}{whether to first randomly shuffle the data.}
 
 \item{pick_method}{a character string specifying the method for selecting
-from indistinguishable points, either \code{"first"} (the default) or
+from indistinguishable points, either \code{"first"} (the default), \code{"last"}, or
 \code{"random"}.}
 }
 \description{
