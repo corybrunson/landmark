@@ -21,7 +21,7 @@ devtools::load_all()
 
 Calculate landmark sets for finite metric spaces using the maxmin procedure (for fixed-radius balls) or an adaptation of it for rank data (for roughly fixed-cardinality nearest neighborhoods).
 
-```{r example}
+```{r example, fig.height=3}
 (x <- matrix(c(-1, -.5, 0, .75, .875, 1), dimnames = list(letters[1:6], "x")))
 plot(cbind(x, 0), asp = 1, pch = 16)
 text(cbind(x, .05), labels = rownames(x))
@@ -31,42 +31,40 @@ text(cbind(x, .05), labels = rownames(x))
 
 The original `maxmin` procedure produces a landmark set for covering a point cloud with either of two minimal ball covers:
 
-* a minimum number of balls of fixed common radius
-* a fixed number of balls of minimum common radius
+* a minimum number of balls of fixed uniform radius
+* a fixed number of balls of minimum uniform radius
 
 ```{r maxmin example in C++}
-x[landmarks_maxmin_cpp(x, radius = 1.5), , drop = FALSE]
-x[landmarks_maxmin_cpp(x, radius = 0.5), , drop = FALSE]
-x[landmarks_maxmin_cpp(x, radius = 0.25), , drop = FALSE]
-x[landmarks_maxmin_cpp(x, radius = 0.125), , drop = FALSE]
+x[landmarks_maxmin_cpp(x, radius = 0.5, seed_index = 0L), , drop = FALSE]
+x[landmarks_maxmin_cpp(x, radius = 0.25, seed_index = 0L), , drop = FALSE]
+x[landmarks_maxmin_cpp(x, radius = 0.125, seed_index = 0L), , drop = FALSE]
 ```
 
 ```{r maxmin example in R}
-x[landmarks_maxmin_R(x, radius = 3.5), , drop = FALSE]
-x[landmarks_maxmin_R(x, radius = 1.5), , drop = FALSE]
-x[landmarks_maxmin_R(x, radius = 0.5), , drop = FALSE]
+x[landmarks_maxmin_R(x, radius = 3.5, seed_index = 1L), , drop = FALSE]
+x[landmarks_maxmin_R(x, radius = 1.5, seed_index = 1L), , drop = FALSE]
+x[landmarks_maxmin_R(x, radius = 0.5, seed_index = 1L), , drop = FALSE]
 ```
 
 ## `lastfirst` procedure
 
 An adaptation of `maxmin` to ranked distances will produce a landmark set for covering a point cloud with either of two minimal neighborhood covers:
 
-* a minimum number of neighborhoods of fixed common approximate cardinality
-* a fixed number of neighborhoods of minimal approximate cardinality
+* a minimum number of neighborhoods of fixed (approximately) uniform cardinality
+* a fixed number of neighborhoods of minimal (approximately) uniform cardinality
 
-(Cardinality is only exact up to ties, which may be handled different ways.)
+Cardinality is only exact up to ties, which may be handled different ways and will result in cover sets of different cardinalities.
 
 ```{r lastfirst example in C++}
-x[landmarks_lastfirst_cpp(x, cardinality = 4L, seed_index = 1L), , drop = FALSE]
-x[landmarks_lastfirst_cpp(x, cardinality = 3L, seed_index = 1L), , drop = FALSE]
-x[landmarks_lastfirst_cpp(x, cardinality = 2L, seed_index = 1L), , drop = FALSE]
-x[landmarks_lastfirst_cpp(x, cardinality = 1L, seed_index = 1L), , drop = FALSE]
+x[landmarks_lastfirst_cpp(x, cardinality = 3L, seed_index = 5L), , drop = FALSE]
+x[landmarks_lastfirst_cpp(x, cardinality = 2L, seed_index = 5L), , drop = FALSE]
+x[landmarks_lastfirst_cpp(x, cardinality = 1L, seed_index = 5L), , drop = FALSE]
 ```
 
 ```{r lastfirst example in R}
-x[landmarks_lastfirst_R(x, cardinality = 5L, seed_index = 1L), , drop = FALSE]
-x[landmarks_lastfirst_R(x, cardinality = 3L, seed_index = 1L), , drop = FALSE]
-x[landmarks_lastfirst_R(x, cardinality = 1L, seed_index = 1L), , drop = FALSE]
+x[landmarks_lastfirst_R(x, cardinality = 5L, seed_index = 6L), , drop = FALSE]
+x[landmarks_lastfirst_R(x, cardinality = 3L, seed_index = 6L), , drop = FALSE]
+x[landmarks_lastfirst_R(x, cardinality = 1L, seed_index = 6L), , drop = FALSE]
 ```
 
 # references
