@@ -18,6 +18,7 @@ landmarks_lastfirst_R(
   pick_method = "first",
   num_sets = NULL,
   cardinality = NULL,
+  frac = FALSE,
   seed_index = 1L,
   shuffle_data = FALSE
 )
@@ -43,9 +44,12 @@ package is supported.}
 ties; passed to \code{rank(ties.method)}. Only \code{"min"} has been tested and is
 recommended.}
 
-\item{pick_method}{a character string specifying the method for selecting
-from indistinguishable points, either \code{"first"} (the default) or
-\code{"random"}.}
+\item{pick_method}{a character string specifying the method for selecting one
+among indistinguishable points, either \code{"first"} (the default), \code{"last"},
+or \code{"random"}.}
+
+\item{frac}{logical; whether to treat \code{cardinality} as a fraction of the
+cardinality of \code{x}.}
 
 \item{shuffle_data}{logical; whether to randomly shuffle the data before
 running a procedure.}

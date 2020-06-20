@@ -18,13 +18,15 @@
 #' @param dist_method a character string specifying the distance metric to use;
 #'   passed to `proxy::dist(method)`. Any distance measure in the \code{proxy}
 #'   package is supported.
-#' @param pick_method a character string specifying the method for selecting
-#'   from indistinguishable points, either `"first"` (the default), `"last"`, or
-#'   `"random"`.
+#' @param pick_method a character string specifying the method for selecting one
+#'   among indistinguishable points, either `"first"` (the default), `"last"`,
+#'   or `"random"`.
 #' @param num_sets a positive integer; the desired number of landmark points, or
 #'   of sets in a ball cover.
 #' @param radius a positive number; the desired radius of each
 #'   landmark ball, or of each set in a ball cover.
+#' @param frac logical; whether to treat `radius` as a fraction of the diameter
+#'   of `x`.
 #' @param seed_index an integer (the first landmark to seed the algorithm) or
 #'   one of the character strings `"random"` (to select a seed uniformly at
 #'   random) and `"minmax"` (to select a seed from the minmax set).
@@ -145,7 +147,7 @@ landmarks_maxmin <- function(
 landmarks_maxmin_R <- function(
   x,
   dist_method = "euclidean", pick_method = "first",
-  num_sets = NULL, radius = NULL,
+  num_sets = NULL, radius = NULL, frac = FALSE,
   seed_index = 1L
 ) {
   # validate inputs
@@ -157,8 +159,7 @@ landmarks_maxmin_R <- function(
     seed_index <- switch (
       match.arg(seed_index, c("random", "minmax")),
       random = sample(nrow(x), size = 1L),
-      minmax = sample(minmax_R(x,
-                               dist_method = dist_method), size = 1L)
+      minmax = sample(minmax_R(x, dist_method = dist_method), size = 1L)
     )
   }
   stopifnot(seed_index >= 1L && seed_index <= nrow(x))
@@ -172,9 +173,12 @@ landmarks_maxmin_R <- function(
   free_idx[perm_idx[duplicated(x[perm_idx])]] <- 0L
   lmk_dist <- rep(Inf, times = nrow(x))
 
-  # require a number of balls or a ball radius (or both)
-  #if (is.null(num_sets) && is.null(radius)) num_sets <- 24L
-  #if (is.null(num_sets) && is.null(radius)) radius <- 0L
+  # apply `frac` to `radius`
+  if (frac) {
+    # -+- a `chull()` function for arbitrary dimensions would expedite this -+-
+    diameter <- max(proxy::dist(x))
+    radius <- radius * diameter
+  }
 
   for (i in seq_along(free_idx)) {
 

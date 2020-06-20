@@ -32,6 +32,7 @@ landmarks_maxmin_R(
   pick_method = "first",
   num_sets = NULL,
   radius = NULL,
+  frac = FALSE,
   seed_index = 1L
 )
 }
@@ -54,9 +55,12 @@ package is supported.}
 
 \item{shuffle_data}{whether to first randomly shuffle the data.}
 
-\item{pick_method}{a character string specifying the method for selecting
-from indistinguishable points, either \code{"first"} (the default), \code{"last"}, or
-\code{"random"}.}
+\item{pick_method}{a character string specifying the method for selecting one
+among indistinguishable points, either \code{"first"} (the default), \code{"last"},
+or \code{"random"}.}
+
+\item{frac}{logical; whether to treat \code{radius} as a fraction of the diameter
+of \code{x}.}
 }
 \description{
 Compute landmark points using maxmin procedure.

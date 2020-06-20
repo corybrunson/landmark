@@ -20,13 +20,15 @@
 #' @param ties_method a character string specifying the method for handling
 #'   ties; passed to `rank(ties.method)`. Only `"min"` has been tested and is
 #'   recommended.
-#' @param pick_method a character string specifying the method for selecting
-#'   from indistinguishable points, either `"first"` (the default) or
-#'   `"random"`.
+#' @param pick_method a character string specifying the method for selecting one
+#'   among indistinguishable points, either `"first"` (the default), `"last"`,
+#'   or `"random"`.
 #' @param num_sets a positive integer; the desired number of landmark points, or
 #'   of sets in a neighborhood cover.
 #' @param cardinality a positive integer; the desired cardinality of each
 #'   landmark neighborhood, or of each set in a landmark cover.
+#' @param frac logical; whether to treat `cardinality` as a fraction of the
+#'   cardinality of `x`.
 #' @param seed_index an integer (the first landmark to seed the algorithm) or
 #'   one of the character strings `"random"` (to select a seed uniformly at
 #'   random) and `"firstlast"` (to select a seed from the firstlast set).
@@ -76,7 +78,7 @@ firstlast_R <- function(
 landmarks_lastfirst_R <- function(
   x,
   dist_method = "euclidean", ties_method = "min", pick_method = "first",
-  num_sets = NULL, cardinality = NULL,
+  num_sets = NULL, cardinality = NULL, frac = FALSE,
   seed_index = 1L, shuffle_data = FALSE
 ) {
   # validate inputs
@@ -105,16 +107,22 @@ landmarks_lastfirst_R <- function(
   lmk_rank <- matrix(NA, nrow = nrow(x), ncol = 0)
 
   # require a number of neighborhoods or a neighborhood cardinality (or both)
-  if (is.null(num_sets) && is.null(cardinality)) num_sets <- 24L
+  #if (is.null(num_sets) && is.null(cardinality)) num_sets <- 24L
   #if (is.null(num_sets) && is.null(cardinality)) cardinality <- 1L
+
+  # apply `frac` to `cardinality`
+  if (frac) {
+    cardinality <- cardinality * nrow(x)
+  }
 
   # recursively construct landmark set
   for (i in seq_along(free_idx)) {
 
     # update vector of landmark points
-    lmk_idx[[i]] <- lf_idx[[switch(
-      match.arg(pick_method, c("first", "random")),
+    lmk_idx[[i]] <- lf_idx[[switch (
+      match.arg(pick_method, c("first", "last", "random")),
       first = 1L,
+      last = length(lf_idx),
       random = sample(length(lf_idx), 1L)
     )]]
 
@@ -156,8 +164,13 @@ landmarks_lastfirst_R <- function(
         }
       }
     } else {
-      # continue if desired cardinality requires more sets
-      if (min_card <= cardinality) break
+      if (is.null(cardinality)) {
+        # if neither parameter is specified, limit the set to 24 landmarks
+        if (i >= 24L) break
+      } else {
+        # continue if desired cardinality requires more sets
+        if (min_card <= cardinality) break
+      }
     }
 
     # obtain the lastfirst subset
