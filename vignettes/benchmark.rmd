@@ -1,0 +1,125 @@
+---
+title: "Benchmarking the landmark generators"
+author: "Cory Brunson"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{benchmarking the landmark generators}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+The landmark package is spun off from the Mapper package, which implemented two versions of the maxmin procedure: a C++ function for the Euclidean case, and an R function calling the proxy package for other cases. Four new functions are under development, two each for the maxmin and lastfirst procedures: definition-based (non-optimized) C++ functions for the Euclidean case, and optimized R functions, again calling the proxy package, for all cases. While the package is in development, this vignette will conduct benchmarkings of the various functions at common tasks. Note that the vignette invokes the _currently installed_ version of landmark.
+
+```{r setup, echo=FALSE, message=FALSE, results='hide'}
+library(bench)
+library(dplyr)
+library(ggplot2)
+library(cowplot)
+# installed version of landmark package
+library(landmark)
+knitr::opts_chunk$set(echo = TRUE, fig.width = 7)
+```
+
+This function automates the benchmarking process. It requires a list `xs` of data sets (intended to be of a common type and of increasing size) and accepts a distance `dist_method` as passed to any of the functions, either one or `length(xs)` assignments to `num_sets` (as a vector), and an assignment to `radius`.
+
+```{r maxmin benchmark function}
+maxmin_benchmark <- function(
+  datasets, dist_method = "euclidean", num_sets = NULL, radius = NULL
+) {
+  if (! is.null(num_sets) && length(num_sets) == 1L) {
+    num_sets <- rep(num_sets, 3L)
+  }
+  marks <- NULL
+  for (i in seq_along(datasets)) {
+    x <- xs[[i]]
+    mark <- mark(
+      landmarks_maxmin(
+        x,
+        dist_method = dist_method,
+        num_sets = if (is.null(num_sets)) min(24L, nrow(x)) else num_sets[i],
+        radius = radius
+      ),
+      if (dist_method == "euclidean") landmarks_maxmin_cpp(
+        x,
+        num_sets = if (is.null(num_sets)) 0 else num_sets[i],
+        radius = if (is.null(radius)) -1 else radius
+      ),
+      landmarks_maxmin_R(
+        x,
+        dist_method = dist_method,
+        num_sets = num_sets[i],
+        radius = radius
+      ),
+      check = FALSE
+    )
+    mark <- mutate(
+      mark,
+      implementation = factor(case_when(
+        stringr::str_detect(as.character(expression), "_cpp") ~ "C++",
+        stringr::str_detect(as.character(expression), "_R") ~ "R",
+        TRUE ~ "Mapper"
+      ), levels = c("Mapper", "C++", "R")),
+      n = nrow(x)
+    )
+    mark <- select(mark, n, implementation, median, mem_alloc)
+    if (dist_method != "euclidean") mark <- filter(mark, implementation != "C++")
+    marks <- bind_rows(marks, mark)
+  }
+  run_size <- ggplot(marks, aes(x = n, y = median, color = implementation)) +
+    theme_bw() +
+    geom_point(alpha = .5) + geom_line(alpha = .5) +
+    ggtitle("Benchmark runtimes")
+  mem_size <- ggplot(marks, aes(x = n, y = mem_alloc, color = implementation)) +
+    theme_bw() +
+    geom_point(alpha = .5) + geom_line(alpha = .5) +
+    ggtitle("Benchmark memory allocation")
+  run_mem_size <- plot_grid(run_size + theme(legend.position = "none"),
+                            mem_size + theme(legend.position = "none"),
+                            nrow = 1)
+  run_mem_size_legend <- get_legend(run_size)
+  print(plot_grid(run_mem_size, run_mem_size_legend, rel_widths = c(3, .75)))
+  marks
+}
+```
+
+The following benchmark compares the several maxmin procedures on an artificial "noisy circle" data set of varying sizes.
+
+```{r maxmin on circle samples, warning=FALSE}
+set.seed(0)
+# circle samples
+xs <- lapply(c(60L, 360L, 1680L, 10080L), tdaunif::sample_circle, sd = .5)
+# euclidean, defaults
+maxmin_benchmark(xs, dist_method = "euclidean")
+# cosine, defaults
+maxmin_benchmark(xs, dist_method = "cosine")
+# euclidean, twice binary log
+maxmin_benchmark(xs, dist_method = "euclidean",
+                 num_sets = 2 * log(vapply(xs, nrow, 1L)), 2)
+# cosine, twice binary log
+maxmin_benchmark(xs, dist_method = "cosine",
+                 num_sets = 2 * log(vapply(xs, nrow, 1L)), 2)
+```
+
+The following benchmark compares the several maxmin procedures on artificial integer samples of varying sizes and multiplicities.
+
+```{r maxmin on integer samples, warning=FALSE}
+set.seed(0)
+# integer samples
+replacement_sample <- function(n) {
+  values <- seq(n / 12)
+  matrix(sample(values, size = n, replace = TRUE))
+}
+xs <- lapply(c(60L, 360L, 1680L, 10080L), replacement_sample)
+# euclidean, defaults
+maxmin_benchmark(xs, dist_method = "euclidean")
+# cosine, defaults
+maxmin_benchmark(xs, dist_method = "cosine")
+# euclidean, twice binary log
+maxmin_benchmark(xs, dist_method = "euclidean",
+                 num_sets = 2 * log(vapply(xs, nrow, 1L)), 2)
+# cosine, twice binary log
+maxmin_benchmark(xs, dist_method = "cosine",
+                 num_sets = 2 * log(vapply(xs, nrow, 1L)), 2)
+```
