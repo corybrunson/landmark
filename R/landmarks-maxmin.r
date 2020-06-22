@@ -153,6 +153,7 @@ landmarks_maxmin_R <- function(
   # validate inputs
   stopifnot(is.matrix(x))
   stopifnot(toupper(dist_method) %in% toupper(proxy::pr_DB$get_entry_names()))
+  pick_method <- match.arg(pick_method, c("first", "last", "random"))
 
   # handle seed selection
   if (is.character(seed_index)) {
@@ -162,7 +163,7 @@ landmarks_maxmin_R <- function(
       minmax = {
         mm_idx <- minmax_R(x, dist_method = dist_method)
         mm_idx[[switch (
-          match.arg(pick_method, c("first", "last", "random")),
+          pick_method,
           first = 1L,
           last = length(mm_idx),
           random = sample(length(mm_idx), 1L)
@@ -184,7 +185,7 @@ landmarks_maxmin_R <- function(
   # apply `frac` to `radius`
   if (frac) {
     # -+- a `chull()` function for arbitrary dimensions would expedite this -+-
-    diameter <- max(proxy::dist(x))
+    diameter <- max(proxy::dist(x, method = dist_method))
     radius <- radius * diameter
   }
 
@@ -192,7 +193,7 @@ landmarks_maxmin_R <- function(
 
     # update vector of landmark points
     lmk_idx[[i]] <- mm_idx[[switch (
-      match.arg(pick_method, c("first", "last", "random")),
+      pick_method,
       first = 1L,
       last = length(mm_idx),
       random = sample(length(mm_idx), 1L)

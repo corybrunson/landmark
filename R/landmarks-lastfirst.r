@@ -82,6 +82,7 @@ landmarks_lastfirst_R <- function(
   # validate inputs
   stopifnot(is.matrix(x))
   stopifnot(toupper(dist_method) %in% toupper(proxy::pr_DB$get_entry_names()))
+  pick_method <- match.arg(pick_method, c("first", "last", "random"))
 
   # handle seed selection
   if (is.character(seed_index)) {
@@ -93,7 +94,7 @@ landmarks_lastfirst_R <- function(
                               dist_method = dist_method,
                               ties_method = ties_method)
         fl_idx[[switch (
-          match.arg(pick_method, c("first", "last", "random")),
+          pick_method,
           first = 1L,
           last = length(fl_idx),
           random = sample(length(fl_idx), 1L)
@@ -126,7 +127,7 @@ landmarks_lastfirst_R <- function(
 
     # update vector of landmark points
     lmk_idx[[i]] <- lf_idx[[switch (
-      match.arg(pick_method, c("first", "last", "random")),
+      pick_method,
       first = 1L,
       last = length(lf_idx),
       random = sample(length(lf_idx), 1L)
