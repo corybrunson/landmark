@@ -159,7 +159,15 @@ landmarks_maxmin_R <- function(
     seed_index <- switch (
       match.arg(seed_index, c("random", "minmax")),
       random = sample(nrow(x), size = 1L),
-      minmax = sample(minmax_R(x, dist_method = dist_method), size = 1L)
+      minmax = {
+        mm_idx <- minmax_R(x, dist_method = dist_method)
+        mm_idx[[switch (
+          match.arg(pick_method, c("first", "last", "random")),
+          first = 1L,
+          last = length(mm_idx),
+          random = sample(length(mm_idx), 1L)
+        )]]
+      }
     )
   }
   stopifnot(seed_index >= 1L && seed_index <= nrow(x))

@@ -19,8 +19,7 @@ landmarks_lastfirst_R(
   num_sets = NULL,
   cardinality = NULL,
   frac = FALSE,
-  seed_index = 1L,
-  shuffle_data = FALSE
+  seed_index = 1L
 )
 }
 \arguments{
@@ -50,9 +49,6 @@ or \code{"random"}.}
 
 \item{frac}{logical; whether to treat \code{cardinality} as a fraction of the
 cardinality of \code{x}.}
-
-\item{shuffle_data}{logical; whether to randomly shuffle the data before
-running a procedure.}
 }
 \description{
 Compute landmark points using maxmin procedure.

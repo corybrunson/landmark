@@ -32,8 +32,6 @@
 #' @param seed_index an integer (the first landmark to seed the algorithm) or
 #'   one of the character strings `"random"` (to select a seed uniformly at
 #'   random) and `"firstlast"` (to select a seed from the firstlast set).
-#' @param shuffle_data logical; whether to randomly shuffle the data before
-#'   running a procedure.
 NULL
 
 #' @rdname landmarks_lastfirst
@@ -79,7 +77,7 @@ landmarks_lastfirst_R <- function(
   x,
   dist_method = "euclidean", ties_method = "min", pick_method = "first",
   num_sets = NULL, cardinality = NULL, frac = FALSE,
-  seed_index = 1L, shuffle_data = FALSE
+  seed_index = 1L
 ) {
   # validate inputs
   stopifnot(is.matrix(x))
@@ -90,9 +88,17 @@ landmarks_lastfirst_R <- function(
     seed_index <- switch (
       match.arg(seed_index, c("random", "firstlast")),
       random = sample(nrow(x), size = 1L),
-      firstlast = firstlast_R(x,
+      firstlast = {
+        fl_idx <- firstlast_R(x,
                               dist_method = dist_method,
                               ties_method = ties_method)
+        fl_idx[[switch (
+          match.arg(pick_method, c("first", "last", "random")),
+          first = 1L,
+          last = length(fl_idx),
+          random = sample(length(fl_idx), 1L)
+        )]]
+      }
     )
   }
   stopifnot(seed_index >= 1L && seed_index <= nrow(x))
