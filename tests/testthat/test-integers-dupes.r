@@ -5,14 +5,15 @@ context("integer values with multiplicity")
 set.seed(0)
 m <- matrix(sample(30L)[rnbinom(n = 60L, size = 5, prob = 1/3)])
 print(table(m))
+l <- length(unique(m))
 
 # maxmin landmarks
 
 test_that("full landmark sets are generated", {
   # maxmin landmarks in C++
-  expect_silent(landmarks_maxmin_cpp(m))
+  expect_silent(landmarks_maxmin_cpp(m, num_sets = l))
   # maxmin landmarks in R
-  expect_silent(landmarks_maxmin_R(m))
+  expect_silent(landmarks_maxmin_R(m, num_sets = l))
 })
 
 test_that("warnings are generated", {
@@ -21,20 +22,27 @@ test_that("warnings are generated", {
 })
 
 test_that("full landmark sets agree", {
-  expect_equal(landmarks_maxmin_cpp(m),
-               landmarks_maxmin_R(m))
+  expect_equal(landmarks_maxmin_cpp(m, num_sets = l),
+               landmarks_maxmin_R(m, num_sets = l))
 })
 
 # lastfirst landmarks
 
-test_that("landmarks are generated", {
+test_that("full landmarks are generated", {
   # lastfirst landmarks in C++
-  expect_silent(landmarks_lastfirst_cpp(m, num_sets = nrow(m)))
+  expect_silent(landmarks_lastfirst_cpp(m, num_sets = l))
   # lastfirst landmarks in R
-  expect_silent(landmarks_lastfirst_R(m, num_sets = nrow(m)))
+  expect_silent(landmarks_lastfirst_R(m, num_sets = l))
 })
 
-test_that("landmark sets agree", {
-  expect_equal(landmarks_lastfirst_cpp(m, num_sets = nrow(m)),
-               landmarks_lastfirst_R(m, num_sets = nrow(m)))
+test_that("warnings are generated", {
+  # lastfirst landmarks in C++
+  expect_warning(landmarks_lastfirst_cpp(m, num_sets = nrow(m)))
+  # lastfirst landmarks in R
+  expect_warning(landmarks_lastfirst_R(m, num_sets = nrow(m)))
+})
+
+test_that("full landmark sets agree", {
+  expect_equal(landmarks_lastfirst_cpp(m, num_sets = l),
+               landmarks_lastfirst_R(m, num_sets = l))
 })
