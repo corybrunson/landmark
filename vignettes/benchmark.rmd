@@ -24,7 +24,12 @@ knitr::opts_chunk$set(echo = TRUE, fig.width = 7)
 
 This function automates the benchmarking process. It requires a list `xs` of data sets (intended to be of a common type and of increasing size) and accepts a distance `dist_method` as passed to any of the functions, either one or `length(xs)` assignments to `num_sets` (as a vector), and an assignment to `radius`.
 
+These functions automate the benchmarking process.
+`maxmin_benchmark()` requires a list `xs` of data sets (intended to be of a common type and of increasing size). It accepts a distance `dist_method` as passed to any of the functions, either one or `length(xs)` assignments to `num_sets` (as a vector), and an assignment to `radius`.
+`lastfirst_benchmark()` also requires `xs` and accepts the same type of argument to `num_sets` and an integer assignment to `cardinality`. (Only the R implementation calls the proxy package to handle non-Euclidean distances, so benchmarking is only performed for the Euclidean case.)
+
 ```{r maxmin benchmark function}
+# print both numerical results and plots
 maxmin_benchmark <- function(
   datasets, dist_method = "euclidean", num_sets = NULL, radius = NULL
 ) {
@@ -43,8 +48,8 @@ maxmin_benchmark <- function(
       ),
       if (dist_method == "euclidean") landmarks_maxmin_cpp(
         x,
-        num_sets = if (is.null(num_sets)) 0 else num_sets[i],
-        radius = if (is.null(radius)) -1 else radius
+        num_sets = if (is.null(num_sets)) 0L else num_sets[i],
+        radius = if (is.null(radius)) -1L else radius
       ),
       landmarks_maxmin_R(
         x,
@@ -65,6 +70,60 @@ maxmin_benchmark <- function(
     )
     mark <- select(mark, n, implementation, median, mem_alloc)
     if (dist_method != "euclidean") mark <- filter(mark, implementation != "C++")
+    marks <- bind_rows(marks, mark)
+  }
+  run_size <- ggplot(marks, aes(x = n, y = median, color = implementation)) +
+    theme_bw() +
+    geom_point(alpha = .5) + geom_line(alpha = .5) +
+    ggtitle("Benchmark runtimes")
+  mem_size <- ggplot(marks, aes(x = n, y = mem_alloc, color = implementation)) +
+    theme_bw() +
+    geom_point(alpha = .5) + geom_line(alpha = .5) +
+    ggtitle("Benchmark memory allocation")
+  run_mem_size <- plot_grid(run_size + theme(legend.position = "none"),
+                            mem_size + theme(legend.position = "none"),
+                            nrow = 1)
+  run_mem_size_legend <- get_legend(run_size)
+  print(plot_grid(run_mem_size, run_mem_size_legend, rel_widths = c(3, .75)))
+  marks
+}
+```
+
+```{r lastfirst benchmark function}
+# print both numerical results and plots
+lastfirst_benchmark <- function(
+  datasets, num_sets = NULL, cardinality = NULL
+) {
+  if (! is.null(num_sets) && length(num_sets) == 1L) {
+    num_sets <- rep(num_sets, 3L)
+  }
+  marks <- NULL
+  for (i in seq_along(datasets)) {
+    x <- xs[[i]]
+    mark <- mark(
+      landmarks_lastfirst_cpp(
+        x,
+        num_sets = if (is.null(num_sets)) 0L else num_sets[i],
+        cardinality = if (is.null(cardinality)) 0L else cardinality
+      ),
+      landmarks_lastfirst_R(
+        x,
+        dist_method = "euclidean",
+        num_sets = num_sets[i],
+        cardinality = cardinality
+      ),
+      check = FALSE
+    )
+    mark <- mutate(
+      mark,
+      implementation = factor(case_when(
+        stringr::str_detect(as.character(expression), "_cpp") ~ "C++",
+        stringr::str_detect(as.character(expression), "_R") ~ "R",
+        TRUE ~ "Mapper"
+      ), levels = c("Mapper", "C++", "R")),
+      n = nrow(x)
+    )
+    mark <- select(mark, n, implementation, median, mem_alloc)
     marks <- bind_rows(marks, mark)
   }
   run_size <- ggplot(marks, aes(x = n, y = median, color = implementation)) +
@@ -122,4 +181,20 @@ maxmin_benchmark(xs, dist_method = "euclidean",
 # cosine, twice binary log
 maxmin_benchmark(xs, dist_method = "cosine",
                  num_sets = 2 * log(vapply(xs, nrow, 1L)), 2)
+```
+
+The following benchmark compares both lastfirst procedures on artificial integer samples of varying sizes and multiplicities.
+
+```{r lastfirst on integer samples, warning=FALSE}
+set.seed(0)
+# integer samples
+replacement_sample <- function(n) {
+  values <- seq(n / 12)
+  matrix(sample(values, size = n, replace = TRUE))
+}
+xs <- lapply(c(60L, 360L, 1680L, 10080L), replacement_sample)
+# euclidean, defaults
+lastfirst_benchmark(xs)
+# euclidean, twice binary log
+lastfirst_benchmark(xs, num_sets = 2 * log(vapply(xs, nrow, 1L)), 2)
 ```

@@ -39,9 +39,12 @@ test_that("complete landmark set grows leftward before righward", {
 
 # firstlast chebycenter
 
-#test_that("chebyshev center prefers double-points to farther points", {
-#  expect_identical(chebycenter_firstlast_R(peg), 2L)
-#})
+test_that("firstlast procedure prefers marginalizes multiple-points", {
+  # both singleton points are centers because they are not the double-point
+  expect_identical(firstlast_R(peg), c(1L, 2L))
+  # only zero is a center because it is equidistant from the endpoints
+  expect_identical(firstlast_R(bar), c(3L))
+})
 
 # lastfirst landmarks
 
