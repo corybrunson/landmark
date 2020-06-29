@@ -101,26 +101,17 @@ lastfirst_benchmark <- function(
   for (i in seq_along(datasets)) {
     x <- xs[[i]]
     mark <- mark(
-      landmarks_lastfirst_cpp(
-        x,
-        num_sets = if (is.null(num_sets)) 0L else num_sets[i],
-        cardinality = if (is.null(cardinality)) 0L else cardinality
+      `C++` = landmarks_lastfirst(
+        x, num_sets = num_sets[i], cardinality = cardinality, engine = "C++"
       ),
-      landmarks_lastfirst_R(
-        x,
-        dist_method = "euclidean",
-        num_sets = num_sets[i],
-        cardinality = cardinality
+      R = landmarks_lastfirst(
+        x, num_sets = num_sets[i], cardinality = cardinality, engine = "R"
       ),
       check = FALSE
     )
     mark <- mutate(
       mark,
-      implementation = factor(case_when(
-        stringr::str_detect(as.character(expression), "_cpp") ~ "C++",
-        stringr::str_detect(as.character(expression), "_R") ~ "R",
-        TRUE ~ "Mapper"
-      ), levels = c("Mapper", "C++", "R")),
+      implementation = factor(expression, levels = c("Mapper", "C++", "R")),
       n = nrow(x)
     )
     mark <- select(mark, n, implementation, median, mem_alloc)

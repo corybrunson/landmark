@@ -18,8 +18,8 @@
 #'   passed to `proxy::dist(method)`. Any distance measure in the \code{proxy}
 #'   package is supported.
 #' @param ties_method a character string specifying the method for handling
-#'   ties; passed to `rank(ties.method)`. Only `"min"` has been tested and is
-#'   recommended.
+#'   ties; passed to `rank(ties.method)`. Only `"min"` and `"max"` have been
+#'   tested and are recommended.
 #' @param pick_method a character string specifying the method for selecting one
 #'   among indistinguishable points, either `"first"` (the default), `"last"`,
 #'   or `"random"`.
@@ -32,7 +32,19 @@
 #' @param seed_index an integer (the first landmark to seed the algorithm) or
 #'   one of the character strings `"random"` (to select a seed uniformly at
 #'   random) and `"firstlast"` (to select a seed from the firstlast set).
+#' @param engine character string specifying the implementation to use; one of
+#'   `"C++"` or `"R"`. When not specified, the R engine is used.
 NULL
+
+#' @rdname landmarks_lastfirst
+#' @export
+firstlast <- function(
+  x,
+  dist_method = "euclidean", ties_method = "min"
+) {
+  # update if/when C++ implementation is available
+  firstlast_R(x = x, dist_method = dist_method, ties_method = ties_method)
+}
 
 #' @rdname landmarks_lastfirst
 #' @export
@@ -73,16 +85,23 @@ firstlast_R <- function(
 
 #' @rdname landmarks_lastfirst
 #' @export
-landmarks_lastfirst_R <- function(
+landmarks_lastfirst <- function(
   x,
   dist_method = "euclidean", ties_method = "min", pick_method = "first",
   num_sets = NULL, cardinality = NULL, frac = FALSE,
-  seed_index = 1L
+  seed_index = 1L,
+  engine = NULL
 ) {
   # validate inputs
   stopifnot(is.matrix(x))
-  stopifnot(toupper(dist_method) %in% toupper(proxy::pr_DB$get_entry_names()))
+  dist_method <- tolower(dist_method)
+  stopifnot(dist_method %in% tolower(proxy::pr_DB$get_entry_names()))
   pick_method <- match.arg(pick_method, c("first", "last", "random"))
+  if (is.null(engine)) engine <- "R"
+  engine <- match.arg(engine, c("C++", "R"))
+  if (engine == "C++" && dist_method != "euclidean")
+    warning("C++ engine is available only for Euclidean distances; ",
+            "using R engine instead.")
 
   # handle seed selection
   if (is.character(seed_index)) {
@@ -104,6 +123,44 @@ landmarks_lastfirst_R <- function(
   }
   stopifnot(seed_index >= 1L && seed_index <= nrow(x))
 
+  # require a number of neighborhoods or a neighborhood cardinality (or both)
+  #if (is.null(num_sets) && is.null(cardinality)) num_sets <- 24L
+  #if (is.null(num_sets) && is.null(cardinality)) cardinality <- 1L
+
+  # apply `frac` to `cardinality`
+  if (frac) {
+    cardinality <- max(1, cardinality * nrow(x))
+  }
+
+  # dispatch to implementations
+  switch (
+    engine,
+    `C++` = landmarks_lastfirst_cpp(
+      x = x,
+      num_sets = if (is.null(num_sets)) 0L else as.integer(num_sets),
+      cardinality = if (is.null(cardinality)) 0L else as.integer(cardinality),
+      seed_index = seed_index - 1L
+    ),
+    R = landmarks_lastfirst_R(
+      x = x,
+      dist_method = dist_method,
+      ties_method = ties_method,
+      pick_method = pick_method,
+      num_sets = num_sets, cardinality = cardinality, frac = frac,
+      seed_index = seed_index
+    )
+  )
+}
+
+#' @rdname landmarks_lastfirst
+#' @export
+landmarks_lastfirst_R <- function(
+  x,
+  dist_method = "euclidean", ties_method = "min", pick_method = "first",
+  num_sets = NULL, cardinality = NULL, frac = FALSE,
+  seed_index = 1L
+) {
+
   # initialize lastfirst, free, and landmark index sets
   lf_idx <- seed_index
   lmk_idx <- vector(mode = "integer", nrow(x))
@@ -112,15 +169,6 @@ landmarks_lastfirst_R <- function(
   perm_idx <- c(lf_idx, free_idx[-lf_idx])
   free_idx[perm_idx[duplicated(x[perm_idx])]] <- 0L
   lmk_rank <- matrix(NA, nrow = nrow(x), ncol = 0)
-
-  # require a number of neighborhoods or a neighborhood cardinality (or both)
-  #if (is.null(num_sets) && is.null(cardinality)) num_sets <- 24L
-  #if (is.null(num_sets) && is.null(cardinality)) cardinality <- 1L
-
-  # apply `frac` to `cardinality`
-  if (frac) {
-    cardinality <- cardinality * nrow(x)
-  }
 
   # recursively construct landmark set
   for (i in seq_along(free_idx)) {

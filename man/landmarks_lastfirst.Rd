@@ -3,13 +3,28 @@
 \name{landmarks_lastfirst_cpp}
 \alias{landmarks_lastfirst_cpp}
 \alias{landmarks_lastfirst}
+\alias{firstlast}
 \alias{firstlast_R}
 \alias{landmarks_lastfirst_R}
 \title{Neighborhood-based Landmark Sets}
 \usage{
 landmarks_lastfirst_cpp(x, num_sets = 0L, cardinality = 0L, seed_index = 0L)
 
+firstlast(x, dist_method = "euclidean", ties_method = "min")
+
 firstlast_R(x, dist_method = "euclidean", ties_method = "min")
+
+landmarks_lastfirst(
+  x,
+  dist_method = "euclidean",
+  ties_method = "min",
+  pick_method = "first",
+  num_sets = NULL,
+  cardinality = NULL,
+  frac = FALSE,
+  seed_index = 1L,
+  engine = NULL
+)
 
 landmarks_lastfirst_R(
   x,
@@ -40,8 +55,8 @@ passed to \code{proxy::dist(method)}. Any distance measure in the \code{proxy}
 package is supported.}
 
 \item{ties_method}{a character string specifying the method for handling
-ties; passed to \code{rank(ties.method)}. Only \code{"min"} has been tested and is
-recommended.}
+ties; passed to \code{rank(ties.method)}. Only \code{"min"} and \code{"max"} have been
+tested and are recommended.}
 
 \item{pick_method}{a character string specifying the method for selecting one
 among indistinguishable points, either \code{"first"} (the default), \code{"last"},
@@ -49,6 +64,9 @@ or \code{"random"}.}
 
 \item{frac}{logical; whether to treat \code{cardinality} as a fraction of the
 cardinality of \code{x}.}
+
+\item{engine}{character string specifying the implementation to use; one of
+\code{"C++"} or \code{"R"}. When not specified, the R engine is used.}
 }
 \description{
 Compute landmark points using maxmin procedure.
