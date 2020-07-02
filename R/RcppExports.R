@@ -28,7 +28,7 @@ landmarks_maxmin_cpp <- function(x, num_sets = 0L, radius = -1, seed_index = 0L)
 #'   number of sets in a neighborhood cover.
 #' @param seed_index an integer (the first landmark to seed the algorithm)
 #' @export
-landmarks_lastfirst_cpp <- function(x, num_sets = 0L, cardinality = 0L, seed_index = 0L) {
+landmarks_lastfirst_cpp <- function(x, num_sets = 0L, cardinality = 0L, seed_index = 1L) {
     .Call('_landmark_landmarks_lastfirst_cpp', PACKAGE = 'landmark', x, num_sets, cardinality, seed_index)
 }
 

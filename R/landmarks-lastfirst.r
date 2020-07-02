@@ -7,11 +7,11 @@
 #'   each other, rather than to their distances from each other. (Say more.)
 #'
 #'   One, both, or neither of `num_sets` and `cardinality` may be passed values.
-#'   If neither is specified, then `num_sets` is defaulted to `24L`. If the
-#'   values yield neighborhoods that do not cover `x`, then, effectively,
-#'   `num_sets` is increased until the cardinality necessary to cover `x` is at
-#'   most `cardinality`. To generte a complete landmark set, use `cardinality =
-#'   1L`.
+#'   If neither is specified, then `num_sets` is defaulted to the minimum of
+#'   `24L` and the number of distinct rows of `x`. If the values yield
+#'   neighborhoods that do not cover `x`, then, effectively, `num_sets` is
+#'   increased until the cardinality necessary to cover `x` is at most
+#'   `cardinality`. To generte a complete landmark set, use `cardinality = 1L`.
 #' @name landmarks_lastfirst
 #' @param x a data matrix.
 #' @param dist_method a character string specifying the distance metric to use;
@@ -103,61 +103,107 @@ landmarks_lastfirst <- function(
     warning("C++ engine is available only for Euclidean distances; ",
             "using R engine instead.")
 
+  # if neither parameter is specified, limit the set to 24 landmarks
+  if (is.null(num_sets) && is.null(cardinality)) {
+    num_sets <- min(nrow(unique(x)), 24L)
+  }
+  # apply `frac` to `cardinality`
+  if (frac) {
+    cardinality <- as.integer(max(1, cardinality * nrow(x)))
+  }
+  # validate parameters
+  if (! is.null(num_sets)) {
+    num_sets <- as.integer(num_sets)
+    if (is.na(num_sets) || num_sets < 1L || num_sets > nrow(x))
+      stop("`num_sets` must be a positive integer and at most `nrow(x)`.")
+  }
+  if (! is.null(cardinality)) {
+    cardinality <- as.integer(cardinality)
+    if (is.na(cardinality) || cardinality < 1L || cardinality > nrow(x))
+      stop("`cardinality` must be a positive integer and at most `nrow(x)`.")
+  }
+
+  # permute rows of `x` according to `pick_method`
+  if (pick_method != "first") {
+    perm_x <- switch (
+      pick_method,
+      first = seq(nrow(x)),
+      last = seq(nrow(x), 1L),
+      random = sample(nrow(x))
+    )
+    x <- x[perm_x, , drop = FALSE]
+  }
   # handle seed selection
   if (is.character(seed_index)) {
     seed_index <- switch (
       match.arg(seed_index, c("random", "firstlast")),
       random = sample(nrow(x), size = 1L),
       firstlast = {
-        fl_idx <- firstlast_R(x,
-                              dist_method = dist_method,
-                              ties_method = ties_method)
-        fl_idx[[switch (
-          pick_method,
-          first = 1L,
-          last = length(fl_idx),
-          random = sample(length(fl_idx), 1L)
-        )]]
+        fl_idx <- firstlast(x,
+                            dist_method = dist_method,
+                            ties_method = ties_method)
+        fl_idx[[1L]]
       }
     )
+  } else {
+    # reset input seed index accordingly
+    if (pick_method != "first") {
+      seed_index <- switch (
+        pick_method,
+        first = seed_index,
+        last = nrow(x) + 1L - seed_index,
+        random = which(perm_x == seed_index)
+      )
+    }
   }
   stopifnot(seed_index >= 1L && seed_index <= nrow(x))
 
-  # require a number of neighborhoods or a neighborhood cardinality (or both)
-  #if (is.null(num_sets) && is.null(cardinality)) num_sets <- 24L
-  #if (is.null(num_sets) && is.null(cardinality)) cardinality <- 1L
-
-  # apply `frac` to `cardinality`
-  if (frac) {
-    cardinality <- max(1, cardinality * nrow(x))
-  }
-
   # dispatch to implementations
-  switch (
+  lmks <- switch (
     engine,
     `C++` = landmarks_lastfirst_cpp(
       x = x,
-      num_sets = if (is.null(num_sets)) 0L else as.integer(num_sets),
-      cardinality = if (is.null(cardinality)) 0L else as.integer(cardinality),
-      seed_index = seed_index - 1L
+      num_sets = if (is.null(num_sets)) 0L else num_sets,
+      cardinality = if (is.null(cardinality)) 0L else cardinality,
+      seed_index = seed_index
     ),
     R = landmarks_lastfirst_R(
       x = x,
       dist_method = dist_method,
       ties_method = ties_method,
-      pick_method = pick_method,
-      num_sets = num_sets, cardinality = cardinality, frac = frac,
+      num_sets = num_sets, cardinality = cardinality,
       seed_index = seed_index
     )
   )
+
+  # print warnings if a parameter was adjusted
+  if (! is.null(num_sets)) {
+    if (length(lmks) > num_sets) {
+      warning("Required ", length(lmks),
+              " (> num_sets = ", num_sets, ") ",
+              "sets of cardinality ", cardinality, ".")
+    } else if (length(lmks) < num_sets) {
+      warning("Only ", length(lmks),
+              " (< num_sets = ", num_sets, ") ",
+              "distinct landmark points were found.")
+    }
+  }
+
+  # correct for permutation
+  if (pick_method == "first") {
+    lmks
+  } else {
+    perm_x[lmks]
+  }
+
 }
 
 #' @rdname landmarks_lastfirst
 #' @export
 landmarks_lastfirst_R <- function(
   x,
-  dist_method = "euclidean", ties_method = "min", pick_method = "first",
-  num_sets = NULL, cardinality = NULL, frac = FALSE,
+  dist_method = "euclidean", ties_method = "min",
+  num_sets = NULL, cardinality = NULL,
   seed_index = 1L
 ) {
 
@@ -167,6 +213,7 @@ landmarks_lastfirst_R <- function(
   free_idx <- seq(nrow(x))
   # strike seed and (other) duplicates index from free indices
   perm_idx <- c(lf_idx, free_idx[-lf_idx])
+  # -+- assumes data have been permuted according to `pick_method` -+-
   free_idx[perm_idx[duplicated(x[perm_idx])]] <- 0L
   lmk_rank <- matrix(NA, nrow = nrow(x), ncol = 0)
 
@@ -174,12 +221,8 @@ landmarks_lastfirst_R <- function(
   for (i in seq_along(free_idx)) {
 
     # update vector of landmark points
-    lmk_idx[[i]] <- lf_idx[[switch (
-      pick_method,
-      first = 1L,
-      last = length(lf_idx),
-      random = sample(length(lf_idx), 1L)
-    )]]
+    # -+- assumes data have been permuted according to `pick_method` -+-
+    lmk_idx[[i]] <- lf_idx[[1L]]
 
     # update vector of free points
     if (free_idx[[lmk_idx[[i]]]] == 0L)
@@ -207,26 +250,8 @@ landmarks_lastfirst_R <- function(
     # exhaustion breaks
     if (all(free_idx == 0L)) break
     # parameter breaks
-    if (! is.null(num_sets)) {
-      # discontinue if the desired number of sets has been reached
-      if (i >= num_sets) {
-        # discontinue if there is no cardinality requirement
-        if (is.null(cardinality)) {
-          break
-        } else {
-          # continue if desired cardinality requires a greater number of sets
-          if (min_card <= cardinality) break
-        }
-      }
-    } else {
-      if (is.null(cardinality)) {
-        # if neither parameter is specified, limit the set to 24 landmarks
-        if (i >= 24L) break
-      } else {
-        # continue if desired cardinality requires more sets
-        if (min_card <= cardinality) break
-      }
-    }
+    if ((is.null(num_sets) || i >= num_sets) &&
+        (is.null(cardinality) || min_card <= cardinality)) break
 
     # obtain the lastfirst subset
     lf_idx <- free_idx[free_idx != 0L]
@@ -238,17 +263,6 @@ landmarks_lastfirst_R <- function(
       if (length(lf_idx) == 1L) break
     }
 
-  }
-
-  # print warnings if a parameter was adjusted
-  if (! is.null(num_sets)) {
-    if (i > num_sets) {
-      warning("Cover required ", i, " (> num_sets = ", num_sets, ") ",
-              "sets of cardinality ", cardinality, ".")
-    } else if (i < num_sets) {
-      warning("Only ", i, " (< num_sets = ", num_sets, ") ",
-              "distinct landmark points were found.")
-    }
   }
 
   lmk_idx[seq(i)]

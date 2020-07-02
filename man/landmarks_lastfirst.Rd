@@ -8,7 +8,7 @@
 \alias{landmarks_lastfirst_R}
 \title{Neighborhood-based Landmark Sets}
 \usage{
-landmarks_lastfirst_cpp(x, num_sets = 0L, cardinality = 0L, seed_index = 0L)
+landmarks_lastfirst_cpp(x, num_sets = 0L, cardinality = 0L, seed_index = 1L)
 
 firstlast(x, dist_method = "euclidean", ties_method = "min")
 
@@ -30,10 +30,8 @@ landmarks_lastfirst_R(
   x,
   dist_method = "euclidean",
   ties_method = "min",
-  pick_method = "first",
   num_sets = NULL,
   cardinality = NULL,
-  frac = FALSE,
   seed_index = 1L
 )
 }
@@ -79,10 +77,11 @@ points dispersed according to the orders in which they are reached from
 each other, rather than to their distances from each other. (Say more.)
 
 One, both, or neither of \code{num_sets} and \code{cardinality} may be passed values.
-If neither is specified, then \code{num_sets} is defaulted to \code{24L}. If the
-values yield neighborhoods that do not cover \code{x}, then, effectively,
-\code{num_sets} is increased until the cardinality necessary to cover \code{x} is at
-most \code{cardinality}. To generte a complete landmark set, use \code{cardinality = 1L}.
+If neither is specified, then \code{num_sets} is defaulted to the minimum of
+\code{24L} and the number of distinct rows of \code{x}. If the values yield
+neighborhoods that do not cover \code{x}, then, effectively, \code{num_sets} is
+increased until the cardinality necessary to cover \code{x} is at most
+\code{cardinality}. To generte a complete landmark set, use \code{cardinality = 1L}.
 }
 \author{
 Jason Cory Brunson

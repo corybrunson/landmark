@@ -26,12 +26,12 @@ test_that("landmark sets agree", {
 
 test_that("landmarks are generated", {
   # lastfirst landmarks in C++
-  expect_silent(landmarks_lastfirst_cpp(s, num_sets = nrow(s)))
+  expect_silent(landmarks_lastfirst(s, num_sets = nrow(s), engine = "C++"))
   # lastfirst landmarks in R
-  expect_silent(landmarks_lastfirst_R(s, num_sets = nrow(s)))
+  expect_silent(landmarks_lastfirst(s, num_sets = nrow(s), engine = "R"))
 })
 
 test_that("landmark sets agree", {
-  expect_equal(landmarks_lastfirst_cpp(s, num_sets = nrow(s)),
-               landmarks_lastfirst_R(s, num_sets = nrow(s)))
+  expect_equal(landmarks_lastfirst(s, num_sets = nrow(s), engine = "C++"),
+               landmarks_lastfirst(s, num_sets = nrow(s), engine = "R"))
 })

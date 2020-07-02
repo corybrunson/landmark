@@ -30,19 +30,19 @@ test_that("full landmark sets agree", {
 
 test_that("full landmarks are generated", {
   # lastfirst landmarks in C++
-  expect_silent(landmarks_lastfirst_cpp(m, num_sets = l))
+  expect_silent(landmarks_lastfirst(m, num_sets = l, engine = "C++"))
   # lastfirst landmarks in R
-  expect_silent(landmarks_lastfirst_R(m, num_sets = l))
+  expect_silent(landmarks_lastfirst(m, num_sets = l, engine = "R"))
 })
 
 test_that("warnings are generated", {
   # lastfirst landmarks in C++
-  expect_warning(landmarks_lastfirst_cpp(m, num_sets = nrow(m)))
+  expect_warning(landmarks_lastfirst(m, num_sets = nrow(m), engine = "C++"))
   # lastfirst landmarks in R
-  expect_warning(landmarks_lastfirst_R(m, num_sets = nrow(m)))
+  expect_warning(landmarks_lastfirst(m, num_sets = nrow(m), engine = "R"))
 })
 
 test_that("full landmark sets agree", {
-  expect_equal(landmarks_lastfirst_cpp(m, num_sets = l),
-               landmarks_lastfirst_R(m, num_sets = l))
+  expect_equal(landmarks_lastfirst(m, num_sets = l, engine = "C++"),
+               landmarks_lastfirst(m, num_sets = l, engine = "R"))
 })

@@ -130,7 +130,7 @@ IntegerVector landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, flo
 //' @param seed_index an integer (the first landmark to seed the algorithm)
 //' @export
 // [[Rcpp::export]]
-IntegerVector landmarks_lastfirst_cpp(const NumericMatrix& x, int num_sets = 0, int cardinality = 0, const int seed_index = 0) {
+IntegerVector landmarks_lastfirst_cpp(const NumericMatrix& x, int num_sets = 0, int cardinality = 0, const int seed_index = 1) {
     int num_pts = x.nrow();
 
     // additional parameter handling
@@ -145,7 +145,7 @@ IntegerVector landmarks_lastfirst_cpp(const NumericMatrix& x, int num_sets = 0, 
     // error handling
     if(cardinality < 1 || cardinality > num_pts){stop("Parameter 'cardinality' must be >= 1 and <= number of data points.");}
     if(num_sets < 0){stop("Parameter 'num_sets' must be >= 1.");}
-    if(seed_index < 0 || seed_index >= num_pts){stop("Parameter 'seed_index' must be >=1 and <= number of data points.");}
+    if(seed_index < 1 || seed_index > num_pts){stop("Parameter 'seed_index' must be >=1 and <= number of data points.");}
 
     map<int, vector<double>> Y_all; // whole space Y
     map<int, vector<double>> landmarks; // landmark set L
@@ -160,8 +160,8 @@ IntegerVector landmarks_lastfirst_cpp(const NumericMatrix& x, int num_sets = 0, 
     }
 
     // choose l0 and add it to L
-    pair<int, vector<double>> l_0(seed_index, Y_all.at(seed_index));
-    ordered_landmarks.push_back(seed_index);
+    pair<int, vector<double>> l_0(seed_index-1, Y_all.at(seed_index-1));
+    ordered_landmarks.push_back(seed_index-1);
     landmarks.insert(l_0);
 
     pair<int, vector<double>> l_i = l_0;
