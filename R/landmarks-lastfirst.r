@@ -32,6 +32,8 @@
 #' @param seed_index an integer (the first landmark to seed the algorithm) or
 #'   one of the character strings `"random"` (to select a seed uniformly at
 #'   random) and `"firstlast"` (to select a seed from the firstlast set).
+#' @param cover logical; whether to return a data frame of landmark indices and
+#'   cover sets (by member index) rather than only a vector of landmark indices.
 #' @param engine character string specifying the implementation to use; one of
 #'   `"C++"` or `"R"`. When not specified, the R engine is used.
 NULL
@@ -285,6 +287,7 @@ landmarks_lastfirst_R <- function(
       stopifnot(min_card < max(lmk_rank[, seq(min_card + 1L, ncol(lmk_rank))]))
       lmk_rank <- lmk_rank[, seq(min_card), drop = FALSE]
     }
+
     # obtain the lastfirst subset
     lf_idx <- free_idx[free_idx != 0L]
     for (j in seq(ncol(lmk_rank))) {

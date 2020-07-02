@@ -30,6 +30,8 @@
 #' @param seed_index an integer (the first landmark to seed the algorithm) or
 #'   one of the character strings `"random"` (to select a seed uniformly at
 #'   random) and `"minmax"` (to select a seed from the minmax set).
+#' @param cover logical; whether to return a data frame of landmark indices and
+#'   cover sets (by member index) rather than only a vector of landmark indices.
 #' @param shuffle_data whether to first randomly shuffle the data.
 #' @references De Silva, Vin, and Gunnar E. Carlsson. "Topological estimation
 #'   using witness complexes." SPBG 4 (2004): 157-166.
@@ -148,7 +150,7 @@ landmarks_maxmin_R <- function(
   x,
   dist_method = "euclidean", pick_method = "first",
   num_sets = NULL, radius = NULL, frac = FALSE,
-  seed_index = 1L
+  seed_index = 1L, cover = FALSE
 ) {
   # validate inputs
   stopifnot(is.matrix(x))
@@ -181,6 +183,7 @@ landmarks_maxmin_R <- function(
   perm_idx <- c(mm_idx, free_idx[-mm_idx])
   free_idx[perm_idx[duplicated(x[perm_idx])]] <- 0L
   lmk_dist <- rep(Inf, times = nrow(x))
+  if (cover) cover_idx <- list()
 
   # apply `frac` to `radius`
   if (frac) {
@@ -205,12 +208,32 @@ landmarks_maxmin_R <- function(
     free_idx[[lmk_idx[[i]]]] <- 0L
 
     # update landmark distances with distances from new landmark point
-    lmk_dist <- pmin(lmk_dist,
-                     proxy::dist(x[lmk_idx[[i]], , drop = FALSE],
-                                 x,
-                                 method = dist_method))
-    # refresh the minimum radius
-    min_rad <- max(lmk_dist)
+    #lmk_dist <- pmin(lmk_dist,
+    #                 proxy::dist(x[lmk_idx[[i]], , drop = FALSE],
+    #                             x,
+    #                             method = dist_method))
+    lmk_dist <- cbind(
+      # minimum distances from previous landmark points
+      lmk_dist,
+      # distances of all points from newest landmark point
+      proxy::dist(x[lmk_idx[[i]], , drop = FALSE],
+                  x,
+                  method = dist_method)[1, ])
+
+    # refresh the minimum radius necessary to cover `x`
+    min_rad <- max(pmin(lmk_dist[, 1L], lmk_dist[, 2L]))
+    # update membership list
+    if (cover) {
+      cover_idx <- if (is.null(radius)) {
+        # -+- will need to parse later -+-
+        wh_idx <- which(lmk_dist[, 2L] <= min_rad)
+        c(cover_idx,
+          list(cbind(idx = wh_idx, dist = lmk_dist[wh_idx, 2L])))
+      } else {
+        # -+- will not need to parse later -+-
+        c(cover_idx, list(which(lmk_dist[, 2L] <= radius)))
+      }
+    }
 
     # exhaustion breaks
     if (all(free_idx == 0L)) break
@@ -236,6 +259,8 @@ landmarks_maxmin_R <- function(
       }
     }
 
+    # collapse distances to the minimum to each point
+    lmk_dist <- pmin(lmk_dist[, 1L], lmk_dist[, 2L])
     # obtain the maxmin subset
     mm_idx <- free_idx[free_idx != 0L]
     mm_idx <- mm_idx[lmk_dist[mm_idx] == min_rad]
@@ -253,5 +278,20 @@ landmarks_maxmin_R <- function(
     }
   }
 
-  lmk_idx[seq(i)]
+  # restrict to selected landmarks
+  lmk_idx <- lmk_idx[seq(i)]
+  # return data
+  if (cover) {
+    if (is.null(radius)) {
+      # parse extraneous members
+      cover_idx <- lapply(cover_idx, function(mat) {
+        unname(mat[mat[, "dist"] <= min_rad, "idx"])
+      })
+    }
+    # return list of landmark indices and cover membership vectors
+    list(lmk_idx, cover_idx)
+  } else {
+    # return vector of landmark indices
+    lmk_idx
+  }
 }

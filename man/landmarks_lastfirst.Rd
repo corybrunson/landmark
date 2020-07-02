@@ -65,6 +65,9 @@ or \code{"random"}.}
 \item{frac}{logical; whether to treat \code{cardinality} as a fraction of the
 cardinality of \code{x}.}
 
+\item{cover}{logical; whether to return a data frame of landmark indices and
+cover sets (by member index) rather than only a vector of landmark indices.}
+
 \item{engine}{character string specifying the implementation to use; one of
 \code{"C++"} or \code{"R"}. When not specified, the R engine is used.}
 }

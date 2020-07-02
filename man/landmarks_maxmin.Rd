@@ -33,7 +33,8 @@ landmarks_maxmin_R(
   num_sets = NULL,
   radius = NULL,
   frac = FALSE,
-  seed_index = 1L
+  seed_index = 1L,
+  cover = FALSE
 )
 }
 \arguments{
@@ -61,6 +62,9 @@ or \code{"random"}.}
 
 \item{frac}{logical; whether to treat \code{radius} as a fraction of the diameter
 of \code{x}.}
+
+\item{cover}{logical; whether to return a data frame of landmark indices and
+cover sets (by member index) rather than only a vector of landmark indices.}
 }
 \description{
 Compute landmark points using maxmin procedure.
