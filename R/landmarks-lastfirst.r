@@ -89,7 +89,7 @@ landmarks_lastfirst <- function(
   x,
   dist_method = "euclidean", ties_method = "min", pick_method = "first",
   num_sets = NULL, cardinality = NULL, frac = FALSE,
-  seed_index = 1L,
+  seed_index = 1L, cover = FALSE,
   engine = NULL
 ) {
   # validate inputs
@@ -159,7 +159,7 @@ landmarks_lastfirst <- function(
   stopifnot(seed_index >= 1L && seed_index <= nrow(x))
 
   # dispatch to implementations
-  lmks <- switch (
+  res <- switch (
     engine,
     `C++` = landmarks_lastfirst_cpp(
       x = x,
@@ -172,30 +172,39 @@ landmarks_lastfirst <- function(
       dist_method = dist_method,
       ties_method = ties_method,
       num_sets = num_sets, cardinality = cardinality,
-      seed_index = seed_index
+      seed_index = seed_index, cover = cover
     )
   )
 
+  # format list as a data frame
+  if (is.list(res)) {
+    res <- data.frame(landmark = res[[1]], cover_set = I(res[[2]]))
+  }
+  # correct for permutation
+  if (pick_method != "first") {
+    if (is.list(res)) {
+      res[[1]] <- perm_x[res[[1]]]
+      res[[2]] <- lapply(res[[2]], function(set) perm_x[set])
+    } else {
+      res <- perm_x[res]
+    }
+  }
+
   # print warnings if a parameter was adjusted
   if (! is.null(num_sets)) {
-    if (length(lmks) > num_sets) {
-      warning("Required ", length(lmks),
+    if (NROW(res) > num_sets) {
+      warning("Required ", NROW(res),
               " (> num_sets = ", num_sets, ") ",
               "sets of cardinality ", cardinality, ".")
-    } else if (length(lmks) < num_sets) {
-      warning("Only ", length(lmks),
+    } else if (NROW(res) < num_sets) {
+      warning("Only ", NROW(res),
               " (< num_sets = ", num_sets, ") ",
               "distinct landmark points were found.")
     }
   }
 
-  # correct for permutation
-  if (pick_method == "first") {
-    lmks
-  } else {
-    perm_x[lmks]
-  }
-
+  # return landmarks
+  res
 }
 
 #' @rdname landmarks_lastfirst
@@ -204,18 +213,21 @@ landmarks_lastfirst_R <- function(
   x,
   dist_method = "euclidean", ties_method = "min",
   num_sets = NULL, cardinality = NULL,
-  seed_index = 1L
+  seed_index = 1L, cover = FALSE
 ) {
 
   # initialize lastfirst, free, and landmark index sets
   lf_idx <- seed_index
-  lmk_idx <- vector(mode = "integer", nrow(x))
   free_idx <- seq(nrow(x))
+  lmk_idx <- vector(mode = "integer", nrow(x))
   # strike seed and (other) duplicates index from free indices
-  perm_idx <- c(lf_idx, free_idx[-lf_idx])
   # -+- assumes data have been permuted according to `pick_method` -+-
-  free_idx[perm_idx[duplicated(x[perm_idx])]] <- 0L
+  perm_idx <- c(lf_idx, free_idx[-lf_idx])
+  free_idx[perm_idx[duplicated(x[perm_idx, , drop = FALSE])]] <- 0L
+  # initialize rank matrix and membership list
   lmk_rank <- matrix(NA, nrow = nrow(x), ncol = 0)
+  min_card <- nrow(x)
+  if (cover) cover_idx <- list()
 
   # recursively construct landmark set
   for (i in seq_along(free_idx)) {
@@ -238,14 +250,25 @@ landmarks_lastfirst_R <- function(
                        method = dist_method),
            ties.method = ties_method)
     )
-    # sort each available point's in-ranks to the landmark points
-    lmk_rank[] <- t(apply(lmk_rank, 1L, sort))
 
-    # refresh the minimum cardinality
-    min_card <- max(lmk_rank[c(free_idx, lmk_idx), 1L])
-    # drop ranks past minimum cardinality
-    if (min_card < ncol(lmk_rank))
-      lmk_rank <- lmk_rank[, seq(min_card), drop = FALSE]
+    # refresh the minimum cardinality necessary to cover `x`
+    #min_card <- max(apply(
+    #  lmk_rank[c(free_idx, lmk_idx), c(1L, ncol(lmk_rank))], 1L, min
+    #))
+    min_card <- max(pmin(lmk_rank[c(free_idx, lmk_idx), 1L],
+                         lmk_rank[c(free_idx, lmk_idx), ncol(lmk_rank)]))
+    # update membership list
+    if (cover) {
+      cover_idx <- if (is.null(cardinality)) {
+        # -+- will need to parse later -+-
+        wh_idx <- which(lmk_rank[, ncol(lmk_rank)] <= min_card)
+        c(cover_idx,
+          list(cbind(idx = wh_idx, rank = lmk_rank[wh_idx, ncol(lmk_rank)])))
+      } else {
+        # -+- will not need to parse later -+-
+        c(cover_idx, list(which(lmk_rank[, ncol(lmk_rank)] <= cardinality)))
+      }
+    }
 
     # exhaustion breaks
     if (all(free_idx == 0L)) break
@@ -253,6 +276,15 @@ landmarks_lastfirst_R <- function(
     if ((is.null(num_sets) || i >= num_sets) &&
         (is.null(cardinality) || min_card <= cardinality)) break
 
+    # sort each available point's in-ranks to the landmark points
+    # -+- necessary for column trimming (memory reduction) -+-
+    lmk_rank[] <- t(apply(lmk_rank, 1L, sort))
+    # drop ranks past minimum cardinality
+    if (min_card < ncol(lmk_rank)) {
+      # -+- assumption check -+-
+      stopifnot(min_card < max(lmk_rank[, seq(min_card + 1L, ncol(lmk_rank))]))
+      lmk_rank <- lmk_rank[, seq(min_card), drop = FALSE]
+    }
     # obtain the lastfirst subset
     lf_idx <- free_idx[free_idx != 0L]
     for (j in seq(ncol(lmk_rank))) {
@@ -265,5 +297,20 @@ landmarks_lastfirst_R <- function(
 
   }
 
-  lmk_idx[seq(i)]
+  # restrict to selected landmarks
+  lmk_idx <- lmk_idx[seq(i)]
+  # return data
+  if (cover) {
+    if (is.null(cardinality)) {
+      # parse extraneous members
+      cover_idx <- lapply(cover_idx, function(mat) {
+        mat[mat[, "rank"] <= min_card, "idx"]
+      })
+    }
+    # return list of landmark indices and cover membership vectors
+    list(lmk_idx, cover_idx)
+  } else {
+    # return vector of landmark indices
+    lmk_idx
+  }
 }

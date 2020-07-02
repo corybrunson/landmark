@@ -23,6 +23,7 @@ landmarks_lastfirst(
   cardinality = NULL,
   frac = FALSE,
   seed_index = 1L,
+  cover = FALSE,
   engine = NULL
 )
 
@@ -32,7 +33,8 @@ landmarks_lastfirst_R(
   ties_method = "min",
   num_sets = NULL,
   cardinality = NULL,
-  seed_index = 1L
+  seed_index = 1L,
+  cover = FALSE
 )
 }
 \arguments{
