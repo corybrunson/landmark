@@ -12,19 +12,19 @@ l <- nrow(unique(y))
 
 test_that("full landmark sets are generated", {
   # maxmin landmarks in C++
-  expect_silent(landmarks_maxmin_cpp(y, num_sets = l))
+  expect_silent(landmarks_maxmin(y, num_sets = l, engine = "C++"))
   # maxmin landmarks in R
-  expect_silent(landmarks_maxmin_R(y, num_sets = l))
+  expect_silent(landmarks_maxmin(y, num_sets = l, engine = "R"))
 })
 
 test_that("warnings are generated", {
-  expect_warning(landmarks_maxmin_cpp(y, num_sets = nrow(y)))
-  expect_warning(landmarks_maxmin_R(y, num_sets = nrow(y)))
+  expect_warning(landmarks_maxmin(y, num_sets = nrow(y), engine = "C++"))
+  expect_warning(landmarks_maxmin(y, num_sets = nrow(y), engine = "R"))
 })
 
 test_that("full landmark sets sets agree", {
-  expect_equal(landmarks_maxmin_cpp(y, num_sets = l),
-               landmarks_maxmin_R(y, num_sets = l))
+  expect_equal(landmarks_maxmin(y, num_sets = l, engine = "C++"),
+               landmarks_maxmin(y, num_sets = l, engine = "R"))
 })
 
 # lastfirst landmarks

@@ -40,36 +40,24 @@ maxmin_benchmark <- function(
   for (i in seq_along(datasets)) {
     x <- xs[[i]]
     mark <- mark(
-      landmarks_maxmin(
-        x,
-        dist_method = dist_method,
-        num_sets = if (is.null(num_sets)) min(24L, nrow(x)) else num_sets[i],
-        radius = radius
+      original = landmarks_maxmin(
+        x, num_sets = num_sets[i], radius = radius, engine = "original"
       ),
-      if (dist_method == "euclidean") landmarks_maxmin_cpp(
-        x,
-        num_sets = if (is.null(num_sets)) 0L else num_sets[i],
-        radius = if (is.null(radius)) -1L else radius
+      `C++` = landmarks_maxmin(
+        x, num_sets = num_sets[i], radius = radius, engine = "C++"
       ),
-      landmarks_maxmin_R(
-        x,
-        dist_method = dist_method,
-        num_sets = num_sets[i],
-        radius = radius
+      R = landmarks_maxmin(
+        x, num_sets = num_sets[i], radius = radius, engine = "R"
       ),
       check = FALSE
     )
     mark <- mutate(
       mark,
-      implementation = factor(case_when(
-        stringr::str_detect(as.character(expression), "_cpp") ~ "C++",
-        stringr::str_detect(as.character(expression), "_R") ~ "R",
-        TRUE ~ "Mapper"
-      ), levels = c("Mapper", "C++", "R")),
+      implementation = factor(expression, levels = c("original", "C++", "R")),
       n = nrow(x)
     )
     mark <- select(mark, n, implementation, median, mem_alloc)
-    if (dist_method != "euclidean") mark <- filter(mark, implementation != "C++")
+    #if (dist_method != "euclidean") mark <- filter(mark, implementation != "C++")
     marks <- bind_rows(marks, mark)
   }
   run_size <- ggplot(marks, aes(x = n, y = median, color = implementation)) +
@@ -111,7 +99,7 @@ lastfirst_benchmark <- function(
     )
     mark <- mutate(
       mark,
-      implementation = factor(expression, levels = c("Mapper", "C++", "R")),
+      implementation = factor(expression, levels = c("original", "C++", "R")),
       n = nrow(x)
     )
     mark <- select(mark, n, implementation, median, mem_alloc)

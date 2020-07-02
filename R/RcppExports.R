@@ -34,7 +34,7 @@ landmarks_lastfirst_cpp <- function(x, num_sets = 0L, cardinality = 0L, seed_ind
 
 #' @rdname landmarks_maxmin
 #' @export
-landmark_maxmin <- function(x, n, seed_index = 0L) {
+landmark_maxmin <- function(x, n, seed_index = 1L) {
     .Call('_landmark_landmark_maxmin', PACKAGE = 'landmark', x, n, seed_index)
 }
 

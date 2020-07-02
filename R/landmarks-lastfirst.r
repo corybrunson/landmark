@@ -127,13 +127,13 @@ landmarks_lastfirst <- function(
 
   # permute rows of `x` according to `pick_method`
   if (pick_method != "first") {
-    perm_x <- switch (
+    shuffle_idx <- switch (
       pick_method,
       first = seq(nrow(x)),
       last = seq(nrow(x), 1L),
       random = sample(nrow(x))
     )
-    x <- x[perm_x, , drop = FALSE]
+    x <- x[shuffle_idx, , drop = FALSE]
   }
   # handle seed selection
   if (is.character(seed_index)) {
@@ -154,7 +154,7 @@ landmarks_lastfirst <- function(
         pick_method,
         first = seed_index,
         last = nrow(x) + 1L - seed_index,
-        random = which(perm_x == seed_index)
+        random = which(shuffle_idx == seed_index)
       )
     }
   }
@@ -185,10 +185,10 @@ landmarks_lastfirst <- function(
   # correct for permutation
   if (pick_method != "first") {
     if (is.list(res)) {
-      res[[1]] <- perm_x[res[[1]]]
-      res[[2]] <- lapply(res[[2]], function(set) perm_x[set])
+      res[[1]] <- shuffle_idx[res[[1]]]
+      res[[2]] <- lapply(res[[2]], function(set) shuffle_idx[set])
     } else {
-      res <- perm_x[res]
+      res <- shuffle_idx[res]
     }
   }
 

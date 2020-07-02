@@ -4,14 +4,18 @@
 \alias{landmarks_maxmin_cpp}
 \alias{landmark_maxmin}
 \alias{landmarks_maxmin}
+\alias{minmax}
 \alias{minmax_R}
 \alias{chebyshev_center_R}
+\alias{landmarks_maxmin_orig}
 \alias{landmarks_maxmin_R}
 \title{Ball-based Landmark Sets}
 \usage{
 landmarks_maxmin_cpp(x, num_sets = 0L, radius = -1, seed_index = 0L)
 
-landmark_maxmin(x, n, seed_index = 0L)
+landmark_maxmin(x, n, seed_index = 1L)
+
+minmax(x, dist_method = "euclidean")
 
 minmax_R(x, dist_method = "euclidean")
 
@@ -20,10 +24,22 @@ chebyshev_center_R(x, dist_method = "euclidean")
 landmarks_maxmin(
   x,
   dist_method = "euclidean",
+  pick_method = "first",
   num_sets = NULL,
   radius = NULL,
+  frac = FALSE,
   seed_index = 1L,
-  shuffle_data = FALSE
+  cover = FALSE,
+  engine = NULL
+)
+
+landmarks_maxmin_orig(
+  x,
+  dist_method = "euclidean",
+  pick_method = "first",
+  num_sets = NULL,
+  radius = NULL,
+  seed_index = 1L
 )
 
 landmarks_maxmin_R(
@@ -53,8 +69,6 @@ random) and \code{"minmax"} (to select a seed from the minmax set).}
 \item{dist_method}{a character string specifying the distance metric to use;
 passed to \code{proxy::dist(method)}. Any distance measure in the \code{proxy}
 package is supported.}
-
-\item{shuffle_data}{whether to first randomly shuffle the data.}
 
 \item{pick_method}{a character string specifying the method for selecting one
 among indistinguishable points, either \code{"first"} (the default), \code{"last"},

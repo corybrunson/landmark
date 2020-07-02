@@ -43,7 +43,7 @@ IntegerVector landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, flo
     // error handling
     if(radius < 0 && radius != -1){stop("Parameter 'radius' must be a positive number.");}
     if(num_sets < 0){stop("Parameter 'num_sets' must be >= 1.");}
-    if(seed_index < 0 || seed_index >= num_pts){stop("Parameter 'seed_index' must be >=1 and <= number of data points.");}
+    if(seed_index < 1 || seed_index > num_pts){stop("Parameter 'seed_index' must be >=1 and <= number of data points.");}
 
     // additional parameter handling
     if(num_sets > num_pts){
@@ -63,15 +63,15 @@ IntegerVector landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, flo
 
     // store indices and values of landmark set L
     map<int, vector<double>> landmarks;
-    vector<double> seed_val = pts_left.at(seed_index);
-    landmarks.emplace(seed_index, seed_val);
+    vector<double> seed_val = pts_left.at(seed_index-1);
+    landmarks.emplace(seed_index-1, seed_val);
 
     // remove seed landmark (and any duplicates) from X\L
     for (const auto& x : pts_left){ if(x.second == seed_val){pts_left.erase(x.first);} }
 
     // keep track of order in which landmarks were added
     vector<int> ordered_landmarks;
-    ordered_landmarks.push_back(seed_index);
+    ordered_landmarks.push_back(seed_index-1);
 
     // compute remaining landmarks
     while(true){
@@ -189,12 +189,12 @@ IntegerVector landmarks_lastfirst_cpp(const NumericMatrix& x, int num_sets = 0, 
 //' @rdname landmarks_maxmin
 //' @export
 // [[Rcpp::export]]
-IntegerVector landmark_maxmin(const NumericMatrix& x, const int n, const int seed_index = 0) {
+IntegerVector landmark_maxmin(const NumericMatrix& x, const int n, const int seed_index = 1) {
   const size_t n_pts = x.nrow();
   std::vector< double > lm_dist(n_pts, std::numeric_limits<double>::infinity());
   IntegerVector landmark_idx = no_init_vector(n);
   //landmark_idx[seed_index] = 0;
-  landmark_idx[0] = seed_index;
+  landmark_idx[0] = seed_index-1;
   IntegerVector::iterator c_landmark = landmark_idx.begin();
   double new_min_dist;
   std::generate(landmark_idx.begin()+1, landmark_idx.end(), [&](){
