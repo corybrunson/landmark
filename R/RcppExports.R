@@ -14,10 +14,24 @@ NULL
 #'   number of sets in a ball cover.
 #' @param radius a positive real number; the desired radius of each cover set.
 #' @param seed_index an integer (the first landmark to seed the algorithm)
+#' @param cover a boolean specifying whether to return cover sets as well as 
+#'   landmarks
 #' @export
-landmarks_maxmin_cpp <- function(x, num_sets = 0L, radius = -1, seed_index = 0L) {
-    .Call('_landmark_landmarks_maxmin_cpp', PACKAGE = 'landmark', x, num_sets, radius, seed_index)
+landmarks_maxmin_cpp <- function(x, num_sets = 0L, radius = -1, seed_index = 1L, cover = FALSE) {
+    .Call('_landmark_landmarks_maxmin_cpp', PACKAGE = 'landmark', x, num_sets, radius, seed_index, cover)
 }
+
+#' @rdname landmarks_maxmin
+#' @export
+landmark_maxmin <- function(x, n, seed_index = 1L) {
+    .Call('_landmark_landmark_maxmin', PACKAGE = 'landmark', x, n, seed_index)
+}
+
+#' @title Maxmin + Neighborhood-based Landmark Sets
+#' @author Matt Piekenbrock
+#' @author Jason Cory Brunson
+#' @author Yara Skaf
+NULL
 
 #' @rdname landmarks_lastfirst
 #' @description Compute landmark points using maxmin procedure.
@@ -30,12 +44,6 @@ landmarks_maxmin_cpp <- function(x, num_sets = 0L, radius = -1, seed_index = 0L)
 #' @export
 landmarks_lastfirst_cpp <- function(x, num_sets = 0L, cardinality = 0L, seed_index = 1L) {
     .Call('_landmark_landmarks_lastfirst_cpp', PACKAGE = 'landmark', x, num_sets, cardinality, seed_index)
-}
-
-#' @rdname landmarks_maxmin
-#' @export
-landmark_maxmin <- function(x, n, seed_index = 1L) {
-    .Call('_landmark_landmark_maxmin', PACKAGE = 'landmark', x, n, seed_index)
 }
 
 #' @rdname run_lf_example

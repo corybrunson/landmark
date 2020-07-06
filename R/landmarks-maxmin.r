@@ -173,7 +173,7 @@ landmarks_maxmin <- function(
       x = x,
       num_sets = if (is.null(num_sets)) 0L else num_sets,
       radius = if (is.null(radius)) -1L else radius,
-      seed_index = seed_index
+      seed_index = seed_index, cover = cover
     ),
     R = landmarks_maxmin_R(
       x = x,
