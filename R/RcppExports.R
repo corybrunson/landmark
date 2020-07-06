@@ -14,7 +14,7 @@ NULL
 #'   number of sets in a ball cover.
 #' @param radius a positive real number; the desired radius of each cover set.
 #' @param seed_index an integer (the first landmark to seed the algorithm)
-#' @param cover a boolean specifying whether to return cover sets as well as 
+#' @param cover a boolean specifying whether to return cover sets as well as
 #'   landmarks
 #' @export
 landmarks_maxmin_cpp <- function(x, num_sets = 0L, radius = -1, seed_index = 1L, cover = FALSE) {

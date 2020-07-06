@@ -31,4 +31,13 @@ int revlex(std::vector<int> an, std::vector<int> bn);
 std::map<int, std::vector<double>> firstlast(std::map<int, std::vector<double>> Yp, std::map<int, std::vector<double>> Y_all);
 std::map<int, std::vector<double>> lastfirst(std::map<int, std::vector<double>> Yp, std::map<int, std::vector<double>> Y_all);
 
+inline double dist_euc(std::vector<double> x, std::vector<double> y){
+    double sum = 0;
+    for(int i = 0; i < x.size(); i++){
+        double diff = x[i] - y[i];
+        sum = sum + pow(diff, 2.0);
+    }
+  return(sqrt(sum));
+}
+
 #endif

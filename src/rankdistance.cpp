@@ -11,14 +11,6 @@ using namespace std;
 
 using std::size_t;
 
-inline double dist_euc(vector<double> x, vector<double> y){
-    double sum = 0;
-    for(int i = 0; i < x.size(); i++){
-        double diff = x[i] - y[i];
-        sum = sum + pow(diff, 2.0);
-    }
-  return(sqrt(sum));
-}
 
 // q_hat(x,y) = |{z in Y | d(x,z) <= d(x,y)}|
 // cardinality of smallest ball centered at 2 that contains y

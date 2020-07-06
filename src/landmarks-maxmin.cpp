@@ -19,15 +19,6 @@ inline double sq_dist(const NumericVector& x, const NumericVector& y){
   return(sum(pow(diff, 2.0)));
 }
 
-inline double dist_euc(vector<double> x, vector<double> y){
-    double sum = 0;
-    for(int i = 0; i < x.size(); i++){
-        double diff = x[i] - y[i];
-        sum = sum + pow(diff, 2.0);
-    }
-  return(sqrt(sum));
-}
-
 // Uses the maxmin procedure to choose num_sets landmarks for balls of radius radius.
 // NOTE: Rcpp does now allow use of c++ constant (e.g. FLT_MAX) in parameters
 //      -> must specify default radius=INF within function
@@ -38,7 +29,7 @@ inline double dist_euc(vector<double> x, vector<double> y){
 //'   number of sets in a ball cover.
 //' @param radius a positive real number; the desired radius of each cover set.
 //' @param seed_index an integer (the first landmark to seed the algorithm)
-//' @param cover a boolean specifying whether to return cover sets as well as 
+//' @param cover a boolean specifying whether to return cover sets as well as
 //'   landmarks
 //' @export
 // [[Rcpp::export]]

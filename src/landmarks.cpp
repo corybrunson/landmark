@@ -11,19 +11,10 @@ using namespace Rcpp;
 using namespace std;
 using std::size_t;
 
-inline double sq_dist(const NumericVector& x, const NumericVector& y){
-  NumericVector diff = x-y;
-  return(sum(pow(diff, 2.0)));
-}
-
-inline double dist_euc(vector<double> x, vector<double> y){
-    double sum = 0;
-    for(int i = 0; i < x.size(); i++){
-        double diff = x[i] - y[i];
-        sum = sum + pow(diff, 2.0);
-    }
-  return(sqrt(sum));
-}
+// inline double sq_dist(const NumericVector& x, const NumericVector& y){
+//   NumericVector diff = x-y;
+//   return(sum(pow(diff, 2.0)));
+// }
 
 // // Uses the maxmin procedure to choose num_sets landmarks for balls of radius radius.
 // // NOTE: Rcpp does now allow use of c++ constant (e.g. FLT_MAX) in parameters
