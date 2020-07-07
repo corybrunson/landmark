@@ -185,7 +185,9 @@ landmarks_maxmin <- function(
 
   # format list as a data frame
   if (is.list(res)) {
-    res <- data.frame(landmark = res[[1]], cover_set = I(res[[2]]))
+      if( length(res) < 2 ){
+          res <- data.frame(landmark = res[[1]], cover_set = NA)
+      }else{ res <- data.frame(landmark = res[[1]], cover_set = I(res[[2]])) }
   }
   # correct for permutation
   if (pick_method != "first") {

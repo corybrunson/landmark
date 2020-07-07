@@ -112,10 +112,12 @@ List landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, float radius
         }
     }
 
+    List ret;
     IntegerVector landmarks_R = wrap(ordered_landmarks); // wrap into R data type
-    List cover_sets;
+    ret.push_back(landmarks_R+1);
+
     if(cover == true){
-        //cout << "\nradius: " << radius << endl;
+        List cover_sets;
         for(const auto& l : ordered_landmarks){
             vector<double> l_val = landmarks.at(l);
             IntegerVector ball;
@@ -127,12 +129,8 @@ List landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, float radius
             }
             cover_sets.push_back(ball+1);
         }
-    }
-    else{ cover_sets = R_NilValue; } // use null for cover_sets if cover==false
-
-    List ret;
-    ret.push_back(landmarks_R+1);
-    ret.push_back(cover_sets);
+        ret.push_back(cover_sets);
+    }    
     return(ret);
 }
 
