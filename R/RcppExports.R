@@ -47,12 +47,6 @@ landmark_maxmin <- function(x, n, seed_index = 1L) {
     .Call('_landmark_landmark_maxmin', PACKAGE = 'landmark', x, n, seed_index)
 }
 
-#' @title Maxmin + Neighborhood-based Landmark Sets
-#' @author Matt Piekenbrock
-#' @author Jason Cory Brunson
-#' @author Yara Skaf
-NULL
-
 #' @rdname run_lf_example
 #' @export
 run_lf_example <- function(y, nhd_size) {
