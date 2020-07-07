@@ -211,71 +211,71 @@ using std::size_t;
 //     // IntegerVector ret = wrap(ordered_landmarks); // wrap into R data type
 //     // return(ret+1); // switch to 1-based indexing for return
 // }
-
-// Uses the euclidean lastfirst procedure to choose landmarks for nhds of size cardinality.
-//' @rdname landmarks_lastfirst
-//' @description Compute landmark points using maxmin procedure.
-//' @param x a data matrix.
-//' @param cardinality a positive integer; the desired cardinality of each
-//'   landmark neighborhood, or of each set in a landmark cover.
-//' @param num_sets a positive integer; the desired number of landmark points, or
-//'   number of sets in a neighborhood cover.
-//' @param seed_index an integer (the first landmark to seed the algorithm)
-//' @export
-// [[Rcpp::export]]
-IntegerVector landmarks_lastfirst_cpp(const NumericMatrix& x, int num_sets = 0, int cardinality = 0, const int seed_index = 1) {
-    int num_pts = x.nrow();
-
-    // additional parameter handling
-    if(num_sets > num_pts){
-        warning("Warning: parameter 'num_sets' was > max allowable value. Setting num_sets = number of data points.");
-        num_sets = num_pts;
-    }
-    if(num_sets == 0 && cardinality == 0){num_sets = std::min(num_pts,24);}
-    if(cardinality == 0){cardinality = 1;}
-    if(num_sets == 0){num_sets = num_pts;}
-
-    // error handling
-    if(cardinality < 1 || cardinality > num_pts){stop("Parameter 'cardinality' must be >= 1 and <= number of data points.");}
-    if(num_sets < 0){stop("Parameter 'num_sets' must be >= 1.");}
-    if(seed_index < 1 || seed_index > num_pts){stop("Parameter 'seed_index' must be >=1 and <= number of data points.");}
-
-    map<int, vector<double>> Y_all; // whole space Y
-    map<int, vector<double>> landmarks; // landmark set L
-    map<int, vector<double>> covered; // store union of Nk check plus over all landmarks
-    vector<int> ordered_landmarks; // keep track of order in which landmarks were added
-
-    // store indices and values of X\L
-    for(int i = 0; i < num_pts; i++){
-        NumericVector vec = x.row(i);
-        vector<double> point(vec.begin(),vec.end());
-        Y_all.emplace(i, point);
-    }
-
-    // choose l0 and add it to L
-    pair<int, vector<double>> l_0(seed_index-1, Y_all.at(seed_index-1));
-    ordered_landmarks.push_back(seed_index-1);
-    landmarks.insert(l_0);
-
-    pair<int, vector<double>> l_i = l_0;
-    while(true){
-        // update the list of covered points
-        map<int, vector<double>> Nk = Nk_check_plus(l_i, Y_all, cardinality, Y_all); // expensive operation
-        for(const auto& x : Nk){ covered.insert(x); }
-
-        // exit if all points in X are covered and enough landmarks have been chosen
-        if(covered.size() >= num_pts || landmarks.size() >= num_sets){break;}
-
-        // compute lf(L), then choose li from lf(L) and add it to L
-        map<int, vector<double>> lf = lastfirst(landmarks, Y_all);
-        l_i = make_pair(lf.begin()->first, lf.begin()->second);
-        ordered_landmarks.push_back(l_i.first);
-        landmarks.insert(l_i);
-    }
-    // only return the indices of landmarks (not the values)
-    IntegerVector ret = wrap(ordered_landmarks); // wrap into R data type
-    return(ret+1); // switch to 1-based indexing for return
-}
+//
+// // Uses the euclidean lastfirst procedure to choose landmarks for nhds of size cardinality.
+// //' @rdname landmarks_lastfirst
+// //' @description Compute landmark points using maxmin procedure.
+// //' @param x a data matrix.
+// //' @param cardinality a positive integer; the desired cardinality of each
+// //'   landmark neighborhood, or of each set in a landmark cover.
+// //' @param num_sets a positive integer; the desired number of landmark points, or
+// //'   number of sets in a neighborhood cover.
+// //' @param seed_index an integer (the first landmark to seed the algorithm)
+// //' @export
+// // [[Rcpp::export]]
+// IntegerVector landmarks_lastfirst_cpp(const NumericMatrix& x, int num_sets = 0, int cardinality = 0, const int seed_index = 1) {
+//     int num_pts = x.nrow();
+//
+//     // additional parameter handling
+//     if(num_sets > num_pts){
+//         warning("Warning: parameter 'num_sets' was > max allowable value. Setting num_sets = number of data points.");
+//         num_sets = num_pts;
+//     }
+//     if(num_sets == 0 && cardinality == 0){num_sets = std::min(num_pts,24);}
+//     if(cardinality == 0){cardinality = 1;}
+//     if(num_sets == 0){num_sets = num_pts;}
+//
+//     // error handling
+//     if(cardinality < 1 || cardinality > num_pts){stop("Parameter 'cardinality' must be >= 1 and <= number of data points.");}
+//     if(num_sets < 0){stop("Parameter 'num_sets' must be >= 1.");}
+//     if(seed_index < 1 || seed_index > num_pts){stop("Parameter 'seed_index' must be >=1 and <= number of data points.");}
+//
+//     map<int, vector<double>> Y_all; // whole space Y
+//     map<int, vector<double>> landmarks; // landmark set L
+//     map<int, vector<double>> covered; // store union of Nk check plus over all landmarks
+//     vector<int> ordered_landmarks; // keep track of order in which landmarks were added
+//
+//     // store indices and values of X\L
+//     for(int i = 0; i < num_pts; i++){
+//         NumericVector vec = x.row(i);
+//         vector<double> point(vec.begin(),vec.end());
+//         Y_all.emplace(i, point);
+//     }
+//
+//     // choose l0 and add it to L
+//     pair<int, vector<double>> l_0(seed_index-1, Y_all.at(seed_index-1));
+//     ordered_landmarks.push_back(seed_index-1);
+//     landmarks.insert(l_0);
+//
+//     pair<int, vector<double>> l_i = l_0;
+//     while(true){
+//         // update the list of covered points
+//         map<int, vector<double>> Nk = Nk_check_plus(l_i, Y_all, cardinality, Y_all); // expensive operation
+//         for(const auto& x : Nk){ covered.insert(x); }
+//
+//         // exit if all points in X are covered and enough landmarks have been chosen
+//         if(covered.size() >= num_pts || landmarks.size() >= num_sets){break;}
+//
+//         // compute lf(L), then choose li from lf(L) and add it to L
+//         map<int, vector<double>> lf = lastfirst(landmarks, Y_all);
+//         l_i = make_pair(lf.begin()->first, lf.begin()->second);
+//         ordered_landmarks.push_back(l_i.first);
+//         landmarks.insert(l_i);
+//     }
+//     // only return the indices of landmarks (not the values)
+//     IntegerVector ret = wrap(ordered_landmarks); // wrap into R data type
+//     return(ret+1); // switch to 1-based indexing for return
+// }
 
 
 // //' @export

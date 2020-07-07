@@ -167,7 +167,7 @@ landmarks_lastfirst <- function(
       x = x,
       num_sets = if (is.null(num_sets)) 0L else num_sets,
       cardinality = if (is.null(cardinality)) 0L else cardinality,
-      seed_index = seed_index
+      seed_index = seed_index, cover = cover
     ),
     R = landmarks_lastfirst_R(
       x = x,
@@ -180,7 +180,9 @@ landmarks_lastfirst <- function(
 
   # format list as a data frame
   if (is.list(res)) {
-    res <- data.frame(landmark = res[[1]], cover_set = I(res[[2]]))
+      if( length(res) < 2 ){
+          res <- data.frame(landmark = res[[1]], cover_set = NA)
+      }else{ res <- data.frame(landmark = res[[1]], cover_set = I(res[[2]])) }
   }
   # correct for permutation
   if (pick_method != "first") {
