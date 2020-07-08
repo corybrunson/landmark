@@ -8,7 +8,13 @@
 \alias{landmarks_lastfirst_R}
 \title{Neighborhood-based Landmark Sets}
 \usage{
-landmarks_lastfirst_cpp(x, num_sets = 0L, cardinality = 0L, seed_index = 1L)
+landmarks_lastfirst_cpp(
+  x,
+  num_sets = 0L,
+  cardinality = 0L,
+  seed_index = 1L,
+  cover = FALSE
+)
 
 firstlast(x, dist_method = "euclidean", ties_method = "min")
 
@@ -50,6 +56,9 @@ landmark neighborhood, or of each set in a landmark cover.}
 one of the character strings \code{"random"} (to select a seed uniformly at
 random) and \code{"firstlast"} (to select a seed from the firstlast set).}
 
+\item{cover}{logical; whether to return a data frame of landmark indices and
+cover sets (by member index) rather than only a vector of landmark indices.}
+
 \item{dist_method}{a character string specifying the distance metric to use;
 passed to \code{proxy::dist(method)}. Any distance measure in the \code{proxy}
 package is supported.}
@@ -64,9 +73,6 @@ or \code{"random"}.}
 
 \item{frac}{logical; whether to treat \code{cardinality} as a fraction of the
 cardinality of \code{x}.}
-
-\item{cover}{logical; whether to return a data frame of landmark indices and
-cover sets (by member index) rather than only a vector of landmark indices.}
 
 \item{engine}{character string specifying the implementation to use; one of
 \code{"C++"} or \code{"R"}. When not specified, the R engine is used.}

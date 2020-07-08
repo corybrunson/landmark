@@ -179,10 +179,11 @@ landmarks_lastfirst <- function(
   )
 
   # format list as a data frame
-  if (is.list(res)) {
-      if( length(res) < 2 ){
-          res <- data.frame(landmark = res[[1]], cover_set = NA)
-      }else{ res <- data.frame(landmark = res[[1]], cover_set = I(res[[2]])) }
+  stopifnot(is.list(res))
+  if (length(res) == 1L) {
+    res <- res[[1]]
+  } else {
+    res <- data.frame(landmark = res[[1]], cover_set = I(res[[2]]))
   }
   # correct for permutation
   if (pick_method != "first") {
@@ -316,6 +317,6 @@ landmarks_lastfirst_R <- function(
     list(lmk_idx, cover_idx)
   } else {
     # return vector of landmark indices
-    lmk_idx
+    list(lmk_idx)
   }
 }

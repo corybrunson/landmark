@@ -11,7 +11,13 @@
 \alias{landmarks_maxmin_R}
 \title{Ball-based Landmark Sets}
 \usage{
-landmarks_maxmin_cpp(x, num_sets = 0L, radius = -1, seed_index = 0L)
+landmarks_maxmin_cpp(
+  x,
+  num_sets = 0L,
+  radius = -1,
+  seed_index = 1L,
+  cover = FALSE
+)
 
 landmark_maxmin(x, n, seed_index = 1L)
 
@@ -66,6 +72,9 @@ landmark ball, or of each set in a ball cover.}
 one of the character strings \code{"random"} (to select a seed uniformly at
 random) and \code{"minmax"} (to select a seed from the minmax set).}
 
+\item{cover}{logical; whether to return a data frame of landmark indices and
+cover sets (by member index) rather than only a vector of landmark indices.}
+
 \item{dist_method}{a character string specifying the distance metric to use;
 passed to \code{proxy::dist(method)}. Any distance measure in the \code{proxy}
 package is supported.}
@@ -76,9 +85,6 @@ or \code{"random"}.}
 
 \item{frac}{logical; whether to treat \code{radius} as a fraction of the diameter
 of \code{x}.}
-
-\item{cover}{logical; whether to return a data frame of landmark indices and
-cover sets (by member index) rather than only a vector of landmark indices.}
 }
 \description{
 Compute landmark points using maxmin procedure.
