@@ -310,7 +310,7 @@ landmarks_lastfirst_R <- function(
     if (is.null(cardinality)) {
       # parse extraneous members
       cover_idx <- lapply(cover_idx, function(mat) {
-        mat[mat[, "rank"] <= min_card, "idx"]
+        unname(mat[mat[, "rank"] <= min_card, "idx"])
       })
     }
     # return list of landmark indices and cover membership vectors
