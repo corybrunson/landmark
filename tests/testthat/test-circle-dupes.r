@@ -22,9 +22,9 @@ test_that("warnings are generated", {
   expect_warning(landmarks_maxmin(y, num_sets = nrow(y), engine = "R"))
 })
 
-test_that("full landmark sets sets agree", {
-  expect_equal(landmarks_maxmin(y, num_sets = l, engine = "C++"),
-               landmarks_maxmin(y, num_sets = l, engine = "R"))
+test_that("full landmark sets and cover sets agree", {
+  expect_equal(landmarks_maxmin(y, num_sets = l, engine = "C++", cover = TRUE),
+               landmarks_maxmin(y, num_sets = l, engine = "R", cover = TRUE))
 })
 
 # lastfirst landmarks
@@ -43,7 +43,9 @@ test_that("warnings are generated", {
   expect_warning(landmarks_lastfirst(y, num_sets = nrow(y), engine = "R"))
 })
 
-test_that("full landmark sets agree", {
-  expect_equal(landmarks_lastfirst(y, num_sets = l, engine = "C++"),
-               landmarks_lastfirst(y, num_sets = l, engine = "R"))
+test_that("full landmark sets and cover sets agree", {
+  expect_equal(
+    landmarks_lastfirst(y, num_sets = l, engine = "C++", cover = TRUE),
+    landmarks_lastfirst(y, num_sets = l, engine = "R", cover = TRUE)
+  )
 })

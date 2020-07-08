@@ -23,6 +23,13 @@ test_that("landmark sets agree", {
                landmarks_maxmin(s, num_sets = nrow(s), engine = "R"))
 })
 
+test_that("landmark sets and cover sets agree", {
+  expect_equal(
+    landmarks_maxmin(s, num_sets = nrow(s), engine = "C++", cover = TRUE),
+    landmarks_maxmin(s, num_sets = nrow(s), engine = "R", cover = TRUE)
+  )
+})
+
 # lastfirst landmarks
 
 test_that("landmarks are generated", {
@@ -32,7 +39,9 @@ test_that("landmarks are generated", {
   expect_silent(landmarks_lastfirst(s, num_sets = nrow(s), engine = "R"))
 })
 
-test_that("landmark sets agree", {
-  expect_equal(landmarks_lastfirst(s, num_sets = nrow(s), engine = "C++"),
-               landmarks_lastfirst(s, num_sets = nrow(s), engine = "R"))
+test_that("landmark sets and cover sets agree", {
+  expect_equal(
+    landmarks_lastfirst(s, num_sets = nrow(s), engine = "C++", cover = TRUE),
+    landmarks_lastfirst(s, num_sets = nrow(s), engine = "R", cover = TRUE)
+  )
 })
