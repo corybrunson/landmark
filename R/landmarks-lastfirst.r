@@ -257,9 +257,6 @@ landmarks_lastfirst_R <- function(
     )
 
     # refresh the minimum cardinality necessary to cover `x`
-    #min_card <- max(apply(
-    #  lmk_rank[c(free_idx, lmk_idx), c(1L, ncol(lmk_rank))], 1L, min
-    #))
     min_card <- max(pmin(lmk_rank[c(free_idx, lmk_idx), 1L],
                          lmk_rank[c(free_idx, lmk_idx), ncol(lmk_rank)]))
     # update membership list
@@ -282,15 +279,7 @@ landmarks_lastfirst_R <- function(
         (is.null(cardinality) || min_card <= cardinality)) break
 
     # sort each available point's in-ranks to the landmark points
-    # -+- necessary for column trimming (memory reduction) -+-
     lmk_rank[] <- t(apply(lmk_rank, 1L, sort))
-    # drop ranks past minimum cardinality
-    if (min_card < ncol(lmk_rank)) {
-      # -+- assumption check -+-
-      stopifnot(min_card < max(lmk_rank[, seq(min_card + 1L, ncol(lmk_rank))]))
-      lmk_rank <- lmk_rank[, seq(min_card), drop = FALSE]
-    }
-
     # obtain the lastfirst subset
     lf_idx <- free_idx[free_idx != 0L]
     for (j in seq(ncol(lmk_rank))) {
