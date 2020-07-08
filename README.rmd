@@ -34,16 +34,18 @@ The original `maxmin` procedure produces a landmark set for covering a point clo
 * a minimum number of balls of fixed uniform radius
 * a fixed number of balls of minimum uniform radius
 
-```{r maxmin example in C++}
-x[landmarks_maxmin_cpp(x, radius = 0.5, seed_index = 0L), , drop = FALSE]
-x[landmarks_maxmin_cpp(x, radius = 0.25, seed_index = 0L), , drop = FALSE]
-x[landmarks_maxmin_cpp(x, radius = 0.125, seed_index = 0L), , drop = FALSE]
+```{r maxmin landmark sets using C++ engine}
+x[landmarks_maxmin(x, radius = 0.5, engine = "C++"), , drop = FALSE]
+x[landmarks_maxmin(x, radius = 0.25, engine = "C++"), , drop = FALSE]
+x[landmarks_maxmin(x, radius = 0.125, engine = "C++"), , drop = FALSE]
+x[landmarks_maxmin(x, num_sets = 6L, engine = "C++"), , drop = FALSE]
 ```
 
-```{r maxmin example in R}
-x[landmarks_maxmin_R(x, radius = 3.5, seed_index = 1L), , drop = FALSE]
-x[landmarks_maxmin_R(x, radius = 1.5, seed_index = 1L), , drop = FALSE]
-x[landmarks_maxmin_R(x, radius = 0.5, seed_index = 1L), , drop = FALSE]
+```{r ball covers using R engine}
+landmarks_maxmin(x, num_sets = 4, engine = "R", cover = TRUE)
+landmarks_maxmin(x, radius = 0.5, engine = "R", cover = TRUE)
+landmarks_maxmin(x, radius = 1.5, engine = "R", cover = TRUE)
+landmarks_maxmin(x, radius = 3.5, engine = "R", cover = TRUE)
 ```
 
 ## `lastfirst` procedure
@@ -55,16 +57,18 @@ An adaptation of `maxmin` to ranked distances will produce a landmark set for co
 
 Cardinality is only exact up to ties, which may be handled different ways and will result in cover sets of different cardinalities.
 
-```{r lastfirst example in C++}
-x[landmarks_lastfirst_cpp(x, cardinality = 3L, seed_index = 5L), , drop = FALSE]
-x[landmarks_lastfirst_cpp(x, cardinality = 2L, seed_index = 5L), , drop = FALSE]
-x[landmarks_lastfirst_cpp(x, cardinality = 1L, seed_index = 5L), , drop = FALSE]
+```{r lastfirst landmark sets using R engine}
+x[landmarks_lastfirst(x, cardinality = 3L, seed_index = 6L), , drop = FALSE]
+x[landmarks_lastfirst(x, cardinality = 2L, seed_index = 6L), , drop = FALSE]
+x[landmarks_lastfirst(x, num_sets = 4, seed_index = 6L), , drop = FALSE]
+x[landmarks_lastfirst(x, cardinality = 1L, seed_index = 6L), , drop = FALSE]
 ```
 
-```{r lastfirst example in R}
-x[landmarks_lastfirst_R(x, cardinality = 5L, seed_index = 6L), , drop = FALSE]
-x[landmarks_lastfirst_R(x, cardinality = 3L, seed_index = 6L), , drop = FALSE]
-x[landmarks_lastfirst_R(x, cardinality = 1L, seed_index = 6L), , drop = FALSE]
+```{r neighborhood covers using C++ engine}
+landmarks_lastfirst(x, cardinality = 1L, seed_index = 6L, engine = "C++", cover = TRUE)
+landmarks_lastfirst(x, num_sets = 4, seed_index = 6L, engine = "C++", cover = TRUE)
+landmarks_lastfirst(x, cardinality = 3L, seed_index = 6L, engine = "C++", cover = TRUE)
+landmarks_lastfirst(x, cardinality = 5L, seed_index = 6L, engine = "C++", cover = TRUE)
 ```
 
 # references
