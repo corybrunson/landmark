@@ -76,7 +76,7 @@ List landmarks_lastfirst_cpp(const NumericMatrix& x, int num_sets = 0, int cardi
 
         // get the next landmark
         map<int, vector<double>> lf = lastfirst(landmarks, Y_all);
-        if(lf.size() <= 0){ break; }
+        if(lf.size() <= 0){ min_k = 1; break; }
         pair<int, vector<double>> next_l = make_pair(lf.begin()->first, lf.begin()->second);
 
         // calculate the new minimum cardinality required to cover X
@@ -100,6 +100,7 @@ List landmarks_lastfirst_cpp(const NumericMatrix& x, int num_sets = 0, int cardi
         // if cardinality was given, nhds are already of appropriate size
         int cutoff = min_k;
         if(cardinality < num_pts){ cutoff = cardinality; }
+        //cout << "cutoff: " << cutoff << "\n";
         for(const auto& l : ordered_landmarks){
             IntegerVector nhd;
             for(const auto& pt : landmark_ranks.at(l)){
