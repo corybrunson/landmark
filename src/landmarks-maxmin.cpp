@@ -59,7 +59,11 @@ List landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, float radius
 
     // remove seed landmark (and any duplicates) from X\L
     vector<double> seed_val = pts_left.at(seed_index-1);
-    for (const auto& x : pts_left){ if(x.second == seed_val){pts_left.erase(x.first);} }
+    //for (const auto& x : pts_left){ if(x.second == seed_val){pts_left.erase(x.first);} }
+    for (auto pt = pts_left.cbegin(), next_pt = pt; pt != pts_left.cend(); pt = next_pt){
+      ++next_pt;
+      if (pt->second == seed_val){ pts_left.erase(pt); }
+    }
 
     // store indices and values of landmark set L
     map<int, vector<double>> landmarks;
@@ -130,7 +134,7 @@ List landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, float radius
             cover_sets.push_back(ball+1);
         }
         ret.push_back(cover_sets);
-    }    
+    }
     return(ret);
 }
 

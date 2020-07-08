@@ -55,7 +55,10 @@ List landmarks_lastfirst_cpp(const NumericMatrix& x, int num_sets = 0, int cardi
         // add landmark to landmark set, remove it (+ duplicates) from pts_left
         landmarks.insert(l_i);
         ordered_landmarks.push_back(l_i.first);
-        for(const auto& pt : pts_left){ if(pt.second == l_i.second){ pts_left.erase(pt.first); } }
+        for (auto pt = pts_left.cbegin(), next_pt = pt; pt != pts_left.cend(); pt = next_pt){
+          ++next_pt;
+          if (pt->second == l_i.second){ pts_left.erase(pt); }
+        }
 
         // maintain ranked k-nhd if we need to return cover sets
         if(cover == true){
