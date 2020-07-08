@@ -1,3 +1,4 @@
+#' @name landmarks_lastfirst
 #' @title Neighborhood-based Landmark Sets
 #' @author Jason Cory Brunson
 #' @author Yara Skaf
@@ -12,7 +13,6 @@
 #'   neighborhoods that do not cover `x`, then, effectively, `num_sets` is
 #'   increased until the cardinality necessary to cover `x` is at most
 #'   `cardinality`. To generte a complete landmark set, use `cardinality = 1L`.
-#' @name landmarks_lastfirst
 #' @param x a data matrix.
 #' @param dist_method a character string specifying the distance metric to use;
 #'   passed to `proxy::dist(method)`. Any distance measure in the \code{proxy}
@@ -36,6 +36,7 @@
 #'   cover sets (by member index) rather than only a vector of landmark indices.
 #' @param engine character string specifying the implementation to use; one of
 #'   `"C++"` or `"R"`. When not specified, the R engine is used.
+#' @example inst/examples/ex-landmarks-lastfirst.r
 NULL
 
 #' @rdname landmarks_lastfirst
