@@ -1,12 +1,10 @@
 ////////////////////////////////////////////////////////////////////////////////
-//' @title Maxmin + Neighborhood-based Landmark Sets
-//' @author Matt Piekenbrock
-//' @author Jason Cory Brunson
-//' @author Yara Skaf
+// Maxmin-based Landmark Procedure
+// Authors: Matt Piekenbrock, Jason Cory Brunson, Yara Skaf
+// Description: Calculate a landmark set using the maxmin procedure.
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "rankdistance.h"
-
 using namespace Rcpp;
 using namespace std;
 using std::size_t;
@@ -19,18 +17,19 @@ inline double sq_dist(const NumericVector& x, const NumericVector& y){
   return(sum(pow(diff, 2.0)));
 }
 
-// Uses the maxmin procedure to choose num_sets landmarks for balls of radius radius.
-// NOTE: Rcpp does now allow use of c++ constant (e.g. FLT_MAX) in parameters
-//      -> must specify default radius=INF within function
-//' @rdname landmarks_maxmin
-//' @description Compute landmark points using maxmin procedure.
-//' @param x a data matrix.
-//' @param num_sets a positive integer; the desired number of landmark points, or
-//'   number of sets in a ball cover.
-//' @param radius a positive real number; the desired radius of each cover set.
-//' @param seed_index an integer (the first landmark to seed the algorithm)
-//' @param cover a boolean specifying whether to return cover sets as well as
-//'   landmarks
+// Description:
+//   Maxmin procedure to choose 'num_sets' landmarks for balls of fixed radius
+//   (supports euclidean distance only)
+//
+// Parameters:
+//   - x : a data matrix
+//   - num_sets : desired number of landmark points, or number of sets, in a
+//     ball cover (should be a positive integer)
+//   - radius : desired radius of a cover set (should be a positive real number)
+//   - seed_index : index of the first landmark used to seed the algorithm
+//   - cover : boolean specifying whether to return cover sets in addition to
+//     the landmark points
+//
 //' @export
 // [[Rcpp::export]]
 List landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, float radius = -1, const int seed_index = 1, const bool cover = false) {
@@ -47,7 +46,7 @@ List landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, float radius
         num_sets = num_pts;
     }
     if(num_sets == 0 && radius == -1){num_sets = std::min(num_pts,24);} // no parameters passed -> default behavior
-    if(radius == -1){radius = FLT_MAX;}
+    if(radius == -1){radius = FLT_MAX;} // Rcpp does now allow use of c++ constants (e.g. FLT_MAX) in parameters
 
     // store indices and values of X\L
     map<int, vector<double>> pts_left;
@@ -59,7 +58,6 @@ List landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, float radius
 
     // remove seed landmark (and any duplicates) from X\L
     vector<double> seed_val = pts_left.at(seed_index-1);
-    //for (const auto& x : pts_left){ if(x.second == seed_val){pts_left.erase(x.first);} }
     for (auto pt = pts_left.cbegin(), next_pt = pt; pt != pts_left.cend(); pt = next_pt){
       ++next_pt;
       if (pt->second == seed_val){ pts_left.erase(pt); }
@@ -139,8 +137,9 @@ List landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, float radius
 }
 
 
-// Uses the euclidean maxmin procedure to choose n landmarks.
-//' @rdname landmarks_maxmin
+// Original function to use the euclidean maxmin procedure to choose n landmarks
+// (written by Matt Piekenbrock)
+//
 //' @export
 // [[Rcpp::export]]
 IntegerVector landmark_maxmin(const NumericMatrix& x, const int n, const int seed_index = 1) {
