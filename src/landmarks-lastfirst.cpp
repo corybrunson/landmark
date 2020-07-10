@@ -1,6 +1,7 @@
-//' @title Neighborhood-based Landmark Sets
-//' @author Jason Cory Brunson
-//' @author Yara Skaf
+////////////////////////////////////////////////////////////////////////////////
+// Neighborhood-based Landmark Procedure
+// Authors: Jason Cory Brunson, Yara Skaf
+// Description: Calculate a landmark set using the lastfirst procedure.
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "rankdistance.h"
@@ -8,17 +9,20 @@ using namespace Rcpp;
 using namespace std;
 using std::size_t;
 
-// Uses the euclidean lastfirst procedure to choose landmarks for nhds of size cardinality.
-//' @rdname landmarks_lastfirst
-//' @description Compute landmark points using maxmin procedure.
-//' @param x a data matrix.
-//' @param cardinality a positive integer; the desired cardinality of each
-//'   landmark neighborhood, or of each set in a landmark cover.
-//' @param num_sets a positive integer; the desired number of landmark points, or
-//'   number of sets in a neighborhood cover.
-//' @param seed_index an integer (the first landmark to seed the algorithm)
-//' @param cover a boolean specifying whether to return cover sets as well as
-//'   landmarks
+// Description:
+//   Lastfirst procedure to choose 'num_sets' landmarks for neighborhoods of
+//   size at least 'cardinality' (supports euclidean distance only)
+//
+// Parameters:
+//   - x : a data matrix
+//   - num_sets : desired number of landmark points, or number of sets, in a
+//     neighborhood cover (should be a positive integer)
+//   - cardinality : desired cardinality (number of point inside) of each
+//     landmark neighborhood (should be a positive integer)
+//   - seed_index : index of the first landmark used to seed the algorithm
+//   - cover : boolean specifying whether to return cover sets in addition to
+//     the landmark points
+//
 //' @export
 // [[Rcpp::export]]
 List landmarks_lastfirst_cpp(const NumericMatrix& x, int num_sets = 0, int cardinality = 0, const int seed_index = 1, const bool cover = false) {
@@ -67,7 +71,6 @@ List landmarks_lastfirst_cpp(const NumericMatrix& x, int num_sets = 0, int cardi
             int num_neighbors = min(min_k, cardinality);
             map<int, int> ranked_nhd; // store index and q value of members
             for(const auto& y : Y_all){
-                // int q = q_hat(l_i.second, y.second, Y_all);
                 int q = q_check(l_i.second, y.second, Y_all);
                 if(q <= num_neighbors){ ranked_nhd.emplace(y.first, q); }
             }
@@ -81,7 +84,6 @@ List landmarks_lastfirst_cpp(const NumericMatrix& x, int num_sets = 0, int cardi
 
         // calculate the new minimum cardinality required to cover X
         for(const auto& l : landmarks){
-            //int q = q_hat(l.second, next_l.second, Y_all);
             int q = q_check(l.second, next_l.second, Y_all);
             if(q < min_k){ min_k = q; }
         }
@@ -100,7 +102,6 @@ List landmarks_lastfirst_cpp(const NumericMatrix& x, int num_sets = 0, int cardi
         // if cardinality was given, nhds are already of appropriate size
         int cutoff = min_k;
         if(cardinality < num_pts){ cutoff = cardinality; }
-        //cout << "cutoff: " << cutoff << "\n";
         for(const auto& l : ordered_landmarks){
             IntegerVector nhd;
             for(const auto& pt : landmark_ranks.at(l)){
@@ -113,6 +114,7 @@ List landmarks_lastfirst_cpp(const NumericMatrix& x, int num_sets = 0, int cardi
     return(ret);
 }
 
+// original (more definitional, but slow) function to calculate lastfirst landmarks
 List landmarks_lastfirst_cpp_deprecated(const NumericMatrix& x, int num_sets = 0, int cardinality = 0, const int seed_index = 1, const bool cover = false) {
     int num_pts = x.nrow();
 
