@@ -5,36 +5,41 @@ bar <- matrix(c(-1, -.5, 0, .75, .875, 1))
 
 # maxmin landmarks in C++
 
+test_that("balls contain points exactly radius from center", {
+  mm_r1 <- landmarks_maxmin(bar, radius = 1, seed_index = 3L)
+  expect_identical(mm_r1, 3L)
+})
+
 test_that("2-set cover uses endpoints", {
-  lf_n2 <- landmarks_maxmin(bar, num_sets = 2L, engine = "C++")
-  expect_identical(lf_n2, c(1L, 6L))
+  mm_n2 <- landmarks_maxmin(bar, num_sets = 2L, engine = "C++")
+  expect_identical(mm_n2, c(1L, 6L))
 })
 
 test_that("half-diameter-radius cover uses endpoints only", {
-  lf_e1 <- landmarks_maxmin(bar, radius = 1, engine = "C++")
-  expect_identical(lf_e1, c(1L, 6L))
+  mm_r1 <- landmarks_maxmin(bar, radius = 1, engine = "C++")
+  expect_identical(mm_r1, c(1L, 6L))
 })
 
 test_that("complete landmark set grows leftward before righward", {
-  lf_all <- landmarks_maxmin(bar, num_sets = 6L, engine = "C++")
-  expect_identical(lf_all, c(1L, 6L, 3L, 2L, 4L, 5L))
+  mm_all <- landmarks_maxmin(bar, num_sets = 6L, engine = "C++")
+  expect_identical(mm_all, c(1L, 6L, 3L, 2L, 4L, 5L))
 })
 
 # maxmin landmarks in R
 
 test_that("2-set cover uses endpoints", {
-  lf_n2 <- landmarks_maxmin(bar, num_sets = 2L, engine = "R")
-  expect_identical(lf_n2, c(1L, 6L))
+  mm_n2 <- landmarks_maxmin(bar, num_sets = 2L, engine = "R")
+  expect_identical(mm_n2, c(1L, 6L))
 })
 
 test_that("half-diameter-radius cover uses endpoints only", {
-  lf_e1 <- landmarks_maxmin(bar, radius = 1, engine = "R")
-  expect_identical(lf_e1, c(1L, 6L))
+  mm_r1 <- landmarks_maxmin(bar, radius = 1, engine = "R")
+  expect_identical(mm_r1, c(1L, 6L))
 })
 
 test_that("complete landmark set grows leftward before righward", {
-  lf_all <- landmarks_maxmin(bar, num_sets = 6L, engine = "R")
-  expect_identical(lf_all, c(1L, 6L, 3L, 2L, 4L, 5L))
+  mm_all <- landmarks_maxmin(bar, num_sets = 6L, engine = "R")
+  expect_identical(mm_all, c(1L, 6L, 3L, 2L, 4L, 5L))
 })
 
 # firstlast chebycenter
