@@ -19,6 +19,8 @@
 #' @references Dłotko, Paweł. "Ball Mapper: A Shape Summary for Topological Data
 #'   Analysis." (2019). Web.
 #' @param x a data matrix.
+#' @param y a data matrix of the same dimension as `x`; if `NULL`, taken to be
+#'   `x`.
 #' @param dist_method a character string specifying the distance metric to use;
 #'   passed to `proxy::dist(method)`. Any distance measure in the \code{proxy}
 #'   package is supported.
@@ -42,17 +44,19 @@ NULL
 #' @rdname landmarks_maxmin
 #' @export
 minmax <- function(
-  x,
+  x, y = NULL,
   dist_method = "euclidean"
 ) {
+
+  # use distances from `x` if `y` is not specified
+  if (is.null(y)) y <- x
+
   # update if/when C++ implementation is available
-  minmax_R(x = x, dist_method = dist_method)
+  minmax_R(x = x, y = y, dist_method = dist_method)
 }
 
-#' @rdname landmarks_maxmin
-#' @export
 minmax_R <- function(
-  x,
+  x, y,
   dist_method = "euclidean"
 ) {
 
@@ -65,9 +69,11 @@ minmax_R <- function(
   for (idx in seq(nrow(x))) {
 
     # maximum distance from point
-    dist_idx <- max(proxy::dist(x[idx, , drop = FALSE],
-                                x,
-                                method = dist_method))
+    dist_idx <- max(proxy::dist(
+      x[idx, , drop = FALSE],
+      y,
+      method = dist_method)
+    )
 
     if (dist_idx == dist_min) {
       # if equal to reigning minimum distance, append to minmax set
@@ -86,7 +92,57 @@ minmax_R <- function(
 
 #' @rdname landmarks_maxmin
 #' @export
-chebyshev_center_R <- minmax_R
+maxmin <- function(
+  x, y = NULL,
+  dist_method = "euclidean"
+) {
+
+  # use distances from `x` if `y` is not specified
+  if (is.null(y)) {
+    y <- x
+    self <- TRUE
+  } else {
+    self <- FALSE
+  }
+
+  # update if/when C++ implementation is available
+  maxmin_R(x = x, y = y, self = self, dist_method = dist_method)
+}
+
+maxmin_R <- function(
+  x, y, self,
+  dist_method = "euclidean"
+) {
+
+  # initialize minimum distance
+  dist_max <- 0
+  # initialize maxmin set
+  mm_idx <- integer(0)
+
+  # across all points
+  for (idx in seq(nrow(x))) {
+
+    # minimum distance from point
+    dist_idx <- min(proxy::dist(
+      x[idx, , drop = FALSE],
+      if (self) x[-idx, , drop = FALSE] else y,
+      method = dist_method)
+    )
+
+    if (dist_idx == dist_max) {
+      # if equal to reigning maximum distance, append to maxmin set
+      mm_idx <- c(mm_idx, idx)
+    } else if (dist_idx > dist_max) {
+      # if greater than reigning maximum distance, replace and reinitialize
+      dist_max <- dist_idx
+      mm_idx <- c(idx)
+    }
+
+  }
+
+  # return minmax subset
+  mm_idx
+}
 
 #' @rdname landmarks_maxmin
 #' @export
@@ -218,8 +274,6 @@ landmarks_maxmin <- function(
   res
 }
 
-#' @rdname landmarks_maxmin
-#' @export
 landmarks_maxmin_orig <- function(
   x,
   dist_method = "euclidean", pick_method = "first",
@@ -285,8 +339,6 @@ landmarks_maxmin_orig <- function(
   list(if (is.na(shuffle_idx)) { lmk_idx } else { shuffle_idx[lmk_idx] })
 }
 
-#' @rdname landmarks_maxmin
-#' @export
 landmarks_maxmin_R <- function(
   x,
   dist_method = "euclidean", pick_method = "first",
@@ -322,9 +374,12 @@ landmarks_maxmin_R <- function(
       # minimum distances from previous landmark points
       lmk_dist,
       # distances of all points from newest landmark point
-      proxy::dist(x[lmk_idx[[i]], , drop = FALSE],
-                  x,
-                  method = dist_method)[1, ])
+      proxy::dist(
+        x[lmk_idx[[i]], , drop = FALSE],
+        x,
+        method = dist_method
+      )[1, ]
+    )
 
     # refresh the minimum radius necessary to cover `x`
     min_rad <- max(pmin(lmk_dist[, 1L], lmk_dist[, 2L]))
