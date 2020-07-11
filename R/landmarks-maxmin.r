@@ -1,3 +1,4 @@
+#' @name landmarks_maxmin
 #' @title Ball-based Landmark Sets
 #' @author Matt Piekenbrock
 #' @author Jason Cory Brunson
@@ -13,7 +14,10 @@
 #'   yield balls that do not cover `x`, then their number is increased until the
 #'   radius necessary to cover `x` is at most `radius`. To generte a complete
 #'   landmark set, use `radius = 0L`.
-#' @name landmarks_maxmin
+#' @references De Silva, Vin, and Gunnar E. Carlsson. "Topological estimation
+#'   using witness complexes." SPBG 4 (2004): 157-166.
+#' @references Dłotko, Paweł. "Ball Mapper: A Shape Summary for Topological Data
+#'   Analysis." (2019). Web.
 #' @param x a data matrix.
 #' @param dist_method a character string specifying the distance metric to use;
 #'   passed to `proxy::dist(method)`. Any distance measure in the \code{proxy}
@@ -32,10 +36,7 @@
 #'   random) and `"minmax"` (to select a seed from the minmax set).
 #' @param cover logical; whether to return a data frame of landmark indices and
 #'   cover sets (by member index) rather than only a vector of landmark indices.
-#' @references De Silva, Vin, and Gunnar E. Carlsson. "Topological estimation
-#'   using witness complexes." SPBG 4 (2004): 157-166.
-#' @references Dłotko, Paweł. "Ball Mapper: A Shape Summary for Topological Data
-#'   Analysis." (2019). Web.
+#' @example inst/examples/ex-landmarks-maxmin.r
 NULL
 
 #' @rdname landmarks_maxmin

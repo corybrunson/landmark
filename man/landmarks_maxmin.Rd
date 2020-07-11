@@ -103,6 +103,21 @@ yield balls that do not cover \code{x}, then their number is increased until the
 radius necessary to cover \code{x} is at most \code{radius}. To generte a complete
 landmark set, use \code{radius = 0L}.
 }
+\examples{
+set.seed(3)
+# small circle sample
+X <- tdaunif::sample_circle(n = 12L)
+# random seed index
+l <- landmarks_maxmin(X, seed_index = "random")
+# plot landmark order at point positions
+plot(X, asp = 1, pch = NA)
+text(X, labels = order(l))
+# minmax seed index
+l <- landmarks_maxmin(X, seed_index = "minmax")
+# plot landmark order at point positions
+plot(X, asp = 1, pch = NA)
+text(X, labels = order(l))
+}
 \references{
 De Silva, Vin, and Gunnar E. Carlsson. "Topological estimation
 using witness complexes." SPBG 4 (2004): 157-166.
