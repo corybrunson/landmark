@@ -67,6 +67,14 @@ test_that("firstlast procedure prefers marginalizes multiple-points", {
   expect_identical(firstlast(bar), c(3L))
 })
 
+test_that("lastfirst procedure ...", {
+  expect_identical(lastfirst(peg), c(3L, 4L))
+  expect_identical(lastfirst(peg, ties_method = "max"), c(1L, 2L))
+  # lastfirst set consists of points equidistant from no other pairs of points
+  expect_identical(lastfirst(bar), c(1L, 4L, 6L))
+  expect_identical(lastfirst(bar, ties_method = "max"), c(2L, 5L))
+})
+
 # -+- use 2-dimensional data sets -+-
 test_that("firstlast procedure works on multiple data matrices", {
   expect_identical(firstlast(peg, bar + 1), c(1L))
@@ -79,10 +87,10 @@ test_that("firstlast procedure works on multiple data matrices", {
 # -+- use 2-dimensional data sets -+-
 test_that("lastfirst procedure works on multiple data matrices", {
   expect_identical(lastfirst(peg, bar), seq(4))
-  expect_identical(lastfirst(peg, bar + 1), c(1L))
-  expect_identical(lastfirst(peg, bar + 2), c(2L))
+  expect_identical(lastfirst(peg, bar + 1), c(2L, 3L, 4L))
+  expect_identical(lastfirst(peg, bar + 2), c(1L, 3L, 4L))
   expect_identical(lastfirst(peg, bar + 3), seq(4))
-  expect_identical(lastfirst(peg, bar + 4), c(3L, 4L))
+  expect_identical(lastfirst(peg, bar + 4), c(1L, 2L))
 })
 
 # lastfirst landmarks

@@ -123,27 +123,32 @@ lastfirst_R <- function(
   # initialize lastfirst set
   lf_idx <- integer(0)
 
-  # across all points
-  for (idx in seq(nrow(x))) {
-
-    # in-rank-distance sequence
-    seq_idx <- sort(rank(proxy::dist(
-      x[idx, , drop = FALSE],
-      if (self) x[-idx, , drop = FALSE] else y,
-      method = dist_method
-    ), ties.method = ties_method))
-    # earliest rank at which it disagrees with the reigning maximum sequence
-    diff_first <- suppressWarnings(min(which(seq_idx != seq_max)))
-
-    if (diff_first == Inf) {
-      # if equal to reigning maximum sequence, append to lastfirst set
-      lf_idx <- c(lf_idx, idx)
-    } else if (seq_idx[[diff_first]] < seq_max[[diff_first]]) {
-      # if greater than reigning maximum sequence, replace and reinitialize
-      seq_max <- seq_idx
-      lf_idx <- c(idx)
-    }
-
+  # distance matrix
+  dist_mat <- proxy::dist(
+    x,
+    y,
+    method = dist_method
+  )
+  if (self) {
+    # exclude diagonal
+    dist_mat <- t(matrix(
+      dist_mat[seq(nrow(x) * nrow(y)) %% (nrow(y) + 1L) != 1L],
+      nrow = nrow(y) - 1L
+    ))
+  }
+  # all in-rank-distance sequences
+  rank_mat <- t(apply(
+    t(apply(dist_mat, 1L, rank, ties.method = ties_method)),
+    1L, sort
+  ))
+  # obtain the lastfirst subset
+  lf_idx <- seq(nrow(rank_mat))
+  for (j in seq(ncol(rank_mat))) {
+    # points with maximum revlex rank-in-distance counts
+    # = points with minimum lex rank-in-distance counts
+    # = points with maximum lex rank-in-distance sequence
+    lf_idx <- lf_idx[rank_mat[lf_idx, j] == max(rank_mat[lf_idx, j])]
+    if (length(lf_idx) == 1L) break
   }
 
   # return firstlast subset
