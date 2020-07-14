@@ -177,25 +177,25 @@ List landmarks_lastfirst_cpp_deprecated(const NumericMatrix& x, int num_sets = 0
         ordered_landmarks.push_back(l_i.first);
         landmarks.insert(l_i);
 
-        cout << "\nlastfirst before insertion of landmark " << l_i.first;
-        for (const auto& x : lf) {
-            cout << "\n" << x.first << ": ( ";
-            for(const auto& v : x.second){cout << v << " ";}
-            cout << ")";
-        }
-        cout << "\n\n";
+        // cout << "\nlastfirst before insertion of landmark " << l_i.first;
+        // for (const auto& x : lf) {
+        //     cout << "\n" << x.first << ": ( ";
+        //     for(const auto& v : x.second){cout << v << " ";}
+        //     cout << ")";
+        // }
+        // cout << "\n\n";
     }
 
-    cout << "landmark rank distances:";
-    for(const auto& l1 : landmarks){
-        for(const auto& l2 : landmarks){
-            int temp = q_hat(l1.second,l2.second,Y_all);
-            cout << "\nq_hat(" << l1.first << "," << l2.first << ") = " << temp << "\n";
-
-            temp = q_check(l1.second,l2.second,Y_all);
-            cout << "q_check(" << l1.first << "," << l2.first << ") = " << temp << "\n";
-        }
-    }
+    // cout << "landmark rank distances:";
+    // for(const auto& l1 : landmarks){
+    //     for(const auto& l2 : landmarks){
+    //         int temp = q_hat(l1.second,l2.second,Y_all);
+    //         cout << "\nq_hat(" << l1.first << "," << l2.first << ") = " << temp << "\n";
+    //
+    //         temp = q_check(l1.second,l2.second,Y_all);
+    //         cout << "q_check(" << l1.first << "," << l2.first << ") = " << temp << "\n";
+    //     }
+    // }
 
     IntegerVector landmarks_R = wrap(ordered_landmarks); // wrap into R data type
 
