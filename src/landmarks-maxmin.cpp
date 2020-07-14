@@ -30,7 +30,6 @@ inline double sq_dist(const NumericVector& x, const NumericVector& y){
 //   - cover : boolean specifying whether to return cover sets in addition to
 //     the landmark points
 //
-//' @export
 // [[Rcpp::export]]
 List landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, float radius = -1, const int seed_index = 1, const bool cover = false) {
     int num_pts = x.nrow();
@@ -140,7 +139,6 @@ List landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, float radius
 // Original function to use the euclidean maxmin procedure to choose n landmarks
 // (written by Matt Piekenbrock)
 //
-//' @export
 // [[Rcpp::export]]
 IntegerVector landmark_maxmin(const NumericMatrix& x, const int n, const int seed_index = 1) {
   const size_t n_pts = x.nrow();

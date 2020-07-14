@@ -5,3 +5,4 @@ data-raw
 ^landmark\.Rproj$
 ^\.Rproj\.user$
 ^README\.Rmd$
+ignore

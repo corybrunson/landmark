@@ -23,7 +23,6 @@ using std::size_t;
 //   - cover : boolean specifying whether to return cover sets in addition to
 //     the landmark points
 //
-//' @export
 // [[Rcpp::export]]
 List landmarks_lastfirst_cpp(const NumericMatrix& x, int num_sets = 0, int cardinality = 0, const int seed_index = 1, const bool cover = false) {
     int num_pts = x.nrow();

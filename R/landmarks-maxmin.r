@@ -38,6 +38,8 @@
 #'   random) and `"minmax"` (to select a seed from the minmax set).
 #' @param cover logical; whether to return a data frame of landmark indices and
 #'   cover sets (by member index) rather than only a vector of landmark indices.
+#' @param engine character string specifying the implementation to use; one of
+#'   `"original"`, `"C++"`, or `"R"`. When not specified, the R engine is used.
 #' @example inst/examples/ex-landmarks-maxmin.r
 NULL
 
