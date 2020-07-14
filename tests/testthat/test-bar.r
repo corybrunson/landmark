@@ -3,6 +3,22 @@ context("interval with different densities close to endpoints")
 peg <- matrix(c(1, 2, 4, 4))
 bar <- matrix(c(-1, -.5, 0, .75, .875, 1))
 
+# chebycenter
+
+test_that("minmax and maxmin procedures work on a single data matrix", {
+  # both singleton points are centers because they are not the double-point
+  expect_identical(minmax(bar), c(3L))
+  # only zero is a center because it is equidistant from the endpoints
+  expect_identical(maxmin(bar), c(1L, 2L, 3L))
+})
+
+test_that("minmax and maxmin procedures work on a multiple data matrices", {
+  # nearest point(s) in `peg` to farthest point(s) in `bar`
+  expect_identical(minmax(peg, bar), c(1L))
+  # farthest point(s) in `peg` to nearest point(s) in `bar`
+  expect_identical(maxmin(peg, bar), c(3L, 4L))
+})
+
 # maxmin landmarks in C++
 
 test_that("balls contain points exactly radius from center", {
@@ -47,8 +63,34 @@ test_that("complete landmark set grows leftward before righward", {
 test_that("firstlast procedure prefers marginalizes multiple-points", {
   # both singleton points are centers because they are not the double-point
   expect_identical(firstlast(peg), c(1L, 2L))
-  # only zero is a center because it is equidistant from the endpoints
+  # only zero is a center because it is equi-nearest from the endpoints
   expect_identical(firstlast(bar), c(3L))
+})
+
+test_that("lastfirst procedure ...", {
+  expect_identical(lastfirst(peg), c(3L, 4L))
+  expect_identical(lastfirst(peg, ties_method = "max"), c(1L, 2L))
+  # lastfirst set consists of points equidistant from no other pairs of points
+  expect_identical(lastfirst(bar), c(1L, 4L, 6L))
+  expect_identical(lastfirst(bar, ties_method = "max"), c(2L, 5L))
+})
+
+# -+- use 2-dimensional data sets -+-
+test_that("firstlast procedure works on multiple data matrices", {
+  expect_identical(firstlast(peg, bar + 1), c(1L))
+  expect_identical(firstlast(peg, bar + 1.25), c(1L))
+  expect_identical(firstlast(peg, bar + 1.5), c(2L))
+  expect_identical(firstlast(peg, bar + 2), c(2L))
+  expect_identical(firstlast(peg, bar + 4), c(3L, 4L))
+})
+
+# -+- use 2-dimensional data sets -+-
+test_that("lastfirst procedure works on multiple data matrices", {
+  expect_identical(lastfirst(peg, bar), seq(4))
+  expect_identical(lastfirst(peg, bar + 1), c(2L, 3L, 4L))
+  expect_identical(lastfirst(peg, bar + 2), c(1L, 3L, 4L))
+  expect_identical(lastfirst(peg, bar + 3), seq(4))
+  expect_identical(lastfirst(peg, bar + 4), c(1L, 2L))
 })
 
 # lastfirst landmarks

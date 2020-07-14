@@ -14,6 +14,8 @@
 #'   increased until the cardinality necessary to cover `x` is at most
 #'   `cardinality`. To generte a complete landmark set, use `cardinality = 1L`.
 #' @param x a data matrix.
+#' @param y a data matrix of the same dimension as `x`; if `NULL`, taken to be
+#'   `x`.
 #' @param dist_method a character string specifying the distance metric to use;
 #'   passed to `proxy::dist(method)`. Any distance measure in the \code{proxy}
 #'   package is supported.
@@ -42,22 +44,25 @@ NULL
 #' @rdname landmarks_lastfirst
 #' @export
 firstlast <- function(
-  x,
+  x, y = NULL,
   dist_method = "euclidean", ties_method = "min"
 ) {
+
+  # use distances from `x` if `y` is not specified
+  if (is.null(y)) y <- x
+
   # update if/when C++ implementation is available
-  firstlast_R(x = x, dist_method = dist_method, ties_method = ties_method)
+  firstlast_R(x = x, y = y,
+              dist_method = dist_method, ties_method = ties_method)
 }
 
-#' @rdname landmarks_lastfirst
-#' @export
 firstlast_R <- function(
-  x,
+  x, y,
   dist_method = "euclidean", ties_method = "min"
 ) {
 
-  # initialize colex-minimum out-rank-distance sequence
-  seq_min <- rep(nrow(x), nrow(x))
+  # initialize colex-minimum rank-out-distance sequence
+  seq_min <- rep(nrow(y), nrow(y))
   # initialize firstlast set
   fl_idx <- integer(0)
 
@@ -65,9 +70,11 @@ firstlast_R <- function(
   for (idx in seq(nrow(x))) {
 
     # out-rank-distance sequence
-    seq_idx <- sort(rank(proxy::dist(x[idx, , drop = FALSE], x,
-                                     method = dist_method),
-                         ties.method = ties_method))
+    seq_idx <- sort(rank(proxy::dist(
+      x[idx, , drop = FALSE],
+      y,
+      method = dist_method
+    ), ties.method = ties_method))
     # latest rank at which it disagrees with the reigning minimum sequence
     diff_last <- suppressWarnings(max(which(seq_idx != seq_min)))
 
@@ -84,6 +91,68 @@ firstlast_R <- function(
 
   # return firstlast subset
   fl_idx
+}
+
+#' @rdname landmarks_lastfirst
+#' @export
+lastfirst <- function(
+  x, y = NULL,
+  dist_method = "euclidean", ties_method = "min"
+) {
+
+  # use distances from `x` if `y` is not specified
+  if (is.null(y)) {
+    y <- x
+    self <- TRUE
+  } else {
+    self <- FALSE
+  }
+
+  # update if/when C++ implementation is available
+  lastfirst_R(x = x, y = y, self = self,
+              dist_method = dist_method, ties_method = ties_method)
+}
+
+lastfirst_R <- function(
+  x, y, self,
+  dist_method = "euclidean", ties_method = "min"
+) {
+
+  # initialize revlex-maximum rank-in-distance sequence
+  seq_max <- rep(nrow(y), nrow(y))
+  # initialize lastfirst set
+  lf_idx <- integer(0)
+
+  # distance matrix
+  dist_mat <- proxy::dist(
+    x,
+    y,
+    method = dist_method
+  )
+  if (self) {
+    # exclude diagonal
+    dist_mat <- t(matrix(
+      dist_mat[seq(nrow(x) * nrow(y)) %% (nrow(y) + 1L) != 1L],
+      nrow = nrow(y) - 1L
+    ))
+  }
+  # all in-rank-distance sequences
+  rank_mat <- t(apply(
+    t(apply(dist_mat, 1L, rank, ties.method = ties_method)),
+    1L, sort
+  ))
+  # obtain the lastfirst subset
+  lf_idx <- seq(nrow(rank_mat))
+  for (j in seq(ncol(rank_mat))) {
+    # points with maximum revlex rank-in-distance counts
+    # = points with minimum lex rank-in-distance counts
+    # = points with maximum lex rank-in-distance sequence
+    lf_idx <- lf_idx[rank_mat[lf_idx, j] == max(rank_mat[lf_idx, j])]
+    if (length(lf_idx) == 1L) break
+  }
+
+  # return firstlast subset
+  lf_idx
 }
 
 #' @rdname landmarks_lastfirst
@@ -213,8 +282,6 @@ landmarks_lastfirst <- function(
   res
 }
 
-#' @rdname landmarks_lastfirst
-#' @export
 landmarks_lastfirst_R <- function(
   x,
   dist_method = "euclidean", ties_method = "min",
@@ -252,9 +319,10 @@ landmarks_lastfirst_R <- function(
       # each row contains the in-ranks from previous landmark points
       lmk_rank,
       # in-ranks of all points from newest landmark point
-      rank(proxy::dist(x[lmk_idx[[i]], , drop = FALSE], x,
-                       method = dist_method),
-           ties.method = ties_method)
+      rank(proxy::dist(
+        x[lmk_idx[[i]], , drop = FALSE],
+        x,
+        method = dist_method), ties.method = ties_method)
     )
 
     # refresh the minimum cardinality necessary to cover `x`
