@@ -1,0 +1,293 @@
+---
+title: "Constructing Mappers using landmarks"
+author: "Yara Skaf"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Constructing Mappers using landmarks}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+```{r setup, echo=FALSE, message=FALSE, results='hide'}
+library(dplyr)
+library(ggplot2)
+library(cowplot)
+library(RColorBrewer)
+library(landmark) # installed version of landmark package
+knitr::opts_chunk$set(echo = TRUE, fig.width = 7)
+colors_hex <- brewer.pal(n=5, name="Dark2")
+```
+
+Note that this vignette invokes the _currently installed_ version of the landmark package.
+
+### Motivation
+
+One use case for the landmark package is the construction of a nerve for the Mapper algorithm. For a more thorough introduction to Mapper and its applications, see the [Mapper package documentation](https://github.com/peekxc/Mapper).
+
+The following example will illustrate where Mapper depends on landmark points and the different behavior of the two landmark algorithms.
+
+
+## Data & Lens
+
+Consider the following point cloud data set $X$. Use the first coordinate of the data as the lens (filter), i.e. apply the function $f : X \longrightarrow \mathbb{R}$ defined by $f(x_1,x_2) = x_1$, to obtain lens space $f(X)$:
+
+```{r, echo=FALSE}
+# get random points with area of higher density
+set.seed(0)
+num_pts <- 30L
+p <- rep(1L, 100)
+p[66:75] <- rep(15L,10)
+vals <- sample(1:100, size = num_pts, replace = TRUE, prob = p)
+
+# data set X and lensed data f(X)
+X <- data.frame("x_1" = vals/10, "x_2" = sample(1:10, num_pts, replace=TRUE))
+f_X <- data.frame("f_x" = X$x_1, "y" = rep(0L, length(X$x_1)))
+```
+
+```{r, echo=FALSE}
+get_cover <- function(lmks){
+  gg <- ggplot(f_X, aes(x=f_x, y=y)) + # set up plot
+  geom_point(color="black", size=1)
+
+  for( i in seq_along(lmks$landmark) ){
+    if( i %% 2 > 0){ shift <- 0.05
+    }else{ shift <- 0.1 }
+    
+    lmk_idx <- lmks$landmark[[i]]
+    cover_set <- lmks$cover_set[[i]]
+    lmk_label <- paste("bolditalic(l[", i, "])", sep="")
+    
+    lmk_pt <- data.frame("x" = f_X$f_x[lmk_idx], "y" = c(0), "label"=lmk_label)
+    gg <- gg + geom_point(data=lmk_pt, aes(x=x, y=y), color=colors_hex[i], size=2) +
+      geom_text(data=lmk_pt, aes(x=x, y=y, label=label), vjust=2, color=colors_hex[i], parse=TRUE)
+    
+    cover_pts <- data.frame("x" = f_X$f_x[cover_set], "y" = rep(shift, length(cover_set)))
+    gg <- gg + geom_point(data=cover_pts, aes(x=x, y=y), color=colors_hex[i], alpha=0.5, size=1)
+    
+    lmk_pt$y <- shift
+    gg <- gg + geom_point(data=lmk_pt, aes(x=x, y=y), color=colors_hex[i], size=1) #+
+  }
+  
+  gg +
+    labs(x = "f(x)", y = "") +
+    theme_minimal() +
+    theme(axis.text.y=element_blank(),
+          axis.ticks.y=element_blank(),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      axis.line.x = element_line(color = "gray")
+      ) +
+    coord_cartesian(ylim=c(-0.1,0.7)) +
+    expand_limits(x = 0, y = 0)
+}
+
+get_pullback <- function(lmks){
+  gg <- ggplot(X, aes(x=x_1, y=x_2))
+  for( i in seq_along(lmks$landmark) ){
+    lmk_idx <- lmks$landmark[[i]]
+    cover_set <- lmks$cover_set[[i]]
+    
+    gg <- gg + geom_point(data=X[lmk_idx,], aes(x=x_1, y=x_2), color=colors_hex[i], size=3)
+    gg <- gg + geom_point(data=X[cover_set,], aes(x=x_1, y=x_2), color=colors_hex[i], alpha=0.5, size=2)
+  }
+  gg + theme_bw() # set theme
+}
+
+get_nerve <- function(cluster_list){
+  gg <- ggplot(X, aes(x=x_1, y=x_2))
+
+  for( i in seq_along(cluster_list) ){
+    cl <- unique(cluster_list[[i]]$cluster)
+    clusters <- data.frame(x=rep(i, length(cl)), y=cl)
+    
+    j = i+1
+    while(j <= length(cluster_list)){
+      cl_j <- unique(cluster_list[[j]]$cluster)
+      clusters_j <- data.frame(x=rep(j, length(cl_j)), y=cl_j)
+      
+      overlap <- inner_join(cluster_list[[i]], cluster_list[[j]], by=c("x_1", "x_2"))
+      edges <- data.frame(x1=rep(i,nrow(overlap)), y1=overlap$cluster.x,
+                          x2=rep(j,nrow(overlap)), y2=overlap$cluster.y)
+      gg <- gg + geom_segment(data = edges, aes(x = x1, y = y1, xend = x2, yend = y2), color="black")
+      j = j + 1
+    }
+    
+    gg <- gg + geom_point(data=clusters, aes(x=x, y=y), color=colors_hex[i], size=8) +
+    geom_text(data=clusters, aes(x=x, y=y, label=y), color="white")
+  }
+  
+  gg + 
+    labs(x = "", y = "") +
+    theme_minimal() +
+    theme(axis.text.y=element_blank(),
+          axis.ticks.y=element_blank(),
+          axis.text.x=element_blank(),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+    )
+}
+```
+
+```{r, echo=FALSE, fig.height=8}
+gg_X <- ggplot(X, aes(x=x_1, y=x_2)) + # set up plot
+  geom_point(aes(col=x_1), size=3) + # add points
+  theme_bw() + # set theme
+  theme(legend.position="none")
+
+gg_fX <- ggplot(f_X, aes(x=f_x, y=y)) + # set up plot
+  geom_hline(yintercept=0, color="gray") +
+  geom_point(aes(col=f_x), size=3) + # add points
+  labs(x = "", y = "") + # add title + axis labels
+  theme_minimal() +
+  theme(axis.text.y=element_blank(),
+        axis.text.x=element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    legend.position="bottom"
+    ) +
+  coord_cartesian(ylim=c(0,0), xlim=c(0,10)) +
+  scale_x_continuous()
+
+plot_grid(gg_X, gg_fX, ncol=1, rel_heights=c(4,1), labels=c("X", "f(X)"), scale = 0.9)
+```
+
+
+
+## Cover $f(X)$
+
+The next step in the Mapper construction is to generate a cover of $f(X)$. We can do this by choosing a number of points in $f(X)$ to be the representatives, or landmarks, of the cover. Cover sets will be defined with reference to these landmark points, either as $\varepsilon$-balls (points within some distance $\varepsilon$ of these landmarks) or $k$-neighborhoods (the $k$ closest points to each landmark).
+
+In this example, we will cover $f(X)$ by 5 sets in two different ways:
+
+1. Use the maxmin procedure for landmark selection to generate a _ball cover_
+
+2. Use the lastfirst procedure for landmark selection to generate a _neighborhood cover_
+
+### Landmark selection
+
+Choose the first $5$ landmarks and associated cover sets using both procedures. By default, both methods will use the first point in $f(X)$ as the initial landmark point to seed the algorithm. The `cover=TRUE` parameter specifies that cover sets should be returned as well as the landmark set.
+
+```{r}
+lmks_mm <- landmarks_maxmin(matrix(f_X$f_x), num_sets = 5L, cover=TRUE)
+lmks_lf <- landmarks_lastfirst(matrix(f_X$f_x), num_sets = 5L, cover=TRUE)
+```
+
+Both landmark functions return data frames with two columns.
+
+The `landmark` column stores the indices of the landmark points:
+
+```{r}
+lmks_mm$landmark
+```
+
+The `cover_set` column stores indices of points within each cover set:
+```{r}
+lmks_mm$cover_set
+```
+
+The following plots visualize the two different covers of $f(X)$:
+
+```{r, echo=FALSE}
+gg_lmk_mm <- get_cover(lmks_mm)
+gg_lmk_lf <- get_cover(lmks_lf)
+plot_grid(gg_lmk_mm, gg_lmk_lf, labels=c("maxmin landmarks", "lastfirst landmarks"), label_size = 10)
+```
+
+Notice that the area of $f(X)$ with greater point density (near 7) is handled differently by the two covering methods. Since `landmarks_maxmin()` chooses points based on Euclidean distance away from existing landmarks, only one point ($\ell_1$) is selected from the high density region. Consequently, this cover set has significantly more points than the others. In contrast, `landmarks_lastfirst()` chooses points based on the number of points in each cover set, so it selects more landmarks ($\ell_1$, $\ell_4$, $\ell_5$) within this area. Additionally, all cover sets in the neighborhood cover have roughly the same cardinality.
+
+## Compute Pullback
+
+Compute the _pullback_ of the cover by identifying the points in $x \in X$ mapping into each cover set under $f$. 
+
+```{r, echo=FALSE}
+gg_mm <- get_pullback(lmks_mm)
+gg_lf <- get_pullback(lmks_lf)
+plot_grid(gg_mm, gg_lf, ncol=2, scale=0.9,
+          labels=c("maxmin pullback", "lastfirst pullback"),
+          label_size = 10)
+```
+
+### Cluster
+Next, perform single linkage clustering within each pullback set.
+
+```{r, echo=FALSE}
+gg_cl_mm <- ggplot(X, aes(x=x_1, y=x_2))
+lmks <- lmks_mm
+cluster_list_mm = list()
+for( i in seq_along(lmks$landmark) ){
+  cover_set <- lmks$cover_set[[i]]
+  pts <- X[cover_set,]
+  d <- dist(as.matrix(pts))
+  hc <- hclust(d, method="single")
+  clusters <- cutree(hc, h=2)
+  pts_cl <- mutate(pts, cluster = clusters)
+  cluster_list_mm[[i]] <- pts_cl
+  gg_cl_mm <- gg_cl_mm + geom_point(data=pts_cl, aes(x=x_1, y=x_2), color=colors_hex[i], alpha=0.1, size=3) +
+    geom_text(data=pts_cl, aes(x=x_1, y=x_2, label=cluster), color=colors_hex[i])
+}
+gg_cl_mm <- gg_cl_mm + theme_bw()
+```
+
+
+```{r, echo=FALSE}
+gg_cl_lf <- ggplot(X, aes(x=x_1, y=x_2))
+lmks <- lmks_lf
+cluster_list_lf = list()
+for( i in seq_along(lmks$landmark) ){
+  cover_set <- lmks$cover_set[[i]]
+  pts <- X[cover_set,]
+  d <- dist(as.matrix(pts))
+  hc <- hclust(d, method="single")
+  clusters <- cutree(hc, h=2)
+  
+  pts_cl <- mutate(pts, cluster = clusters)
+  cluster_list_lf[[i]] <- pts_cl
+  gg_cl_lf <- gg_cl_lf + geom_point(data=pts_cl, aes(x=x_1, y=x_2), color=colors_hex[i], alpha=0.1, size=3) +
+    geom_text(data=pts_cl, aes(x=x_1, y=x_2, label=cluster), color=colors_hex[i])
+}
+
+gg_cl_lf <- gg_cl_lf + theme_bw()
+```
+
+
+```{r, echo=FALSE}
+plot_grid(gg_cl_mm, gg_cl_lf, ncol=2, scale=0.9,
+          labels=c("maxmin clusters", "lastfirst clusters"),
+          label_size = 10)
+```
+
+## Generate Nerve
+Construct a _simplicial complex_ from clusters and their overlaps-- Each cluster genertes by the previous step becomes a vertex (0-simplex). Edges (1-simplices) are inserted between clusters with non-empty overlap.
+
+```{r, echo=FALSE, fig.height=4}
+nerve_mm <- get_nerve(cluster_list_mm)
+nerve_lf <- get_nerve(cluster_list_lf)
+
+plot_grid(nerve_mm, nerve_lf, ncol=2, scale=0.9,
+          labels=c("maxmin nerve", "lastfirst nerve"),
+          label_size = 10)
+```
+
+
+## Mapper
+This process is roughly equivalent to building the following mappers on this data.
+
+```
+m <- MapperRef$new(as.matrix(X))$
+  use_filter(filter = as.matrix(X[,1,drop=FALSE]))$
+  use_cover(cover="landmark_ball", num_sets=5L)$
+   use_distance_measure(measure="euclidean")$
+   construct_k_skeleton(k=1L)
+```
+
+```
+m <- MapperRef$new(as.matrix(X))$
+  use_filter(filter = as.matrix(X[,1,drop=FALSE]))$
+  use_cover(cover="neighborhood", num_sets=5L)$
+   use_distance_measure(measure="euclidean")$
+   construct_k_skeleton(k=1L)
+```
+
+
