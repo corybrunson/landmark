@@ -63,7 +63,7 @@ x[landmarks_maxmin(x, num_sets = 6L, engine = "C++"), , drop = FALSE]
 ```
 
 ``` r
-landmarks_maxmin(x, num_sets = 4, engine = "R", cover = TRUE)
+landmarks_maxmin(x, num_sets = 4L, engine = "R", cover = TRUE)
 #>   landmark cover_set
 #> 1        1         1
 #> 2        6   4, 5, 6
@@ -109,7 +109,7 @@ x[landmarks_lastfirst(x, cardinality = 2L, seed_index = 6L), , drop = FALSE]
 #> a -1.00
 #> c  0.00
 #> d  0.75
-x[landmarks_lastfirst(x, num_sets = 4, seed_index = 6L), , drop = FALSE]
+x[landmarks_lastfirst(x, num_sets = 4L, seed_index = 6L), , drop = FALSE]
 #>       x
 #> f  1.00
 #> a -1.00
@@ -134,7 +134,7 @@ landmarks_lastfirst(x, cardinality = 1L, seed_index = 6L, engine = "C++", cover 
 #> 4        4         4
 #> 5        2         2
 #> 6        5         5
-landmarks_lastfirst(x, num_sets = 4, seed_index = 6L, engine = "C++", cover = TRUE)
+landmarks_lastfirst(x, num_sets = 4L, seed_index = 6L, engine = "C++", cover = TRUE)
 #>   landmark cover_set
 #> 1        6      5, 6
 #> 2        1      1, 2
