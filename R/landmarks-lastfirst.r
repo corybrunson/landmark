@@ -7,10 +7,10 @@
 #'   points dispersed according to the orders in which they are reached from
 #'   each other, rather than to their distances from each other. (Say more.)
 #'
-#'   One, both, or neither of `num_sets` and `cardinality` may be passed values.
-#'   If neither is specified, then `num_sets` is defaulted to the minimum of
+#'   One, both, or neither of `num` and `cardinality` may be passed values.
+#'   If neither is specified, then `num` is defaulted to the minimum of
 #'   `24L` and the number of distinct rows of `x`. If the values yield
-#'   neighborhoods that do not cover `x`, then, effectively, `num_sets` is
+#'   neighborhoods that do not cover `x`, then, effectively, `num` is
 #'   increased until the cardinality necessary to cover `x` is at most
 #'   `cardinality`. To generte a complete landmark set, use `cardinality = 1L`.
 #' @param x a data matrix.
@@ -25,7 +25,7 @@
 #' @param pick_method a character string specifying the method for selecting one
 #'   among indistinguishable points, either `"first"` (the default), `"last"`,
 #'   or `"random"`.
-#' @param num_sets a positive integer; the desired number of landmark points, or
+#' @param num a positive integer; the desired number of landmark points, or
 #'   of sets in a neighborhood cover.
 #' @param cardinality a positive integer; the desired cardinality of each
 #'   landmark neighborhood, or of each set in a landmark cover.
@@ -160,7 +160,7 @@ lastfirst_R <- function(
 landmarks_lastfirst <- function(
   x,
   dist_method = "euclidean", ties_method = "min", pick_method = "first",
-  num_sets = NULL, cardinality = NULL, frac = FALSE,
+  num = NULL, cardinality = NULL, frac = FALSE,
   seed_index = 1L, cover = FALSE,
   engine = NULL
 ) {
@@ -176,18 +176,18 @@ landmarks_lastfirst <- function(
             "using R engine instead.")
 
   # if neither parameter is specified, limit the set to 24 landmarks
-  if (is.null(num_sets) && is.null(cardinality)) {
-    num_sets <- min(nrow(unique(x)), 24L)
+  if (is.null(num) && is.null(cardinality)) {
+    num <- min(nrow(unique(x)), 24L)
   }
   # apply `frac` to `cardinality`
   if (frac) {
     cardinality <- as.integer(max(1, cardinality * nrow(x)))
   }
   # validate parameters
-  if (! is.null(num_sets)) {
-    num_sets <- as.integer(num_sets)
-    if (is.na(num_sets) || num_sets < 1L || num_sets > nrow(x))
-      stop("`num_sets` must be a positive integer and at most `nrow(x)`.")
+  if (! is.null(num)) {
+    num <- as.integer(num)
+    if (is.na(num) || num < 1L || num > nrow(x))
+      stop("`num` must be a positive integer and at most `nrow(x)`.")
   }
   if (! is.null(cardinality)) {
     cardinality <- as.integer(cardinality)
@@ -235,7 +235,7 @@ landmarks_lastfirst <- function(
     engine,
     `C++` = landmarks_lastfirst_cpp(
       x = x,
-      num_sets = if (is.null(num_sets)) 0L else num_sets,
+      num = if (is.null(num)) 0L else num,
       cardinality = if (is.null(cardinality)) 0L else cardinality,
       seed_index = seed_index, cover = cover
     ),
@@ -243,7 +243,7 @@ landmarks_lastfirst <- function(
       x = x,
       dist_method = dist_method,
       ties_method = ties_method,
-      num_sets = num_sets, cardinality = cardinality,
+      num = num, cardinality = cardinality,
       seed_index = seed_index, cover = cover
     )
   )
@@ -266,14 +266,14 @@ landmarks_lastfirst <- function(
   }
 
   # print warnings if a parameter was adjusted
-  if (! is.null(num_sets)) {
-    if (NROW(res) > num_sets) {
+  if (! is.null(num)) {
+    if (NROW(res) > num) {
       warning("Required ", NROW(res),
-              " (> num_sets = ", num_sets, ") ",
+              " (> num = ", num, ") ",
               "sets of cardinality ", cardinality, ".")
-    } else if (NROW(res) < num_sets) {
+    } else if (NROW(res) < num) {
       warning("Only ", NROW(res),
-              " (< num_sets = ", num_sets, ") ",
+              " (< num = ", num, ") ",
               "distinct landmark points were found.")
     }
   }
@@ -285,7 +285,7 @@ landmarks_lastfirst <- function(
 landmarks_lastfirst_R <- function(
   x,
   dist_method = "euclidean", ties_method = "min",
-  num_sets = NULL, cardinality = NULL,
+  num = NULL, cardinality = NULL,
   seed_index = 1L, cover = FALSE
 ) {
 
@@ -344,7 +344,7 @@ landmarks_lastfirst_R <- function(
     # exhaustion breaks
     if (all(free_idx == 0L)) break
     # parameter breaks
-    if ((is.null(num_sets) || i >= num_sets) &&
+    if ((is.null(num) || i >= num) &&
         (is.null(cardinality) || min_card <= cardinality)) break
 
     # sort each available point's in-ranks to the landmark points

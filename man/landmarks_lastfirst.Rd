@@ -15,7 +15,7 @@ landmarks_lastfirst(
   dist_method = "euclidean",
   ties_method = "min",
   pick_method = "first",
-  num_sets = NULL,
+  num = NULL,
   cardinality = NULL,
   frac = FALSE,
   seed_index = 1L,
@@ -41,7 +41,7 @@ tested and are recommended.}
 among indistinguishable points, either \code{"first"} (the default), \code{"last"},
 or \code{"random"}.}
 
-\item{num_sets}{a positive integer; the desired number of landmark points, or
+\item{num}{a positive integer; the desired number of landmark points, or
 of sets in a neighborhood cover.}
 
 \item{cardinality}{a positive integer; the desired cardinality of each
@@ -68,10 +68,10 @@ These functions adapt the maxmin procedure to produce landmark
 points dispersed according to the orders in which they are reached from
 each other, rather than to their distances from each other. (Say more.)
 
-One, both, or neither of \code{num_sets} and \code{cardinality} may be passed values.
-If neither is specified, then \code{num_sets} is defaulted to the minimum of
+One, both, or neither of \code{num} and \code{cardinality} may be passed values.
+If neither is specified, then \code{num} is defaulted to the minimum of
 \code{24L} and the number of distinct rows of \code{x}. If the values yield
-neighborhoods that do not cover \code{x}, then, effectively, \code{num_sets} is
+neighborhoods that do not cover \code{x}, then, effectively, \code{num} is
 increased until the cardinality necessary to cover \code{x} is at most
 \code{cardinality}. To generte a complete landmark set, use \code{cardinality = 1L}.
 }

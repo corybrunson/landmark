@@ -27,7 +27,7 @@ test_that("balls contain points exactly radius from center", {
 })
 
 test_that("2-set cover uses endpoints", {
-  mm_n2 <- landmarks_maxmin(bar, num_sets = 2L, engine = "C++")
+  mm_n2 <- landmarks_maxmin(bar, num = 2L, engine = "C++")
   expect_identical(mm_n2, c(1L, 6L))
 })
 
@@ -37,14 +37,14 @@ test_that("half-diameter-radius cover uses endpoints only", {
 })
 
 test_that("complete landmark set grows leftward before righward", {
-  mm_all <- landmarks_maxmin(bar, num_sets = 6L, engine = "C++")
+  mm_all <- landmarks_maxmin(bar, num = 6L, engine = "C++")
   expect_identical(mm_all, c(1L, 6L, 3L, 2L, 4L, 5L))
 })
 
 # maxmin landmarks in R
 
 test_that("2-set cover uses endpoints", {
-  mm_n2 <- landmarks_maxmin(bar, num_sets = 2L, engine = "R")
+  mm_n2 <- landmarks_maxmin(bar, num = 2L, engine = "R")
   expect_identical(mm_n2, c(1L, 6L))
 })
 
@@ -54,7 +54,7 @@ test_that("half-diameter-radius cover uses endpoints only", {
 })
 
 test_that("complete landmark set grows leftward before righward", {
-  mm_all <- landmarks_maxmin(bar, num_sets = 6L, engine = "R")
+  mm_all <- landmarks_maxmin(bar, num = 6L, engine = "R")
   expect_identical(mm_all, c(1L, 6L, 3L, 2L, 4L, 5L))
 })
 
@@ -100,9 +100,9 @@ test_that("landmark set is obtained starting from duplicate point", {
 })
 
 test_that("invalid numbers of sets prompt warnings", {
-  expect_warning(landmarks_lastfirst(peg, num_sets = 1L, cardinality = 2L),
+  expect_warning(landmarks_lastfirst(peg, num = 1L, cardinality = 2L),
                  "cardinality")
-  expect_warning(landmarks_lastfirst(peg, num_sets = 4L),
+  expect_warning(landmarks_lastfirst(peg, num = 4L),
                  "landmark")
 })
 
@@ -125,13 +125,13 @@ test_that("cardinality-2 cover of peg requires two points", {
 })
 
 test_that("complete landmark set of peg grows left-to-right", {
-  lf_all <- suppressWarnings(landmarks_lastfirst(peg, num_sets = 4L,
+  lf_all <- suppressWarnings(landmarks_lastfirst(peg, num = 4L,
                                                  seed_index = 1L))
   expect_identical(lf_all, c(1L, 3L, 2L))
 })
 
 test_that("2-set cover of bar uses endpoints", {
-  lf_n2 <- landmarks_lastfirst(bar, num_sets = 2L)
+  lf_n2 <- landmarks_lastfirst(bar, num = 2L)
   expect_identical(lf_n2, c(1L, 6L))
 })
 
@@ -146,6 +146,6 @@ test_that("cardinality-2 cover of bar uses end- and median points", {
 })
 
 test_that("complete landmark set of bar grows left-to-right", {
-  lf_all <- landmarks_lastfirst(bar, num_sets = 6L)
+  lf_all <- landmarks_lastfirst(bar, num = 6L)
   expect_identical(lf_all, c(1L, 6L, 3L, 4L, 2L, 5L))
 })

@@ -14,7 +14,7 @@ landmarks_maxmin(
   x,
   dist_method = "euclidean",
   pick_method = "first",
-  num_sets = NULL,
+  num = NULL,
   radius = NULL,
   frac = FALSE,
   seed_index = 1L,
@@ -36,7 +36,7 @@ package is supported.}
 among indistinguishable points, either \code{"first"} (the default), \code{"last"},
 or \code{"random"}.}
 
-\item{num_sets}{a positive integer; the desired number of landmark points, or
+\item{num}{a positive integer; the desired number of landmark points, or
 of sets in a ball cover.}
 
 \item{radius}{a positive number; the desired radius of each
@@ -64,8 +64,8 @@ spaced landmark points from a data set. Maxmin is a simple greedy algorithm
 that is relatively efficient, but it has a tendency to pick out extremal
 points.
 
-One, both, or neither of \code{num_sets} and \code{radius} may be passed values. If
-neither is specified, then \code{num_sets} is defaulted to \code{24L}. If the values
+One, both, or neither of \code{num} and \code{radius} may be passed values. If
+neither is specified, then \code{num} is defaulted to \code{24L}. If the values
 yield balls that do not cover \code{x}, then their number is increased until the
 radius necessary to cover \code{x} is at most \code{radius}. To generte a complete
 landmark set, use \code{radius = 0L}.
