@@ -15,10 +15,10 @@
 #'   the parameter.
 #' @param add additive extension factor; added to parameter after
 #'   multiplication.
-extension <- function(mult = 1, add = 0) {
-  if (! (is.numeric(mult) && (length(mult) == 1L) &&
-         is.numeric(add) && (length(add) == 1L))) {
-    stop("`mult` and `add` must be numeric scalars.")
+extension <- function(mult = 0, add = 0) {
+  if (! (is.numeric(mult) && (length(mult) == 1L) && mult >= 0 &&
+         is.numeric(add) && (length(add) == 1L) && add >= 0)) {
+    stop("`mult` and `add` must be non-negative scalars.")
   }
   c(mult, add)
 }

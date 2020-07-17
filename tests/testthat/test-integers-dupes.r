@@ -4,7 +4,7 @@ context("integer values with multiplicity")
 
 set.seed(0)
 m <- matrix(sample(30L)[rnbinom(n = 60L, size = 5, prob = 1/3)])
-histogram(m)
+hist(table(m))
 l <- length(unique(m))
 
 # maxmin landmarks

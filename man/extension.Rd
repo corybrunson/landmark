@@ -4,7 +4,7 @@
 \alias{extension}
 \title{Generate and validate an extension vector for landmark parameters}
 \usage{
-extension(mult = 1, add = 0)
+extension(mult = 0, add = 0)
 }
 \arguments{
 \item{mult}{multiplicative extension factor; added to \code{1} and multiplied by
