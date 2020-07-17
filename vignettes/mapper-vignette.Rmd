@@ -156,7 +156,6 @@ plot_grid(gg_X, gg_fX, ncol=1, rel_heights=c(4,1), labels=c("X", "f(X)"), scale 
 ```
 
 
-
 ## Cover $f(X)$
 
 The next step in the Mapper construction is to generate a cover of $f(X)$. We can do this by choosing a number of points in $f(X)$ to be the representatives, or landmarks, of the cover. Cover sets will be defined with reference to these landmark points, either as $\varepsilon$-balls (points within some distance $\varepsilon$ of these landmarks) or $k$-neighborhoods (the $k$ closest points to each landmark).
@@ -209,6 +208,33 @@ gg_lf <- get_pullback(lmks_lf)
 plot_grid(gg_mm, gg_lf, ncol=2, scale=0.9,
           labels=c("maxmin pullback", "lastfirst pullback"),
           label_size = 10)
+```
+
+```{r alternative pullback plot, echo=FALSE}
+X_ids <- mutate(X, id = seq(nrow(X)))
+lmks_both <- bind_rows(
+  tidyr::unnest(mutate(lmks_mm, procedure = "maxmin"), cols = c(cover_set)),
+  tidyr::unnest(mutate(lmks_lf, procedure = "lastfirst"), cols = c(cover_set))
+)
+lmks_both <- mutate(lmks_both,
+                    procedure = factor(procedure, levels = unique(procedure)),
+                    is_landmark = landmark == cover_set,
+                    landmark = paste0(procedure, landmark),
+                    landmark = factor(landmark, levels = unique(landmark)))
+pullback_data <- left_join(lmks_both, X_ids, by = c("cover_set" = "id"))
+ggplot(pullback_data, aes(x = x_1, alpha = is_landmark)) +
+  facet_grid(~ procedure) +
+  geom_point(y = 0, color = "black", shape = 1) +
+  geom_point(aes(y = x_2,
+                 color = landmark, shape = landmark,
+                 size = is_landmark)) +
+  theme_minimal() +
+  scale_size_manual(values = c(2, 3)) +
+  scale_color_manual(values = rep(colors_hex, times = 2)) +
+  scale_shape_manual(values = rep(c(15:17, 3:4), times = 2)) +
+  scale_alpha_manual(values = c(.5, 1)) +
+  scale_y_continuous(limits = c(0, NA)) +
+  guides(size = FALSE, alpha = FALSE, color = FALSE)
 ```
 
 ### Cluster
@@ -294,7 +320,7 @@ m <- MapperRef$new(as.matrix(X))$
 plot(m$simplicial_complex) 
 ```
 
-```{r}
+```{r, eval=FALSE}
 m <- MapperRef$new(as.matrix(X))$
   use_filter(filter = as.matrix(X[,1,drop=FALSE]))$
   use_cover(cover="neighborhood", num_sets=5L)$
