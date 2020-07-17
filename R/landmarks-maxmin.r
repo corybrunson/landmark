@@ -10,8 +10,8 @@
 #'   points.
 #'
 #'   One, both, or neither of `num` and `radius` may be passed values. If
-#'   neither is specified, then `num` is defaulted to `24L`. If the values
-#'   yield balls that do not cover `x`, then their number is increased until the
+#'   neither is specified, then `num` is defaulted to `24L`. If the values yield
+#'   balls that do not cover `x`, then their number is increased until the
 #'   radius necessary to cover `x` is at most `radius`. To generte a complete
 #'   landmark set, use `radius = 0L`.
 #' @references De Silva, Vin, and Gunnar E. Carlsson. "Topological estimation
@@ -27,19 +27,21 @@
 #' @param pick_method a character string specifying the method for selecting one
 #'   among indistinguishable points, either `"first"` (the default), `"last"`,
 #'   or `"random"`.
-#' @param num a positive integer; the desired number of landmark points, or
-#'   of sets in a ball cover.
-#' @param radius a positive number; the desired radius of each
-#'   landmark ball, or of each set in a ball cover.
+#' @param num a positive integer; the desired number of landmark points, or of
+#'   sets in a ball cover.
+#' @param radius a positive number; the desired radius of each landmark ball, or
+#'   of each set in a ball cover.
 #' @param frac logical; whether to treat `radius` as a fraction of the diameter
 #'   of `x`.
 #' @param seed_index an integer (the first landmark to seed the algorithm) or
 #'   one of the character strings `"random"` (to select a seed uniformly at
 #'   random) and `"minmax"` (to select a seed from the minmax set).
-#' @param cover logical; whether to return a data frame of landmark indices and
-#'   cover sets (by member index) rather than only a vector of landmark indices.
 #' @param engine character string specifying the implementation to use; one of
 #'   `"original"`, `"C++"`, or `"R"`. When not specified, the R engine is used.
+#' @param cover logical; whether to return a data frame of landmark indices and
+#'   cover sets (by member index) rather than only a vector of landmark indices.
+#' @param extend_num,extend_radius length-two numeric vectors used to extend
+#'   landmark parameters for cover set construction. See [extension()].
 #' @example inst/examples/ex-landmarks-maxmin.r
 NULL
 
@@ -152,8 +154,11 @@ landmarks_maxmin <- function(
   x,
   dist_method = "euclidean", pick_method = "first",
   num = NULL, radius = NULL, frac = FALSE,
-  seed_index = 1L, cover = FALSE,
-  engine = NULL
+  seed_index = 1L,
+  engine = NULL,
+  cover = FALSE,
+  extend_num = extension(mult = 0, add = 0),
+  extend_radius = extension(mult = 0, add = 0)
 ) {
   # validate inputs
   stopifnot(is.matrix(x))
@@ -238,7 +243,9 @@ landmarks_maxmin <- function(
       x = x,
       dist_method = dist_method,
       num = num, radius = radius,
-      seed_index = seed_index, cover = cover
+      seed_index = seed_index, cover = cover,
+      mult_num = extend_num[[1L]], add_num = extend_num[[2L]],
+      mult_radius = extend_radius[[1L]], add_radius = extend_radius[[2L]]
     )
   )
 
@@ -260,14 +267,15 @@ landmarks_maxmin <- function(
   }
 
   # print warnings if a parameter was adjusted
+  ext_num <- num * (1 + extend_num[[1L]]) + extend_num[[2L]]
   if (! is.null(num)) {
-    if (NROW(res) > num) {
+    if (NROW(res) > ext_num) {
       warning("Required ", NROW(res),
-              " (> num = ", num, ") ",
+              " (> num = ", ext_num, ") ",
               "sets of radius ", radius, ".")
-    } else if (NROW(res) < num) {
+    } else if (NROW(res) < ext_num) {
       warning("Only ", NROW(res),
-              " (< num = ", num, ") ",
+              " (< num = ", ext_num, ") ",
               "distinct landmark points were found.")
     }
   }
@@ -345,7 +353,8 @@ landmarks_maxmin_R <- function(
   x,
   dist_method = "euclidean", pick_method = "first",
   num = NULL, radius = NULL, frac = FALSE,
-  seed_index = 1L, cover = FALSE
+  seed_index = 1L, cover = FALSE,
+  mult_num = 0, add_num = 0, mult_radius = 0, add_radius = 0
 ) {
 
   # initialize maxmin, free, and landmark index sets
@@ -357,7 +366,9 @@ landmarks_maxmin_R <- function(
   free_idx[perm_idx[duplicated(x[perm_idx])]] <- 0L
   # initialize distance vector and membership list
   lmk_dist <- rep(Inf, times = nrow(x))
-  min_rad <- Inf
+  # initialize minimum radius and associated number of sets to cover `x`
+  cover_rad <- Inf
+  cover_num <- 0L
   if (cover) cover_idx <- list()
 
   for (i in seq_along(free_idx)) {
@@ -383,32 +394,41 @@ landmarks_maxmin_R <- function(
       )[1, ]
     )
 
-    # refresh the minimum radius necessary to cover `x`
-    min_rad <- max(pmin(lmk_dist[, 1L], lmk_dist[, 2L]))
+    # minimum distance from landmarks to `x`
+    min_dist <- max(pmin(lmk_dist[, 1L], lmk_dist[, 2L]))
+    # update the minimum radius necessary to cover `x`
+    if (is.null(radius) && ! is.null(num) && i <= num)
+      cover_rad <- min_dist
     # update membership list
     if (cover) {
       cover_idx <- if (is.null(radius)) {
         # -+- will need to parse later -+-
-        wh_idx <- which(lmk_dist[, 2L] <= min_rad)
+        wh_idx <- which(lmk_dist[, 2L] <=
+                          cover_rad * (1 + mult_radius) + add_radius)
         c(cover_idx,
           list(cbind(idx = wh_idx, dist = lmk_dist[wh_idx, 2L])))
       } else {
         # -+- will not need to parse later -+-
-        c(cover_idx, list(which(lmk_dist[, 2L] <= radius)))
+        c(cover_idx, list(which(lmk_dist[, 2L] <=
+                                  radius * (1 + mult_radius) + add_radius)))
       }
     }
 
     # exhaustion breaks
     if (all(free_idx == 0L)) break
+    # update the minimum number of sets necessary to cover `x`
+    if (is.null(num) && ! is.null(radius) && min_dist > radius)
+      cover_num <- i + 1L
     # parameter breaks
-    if ((is.null(num) || i >= num) &&
-        (is.null(radius) || min_rad <= radius)) break
+    if ((is.null(num) || i >= num * (1L + mult_num) + add_num) &&
+        (cover_num == 0L || i >= cover_num * (1L + mult_num) + add_num) &&
+        (is.null(radius) || min_dist <= radius)) break
 
     # collapse distances to the minimum to each point
     lmk_dist <- pmin(lmk_dist[, 1L], lmk_dist[, 2L])
     # obtain the maxmin subset
     mm_idx <- free_idx[free_idx != 0L]
-    mm_idx <- mm_idx[lmk_dist[mm_idx] == min_rad]
+    mm_idx <- mm_idx[lmk_dist[mm_idx] == max(lmk_dist)]
 
   }
 
@@ -419,7 +439,8 @@ landmarks_maxmin_R <- function(
     if (is.null(radius)) {
       # parse extraneous members
       cover_idx <- lapply(cover_idx, function(mat) {
-        unname(mat[mat[, "dist"] <= min_rad, "idx"])
+        unname(mat[mat[, "dist"] <=
+                     cover_rad * (1 + mult_radius) + add_radius, "idx"])
       })
     }
     # return list of landmark indices and cover membership vectors
