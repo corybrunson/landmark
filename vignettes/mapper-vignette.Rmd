@@ -15,12 +15,14 @@ library(dplyr)
 library(ggplot2)
 library(cowplot)
 library(RColorBrewer)
+library(ggrepel)
 library(landmark) # installed version of landmark package
+library(Mapper) # installed version of Mapper package
 knitr::opts_chunk$set(echo = TRUE, fig.width = 7)
 colors_hex <- brewer.pal(n=5, name="Dark2")
 ```
 
-Note that this vignette invokes the _currently installed_ version of the landmark package.
+Note that this vignette invokes the _currently installed_ versions of the "landmark" and "Mapper" packages.
 
 ### Motivation
 
@@ -199,7 +201,7 @@ Notice that the area of $f(X)$ with greater point density (near 7) is handled di
 
 ## Compute Pullback
 
-Compute the _pullback_ of the cover by identifying the points in $x \in X$ mapping into each cover set under $f$. 
+Compute the _pullback_ of the cover by identifying the points in $x \in X$ mapping into each cover set under $f$. The preimages of the landmark points are highlighted for reference in the figure below, but note that the positions of landmark preimages in $X$ have no significance on clustering or in the remainder of the Mapper algorithm at all-- their only purpose is to generate cover sets in $f(X)$.
 
 ```{r, echo=FALSE}
 gg_mm <- get_pullback(lmks_mm)
@@ -224,8 +226,10 @@ for( i in seq_along(lmks$landmark) ){
   clusters <- cutree(hc, h=2)
   pts_cl <- mutate(pts, cluster = clusters)
   cluster_list_mm[[i]] <- pts_cl
-  gg_cl_mm <- gg_cl_mm + geom_point(data=pts_cl, aes(x=x_1, y=x_2), color=colors_hex[i], alpha=0.1, size=3) +
-    geom_text(data=pts_cl, aes(x=x_1, y=x_2, label=cluster), color=colors_hex[i])
+  gg_cl_mm <- gg_cl_mm + geom_point(data=pts_cl, aes(x=x_1, y=x_2), color=colors_hex[i], alpha=0.1, size=4) +
+    geom_text_repel(data=pts_cl, aes(x=x_1, y=x_2, label=cluster), color=colors_hex[i], size=3, point.padding = NA)
+    #geom_text(data=pts_cl, aes(x=x_1, y=x_2, label=cluster), color=colors_hex[i], size=3, position=position_nudge(x=-0.5))
+    #geom_text(data=pts_cl, aes(x=x_1, y=x_2, label=cluster), color=colors_hex[i], size=3, position=position_jitter())
 }
 gg_cl_mm <- gg_cl_mm + theme_bw()
 ```
@@ -244,8 +248,14 @@ for( i in seq_along(lmks$landmark) ){
   
   pts_cl <- mutate(pts, cluster = clusters)
   cluster_list_lf[[i]] <- pts_cl
-  gg_cl_lf <- gg_cl_lf + geom_point(data=pts_cl, aes(x=x_1, y=x_2), color=colors_hex[i], alpha=0.1, size=3) +
-    geom_text(data=pts_cl, aes(x=x_1, y=x_2, label=cluster), color=colors_hex[i])
+  gg_cl_lf <- gg_cl_lf + geom_point(data=pts_cl, aes(x=x_1, y=x_2), color=colors_hex[i], alpha=0.1, size=4) +
+  # geom_text_repel(data=pts_cl, aes(x=x_1, y=x_2, label=cluster), color=colors_hex[i], size=3, fontface="bold",
+  #   nudge_x      = 0.15,
+  #   direction    = "y",
+  #   hjust        = 0,
+  #   segment.size = 0.2
+  # )
+    geom_text_repel(data=pts_cl, aes(x=x_1, y=x_2, label=cluster), color=colors_hex[i], size=3, point.padding = NA)
 }
 
 gg_cl_lf <- gg_cl_lf + theme_bw()
@@ -274,20 +284,24 @@ plot_grid(nerve_mm, nerve_lf, ncol=2, scale=0.9,
 ## Mapper
 This process is roughly equivalent to building the following mappers on this data.
 
-```
+```{r}
 m <- MapperRef$new(as.matrix(X))$
   use_filter(filter = as.matrix(X[,1,drop=FALSE]))$
   use_cover(cover="landmark_ball", num_sets=5L)$
    use_distance_measure(measure="euclidean")$
    construct_k_skeleton(k=1L)
+   
+plot(m$simplicial_complex) 
 ```
 
-```
+```{r}
 m <- MapperRef$new(as.matrix(X))$
   use_filter(filter = as.matrix(X[,1,drop=FALSE]))$
   use_cover(cover="neighborhood", num_sets=5L)$
    use_distance_measure(measure="euclidean")$
    construct_k_skeleton(k=1L)
+
+plot(m$simplicial_complex)
 ```
 
 
