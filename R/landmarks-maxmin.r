@@ -222,7 +222,7 @@ landmarks_maxmin <- function(
       )
     }
   }
-  stopifnot(seed_index >= 1L && seed_index <= nrow(x))
+  stopifnot(seed_index >= 1L, seed_index <= nrow(x))
 
   # dispatch to implementations
   res <- switch (
@@ -290,10 +290,10 @@ landmarks_maxmin_orig <- function(
   num = NULL, radius = NULL,
   seed_index = 1L
 ) {
-  stopifnot(is.matrix(x))
-  stopifnot(seed_index >= 1L && seed_index <= nrow(x))
-  # must specify a number of balls or a radius
-  stopifnot(! is.null(num) || ! is.null(radius))
+  stopifnot(is.matrix(x),
+            seed_index >= 1L, seed_index <= nrow(x),
+            # must specify a number of balls or a radius
+            ! is.null(num) || ! is.null(radius))
 
   shuffle_idx <- switch (
     pick_method,

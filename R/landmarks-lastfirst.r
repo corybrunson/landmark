@@ -233,7 +233,7 @@ landmarks_lastfirst <- function(
       )
     }
   }
-  stopifnot(seed_index >= 1L && seed_index <= nrow(x))
+  stopifnot(seed_index >= 1L, seed_index <= nrow(x))
 
   # dispatch to implementations
   res <- switch (
