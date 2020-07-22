@@ -1,24 +1,39 @@
 ---
-title: "Constructing Mappers using landmarks"
+title: "Constructing Nerves using landmarks"
 author: "Yara Skaf"
 date: "`r Sys.Date()`"
 output:
   rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Constructing Mappers using landmarks}
+  %\VignetteIndexEntry{Constructing Nerves using landmarks}
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 ---
 
-```{r setup, echo=FALSE, message=FALSE, results='hide'}
+```{r setup, echo=FALSE, message=FALSE, results='hide', include=FALSE}
 library(dplyr)
 library(ggplot2)
 library(cowplot)
 library(RColorBrewer)
 library(ggrepel)
+library(tidyverse)
 library(landmark) # installed version of landmark package
 library(Mapper) # installed version of Mapper package
 knitr::opts_chunk$set(echo = TRUE, fig.width = 7)
+```
+
+```{r, echo=FALSE}
+# set up preset themes and colors
+th <- theme(axis.line = element_line(color = "gray"),
+            axis.text = element_text(color="gray", size=8),
+            axis.title=element_text(size=8, color = "gray"),
+            legend.position="bottom",
+            legend.direction = "horizontal",
+            legend.title = element_text(size = 8, face="bold"),
+            legend.text = element_text(size = 8, margin = margin(t = -5)),
+            strip.text = element_text(size = 10, face="bold"),
+            plot.margin = unit(c(1, 2, 1, 2), "lines") )
+
 colors_hex <- brewer.pal(n=5, name="Dark2")
 ```
 
@@ -29,7 +44,6 @@ Note that this vignette invokes the _currently installed_ versions of the "landm
 One use case for the landmark package is the construction of a nerve for the Mapper algorithm. For a more thorough introduction to Mapper and its applications, see the [Mapper package documentation](https://github.com/peekxc/Mapper).
 
 The following example will illustrate where Mapper depends on landmark points and the different behavior of the two landmark algorithms.
-
 
 ## Data & Lens
 
@@ -48,107 +62,26 @@ X <- data.frame("x_1" = vals/10, "x_2" = sample(1:10, num_pts, replace=TRUE))
 f_X <- data.frame("f_x" = X$x_1, "y" = rep(0L, length(X$x_1)))
 ```
 
-```{r, echo=FALSE}
-get_cover <- function(lmks){
-  gg <- ggplot(f_X, aes(x=f_x, y=y)) + # set up plot
-  geom_point(color="black", size=1)
-
-  for( i in seq_along(lmks$landmark) ){
-    if( i %% 2 > 0){ shift <- 0.05
-    }else{ shift <- 0.1 }
-    
-    lmk_idx <- lmks$landmark[[i]]
-    cover_set <- lmks$cover_set[[i]]
-    lmk_label <- paste("bolditalic(l[", i, "])", sep="")
-    
-    lmk_pt <- data.frame("x" = f_X$f_x[lmk_idx], "y" = c(0), "label"=lmk_label)
-    gg <- gg + geom_point(data=lmk_pt, aes(x=x, y=y), color=colors_hex[i], size=2) +
-      geom_text(data=lmk_pt, aes(x=x, y=y, label=label), vjust=2, color=colors_hex[i], parse=TRUE)
-    
-    cover_pts <- data.frame("x" = f_X$f_x[cover_set], "y" = rep(shift, length(cover_set)))
-    gg <- gg + geom_point(data=cover_pts, aes(x=x, y=y), color=colors_hex[i], alpha=0.5, size=1)
-    
-    lmk_pt$y <- shift
-    gg <- gg + geom_point(data=lmk_pt, aes(x=x, y=y), color=colors_hex[i], size=1) #+
-  }
-  
-  gg +
-    labs(x = "f(x)", y = "") +
-    theme_minimal() +
-    theme(axis.text.y=element_blank(),
-          axis.ticks.y=element_blank(),
-      panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank(),
-      axis.line.x = element_line(color = "gray")
-      ) +
-    coord_cartesian(ylim=c(-0.1,0.7)) +
-    expand_limits(x = 0, y = 0)
-}
-
-get_pullback <- function(lmks){
-  gg <- ggplot(X, aes(x=x_1, y=x_2))
-  for( i in seq_along(lmks$landmark) ){
-    lmk_idx <- lmks$landmark[[i]]
-    cover_set <- lmks$cover_set[[i]]
-    
-    gg <- gg + geom_point(data=X[lmk_idx,], aes(x=x_1, y=x_2), color=colors_hex[i], size=3)
-    gg <- gg + geom_point(data=X[cover_set,], aes(x=x_1, y=x_2), color=colors_hex[i], alpha=0.5, size=2)
-  }
-  gg + theme_bw() # set theme
-}
-
-get_nerve <- function(cluster_list){
-  gg <- ggplot(X, aes(x=x_1, y=x_2))
-
-  for( i in seq_along(cluster_list) ){
-    cl <- unique(cluster_list[[i]]$cluster)
-    clusters <- data.frame(x=rep(i, length(cl)), y=cl)
-    
-    j = i+1
-    while(j <= length(cluster_list)){
-      cl_j <- unique(cluster_list[[j]]$cluster)
-      clusters_j <- data.frame(x=rep(j, length(cl_j)), y=cl_j)
-      
-      overlap <- inner_join(cluster_list[[i]], cluster_list[[j]], by=c("x_1", "x_2"))
-      edges <- data.frame(x1=rep(i,nrow(overlap)), y1=overlap$cluster.x,
-                          x2=rep(j,nrow(overlap)), y2=overlap$cluster.y)
-      gg <- gg + geom_segment(data = edges, aes(x = x1, y = y1, xend = x2, yend = y2), color="black")
-      j = j + 1
-    }
-    
-    gg <- gg + geom_point(data=clusters, aes(x=x, y=y), color=colors_hex[i], size=8) +
-    geom_text(data=clusters, aes(x=x, y=y, label=y), color="white")
-  }
-  
-  gg + 
-    labs(x = "", y = "") +
-    theme_minimal() +
-    theme(axis.text.y=element_blank(),
-          axis.ticks.y=element_blank(),
-          axis.text.x=element_blank(),
-          panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-    )
-}
-```
 
 ```{r, echo=FALSE, fig.height=8}
-gg_X <- ggplot(X, aes(x=x_1, y=x_2)) + # set up plot
-  geom_point(aes(col=x_1), size=3) + # add points
-  theme_bw() + # set theme
-  theme(legend.position="none")
-
-gg_fX <- ggplot(f_X, aes(x=f_x, y=y)) + # set up plot
-  geom_hline(yintercept=0, color="gray") +
-  geom_point(aes(col=f_x), size=3) + # add points
-  labs(x = "", y = "") + # add title + axis labels
+# plot data set X
+gg_X <- ggplot(X, aes(x=x_1, y=x_2)) +
+  geom_point(aes(col=x_1), size=3) +
   theme_minimal() +
-  theme(axis.text.y=element_blank(),
-        axis.text.x=element_blank(),
-    panel.grid.major = element_blank(),
-    panel.grid.minor = element_blank(),
-    legend.position="bottom"
-    ) +
+  theme(legend.position="none",
+        axis.line = element_line(color = "gray"),
+        axis.text = element_text(color="gray", size=8),
+        axis.title=element_text(size=8, color = "gray") )
+
+# plot filtered data f_X
+gg_fX <- ggplot(f_X, aes(x=f_x, y=y)) +
+  geom_hline(yintercept=0, color="gray") +
+  geom_point(aes(col=f_x), size=3) +
+  labs(x = "", y = "") +
+  theme_minimal() +
+  theme(axis.text=element_blank(),
+    panel.grid = element_blank(),
+    legend.position="bottom") +
   coord_cartesian(ylim=c(0,0), xlim=c(0,10)) +
   scale_x_continuous()
 
@@ -188,12 +121,85 @@ The `cover_set` column stores indices of points within each cover set:
 lmks_mm$cover_set
 ```
 
+
+```{r, echo=FALSE, include=FALSE}
+# set up data structure
+X_ids <- mutate(X, id = seq(nrow(X)))
+lmks_all <- bind_rows(
+  tidyr::unnest(mutate(lmks_mm, procedure = "maxmin"), cols = c(cover_set)),
+  tidyr::unnest(mutate(lmks_lf, procedure = "lastfirst"), cols = c(cover_set))
+)
+lmks_all <- lmks_all %>%
+  mutate(procedure = factor(procedure, levels = unique(procedure)),
+         is_landmark = (landmark == cover_set)) %>%
+  rename(pid=landmark, pt_idx=cover_set)
+
+X_cl <- left_join(lmks_all, X_ids, by = c("pt_idx" = "id"))
+
+get_clusters <- function(lmk_row, X_ids){
+  pts <- subset(X_ids, id %in% lmk_row$cover_set)
+  d <- dist(as.matrix(select(pts, c(x_1,x_2))))
+  hc <- hclust(d, method="single")
+  clusters <- cutree(hc, h=2)
+  
+  pts_cl <- mutate(pts, cluster = clusters, pid=lmk_row$landmark)
+  pts_cl %>% rename(pt_idx=id)
+}
+
+mm_cl <- apply(lmks_mm, 1, get_clusters, X_ids)
+mm_cl <- mm_cl %>% reduce(full_join) %>% mutate(procedure="maxmin")
+lf_cl <- apply(lmks_lf, 1, get_clusters, X_ids)
+lf_cl <- lf_cl %>% reduce(full_join) %>% mutate(procedure="lastfirst")
+
+cl <- full_join(mm_cl, lf_cl)
+X_cl <- left_join(X_cl, select(cl, c(pid, pt_idx, cluster, procedure)), by = c("pid", "pt_idx", "procedure"))
+X_cl <- mutate(X_cl,
+               procedure = factor(procedure, levels = unique(procedure)),
+               pid = factor(pid, levels = unique(pid)),
+               cluster = factor(cluster, levels = unique(cluster)) )
+
+mm_data <- subset(X_cl, procedure=="maxmin")
+lf_data <- subset(X_cl, procedure=="lastfirst")
+
+# shift for plotting cover sets so they don't overlap
+mm_data$shift <- rank(as.numeric(as.character(mm_data$pid)), ties.method = "min") %% 2 + 1
+lf_data$shift <- rank(as.numeric(as.character(lf_data$pid)), ties.method = "min") %% 2 + 1
+```
+
 The following plots visualize the two different covers of $f(X)$:
 
-```{r, echo=FALSE}
-gg_lmk_mm <- get_cover(lmks_mm)
-gg_lmk_lf <- get_cover(lmks_lf)
-plot_grid(gg_lmk_mm, gg_lmk_lf, labels=c("maxmin landmarks", "lastfirst landmarks"), label_size = 10)
+```{r cover plot, echo=FALSE, fig.height=4}
+pick <- function(condition){function(d) d %>% filter_(condition)}
+
+mm <- ggplot(mm_data, aes(x = x_1, alpha = is_landmark)) +
+  facet_wrap(~ procedure) +
+  geom_point(aes(y = 0, size = is_landmark), color="black", alpha=0.5) +
+  geom_point(data=pick(~is_landmark==TRUE), aes(y = 0, size = is_landmark, color = pid)) +
+  scale_size_manual(values = c(1, 3)) +
+  geom_point(aes(y = shift, color = pid), size = 1) +
+  scale_color_manual(values = rep(colors_hex, times = 2),
+                     guide=guide_legend(title.position="top", title.hjust = 0.5,
+                                        label.position = "bottom")) +
+  scale_alpha_manual(values = c(.5, 1)) +
+  scale_y_continuous(limits = c(0, 10)) +
+  labs(color="Landmark ID") +
+  guides(size = FALSE, alpha = FALSE) +
+  theme_minimal() +
+  theme(axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        axis.title=element_blank(),
+        panel.grid = element_blank(),
+        axis.text.x = element_text(color="gray", size=8),
+        axis.line.x = element_line(color = "gray"),
+        legend.position="bottom",
+        legend.direction = "horizontal",
+        legend.title = element_text(size = 8, face="bold"),
+        legend.text = element_text(size = 8, margin = margin(t = -5)),
+        strip.text = element_text(size = 10, face="bold"),
+        plot.margin = unit(c(1, 2, 1, 2), "lines"))
+lf <- mm %+% lf_data
+
+gridExtra::grid.arrange(mm, lf, ncol=2)
 ```
 
 Notice that the area of $f(X)$ with greater point density (near 7) is handled differently by the two covering methods. Since `landmarks_maxmin()` chooses points based on Euclidean distance away from existing landmarks, only one point ($\ell_1$) is selected from the high density region. Consequently, this cover set has significantly more points than the others. In contrast, `landmarks_lastfirst()` chooses points based on the number of points in each cover set, so it selects more landmarks ($\ell_1$, $\ell_4$, $\ell_5$) within this area. Additionally, all cover sets in the neighborhood cover have roughly the same cardinality.
@@ -202,100 +208,148 @@ Notice that the area of $f(X)$ with greater point density (near 7) is handled di
 
 Compute the _pullback_ of the cover by identifying the points in $x \in X$ mapping into each cover set under $f$. The preimages of the landmark points are highlighted for reference in the figure below, but note that the positions of landmark preimages in $X$ have no significance on clustering or in the remainder of the Mapper algorithm at all-- their only purpose is to generate cover sets in $f(X)$.
 
-```{r, echo=FALSE}
-gg_mm <- get_pullback(lmks_mm)
-gg_lf <- get_pullback(lmks_lf)
-plot_grid(gg_mm, gg_lf, ncol=2, scale=0.9,
-          labels=c("maxmin pullback", "lastfirst pullback"),
-          label_size = 10)
-```
-
-```{r alternative pullback plot, echo=FALSE}
-X_ids <- mutate(X, id = seq(nrow(X)))
-lmks_both <- bind_rows(
-  tidyr::unnest(mutate(lmks_mm, procedure = "maxmin"), cols = c(cover_set)),
-  tidyr::unnest(mutate(lmks_lf, procedure = "lastfirst"), cols = c(cover_set))
-)
-lmks_both <- mutate(lmks_both,
-                    procedure = factor(procedure, levels = unique(procedure)),
-                    is_landmark = landmark == cover_set,
-                    landmark = paste0(procedure, landmark),
-                    landmark = factor(landmark, levels = unique(landmark)))
-pullback_data <- left_join(lmks_both, X_ids, by = c("cover_set" = "id"))
-ggplot(pullback_data, aes(x = x_1, alpha = is_landmark)) +
-  facet_grid(~ procedure) +
-  geom_point(y = 0, color = "black", shape = 1) +
-  geom_point(aes(y = x_2,
-                 color = landmark, shape = landmark,
-                 size = is_landmark)) +
-  theme_minimal() +
+```{r pullback plot, echo=FALSE, fig.height=4}
+mm <- ggplot(mm_data, aes(x = x_1, alpha = is_landmark)) +
+  facet_wrap(~ procedure) +
+  geom_point(y = 0, color = "gray", shape = 16) +
+  geom_point(aes(y = x_2, color = pid, shape = pid, size = is_landmark)) +
   scale_size_manual(values = c(2, 3)) +
-  scale_color_manual(values = rep(colors_hex, times = 2)) +
-  scale_shape_manual(values = rep(c(15:17, 3:4), times = 2)) +
+  scale_color_manual(values = rep(colors_hex, times = 2),
+                     guide=guide_legend(title.position="top", title.hjust = 0.5, label.position = "bottom")) +
+  scale_shape_manual(values = rep(c(15:18, 8), times = 2)) +
   scale_alpha_manual(values = c(.5, 1)) +
   scale_y_continuous(limits = c(0, NA)) +
-  guides(size = FALSE, alpha = FALSE, color = FALSE)
+  labs(shape="Pullback ID", color="Pullback ID") +
+  guides(size = FALSE, alpha = FALSE) +
+  theme_minimal() + th
+
+lf <- mm %+% lf_data
+
+gridExtra::grid.arrange(mm, lf, ncol=2)
+
 ```
+
 
 ### Cluster
 Next, perform single linkage clustering within each pullback set.
 
+```{r cluster plot, echo=FALSE, fig.height=4}
+mm <- ggplot(mm_data, aes(x = x_1)) +
+  facet_wrap(~ procedure) +
+  geom_point(y = 0, color = "gray", shape = 16) +
+  geom_point(aes(y = x_2, color = pid, shape = pid), alpha=0.2, size=4) +
+  geom_text_repel(aes(y = x_2, label=cluster, color = pid), size=3, point.padding = NA, show.legend = FALSE, segment.alpha=0.4) +
+  scale_size_manual(values = c(2, 3)) +
+  scale_color_manual(values = rep(colors_hex, times = 2),
+                     guide=guide_legend(title.position="top", title.hjust = 0.5, label.position = "bottom")) +
+  scale_shape_manual(values = rep(c(15:18, 8), times = 2)) +
+  scale_y_continuous(limits = c(0, NA)) +
+  labs(shape="Pullback ID", color="Pullback ID") +
+  guides(size = FALSE, alpha = FALSE) +
+  theme_minimal() + th
+
+lf <- mm %+% lf_data
+
+gridExtra::grid.arrange(mm, lf, ncol=2)
+```
+
+
+
+## Generate Nerve
+Construct a _simplicial complex_ from clusters and their overlaps-- Each cluster genertes by the previous step becomes a vertex (0-simplex). Edges (1-simplices) are inserted between clusters with non-empty overlap.
+
+First, generate vertices from clusters:
+
+```{r nerve plot, echo=FALSE, fig.height=4}
+mm_clusters <- mm_data[ !duplicated( mm_data[,c("pid", "cluster")] ), ]
+lf_clusters <- lf_data[ !duplicated( lf_data[,c("pid", "cluster")] ), ]
+
+mm <- ggplot(mm_clusters, aes(x = x_1)) +
+  facet_wrap(~ procedure) +
+  geom_point(aes(y = x_2, color = pid, shape = pid), alpha=0.2, size=8) +
+  geom_text_repel(aes(y = x_2, label=cluster, color = pid), size=3, point.padding = NA, show.legend = FALSE) +
+  scale_color_manual(values = rep(colors_hex, times = 2),
+                     guide=guide_legend(title.position="top", title.hjust = 0.5, label.position = "bottom")) +
+  scale_shape_manual(values = rep(c(15:18, 8), times = 2)) +
+  scale_y_continuous(limits = c(0, NA)) +
+  labs(shape="Pullback ID", color="Pullback ID", x = "", y = "") +
+  guides(size = FALSE, alpha = FALSE) +
+  theme_minimal() +
+  theme(axis.text=element_blank(),
+        axis.ticks=element_blank(),
+        panel.grid = element_blank(),
+        legend.position="none",
+        strip.text = element_text(size = 10, face="bold"),
+        plot.margin = unit(c(1, 2, 1, 2), "lines"))
+lf <- mm %+% lf_clusters
+
+gridExtra::grid.arrange(mm, lf, ncol=2)
+```
+
+
+Then add edges between overlapping clusters:
+
 ```{r, echo=FALSE}
-gg_cl_mm <- ggplot(X, aes(x=x_1, y=x_2))
-lmks <- lmks_mm
+
+get_nerve <- function(cluster_list){
+  gg <- ggplot(X, aes(x=x_1, y=x_2))
+
+  for( i in seq_along(cluster_list) ){
+    cl <- unique(cluster_list[[i]]$cluster)
+    clusters <- data.frame(x=rep(i, length(cl)), y=cl)
+    
+    j = i+1
+    while(j <= length(cluster_list)){
+      cl_j <- unique(cluster_list[[j]]$cluster)
+      clusters_j <- data.frame(x=rep(j, length(cl_j)), y=cl_j)
+      
+      overlap <- inner_join(cluster_list[[i]], cluster_list[[j]], by=c("x_1", "x_2"))
+      edges <- data.frame(x1=rep(i,nrow(overlap)), y1=overlap$cluster.x,
+                          x2=rep(j,nrow(overlap)), y2=overlap$cluster.y)
+      gg <- gg + geom_segment(data = edges, aes(x = x1, y = y1, xend = x2, yend = y2), color="black")
+      j = j + 1
+    }
+    
+    gg <- gg + geom_point(data=clusters, aes(x=x, y=y), color=colors_hex[i], size=8) +
+    geom_text(data=clusters, aes(x=x, y=y, label=y), color="white")
+  }
+  
+  gg + 
+    labs(x = "", y = "") +
+    theme_minimal() +
+    theme(axis.text.y=element_blank(),
+          axis.ticks.y=element_blank(),
+          axis.text.x=element_blank(),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+    )
+}
+
+
+cluster_list_lf = list()
+for( i in seq_along(lmks_lf$landmark) ){
+  cover_set <- lmks_lf$cover_set[[i]]
+  pts <- X[cover_set,]
+  d <- dist(as.matrix(pts))
+  hc <- hclust(d, method="single")
+  clusters <- cutree(hc, h=2)
+  pts_cl <- mutate(pts, cluster = clusters)
+  cluster_list_lf[[i]] <- pts_cl
+}
+
 cluster_list_mm = list()
-for( i in seq_along(lmks$landmark) ){
-  cover_set <- lmks$cover_set[[i]]
+for( i in seq_along(lmks_mm$landmark) ){
+  cover_set <- lmks_mm$cover_set[[i]]
   pts <- X[cover_set,]
   d <- dist(as.matrix(pts))
   hc <- hclust(d, method="single")
   clusters <- cutree(hc, h=2)
   pts_cl <- mutate(pts, cluster = clusters)
   cluster_list_mm[[i]] <- pts_cl
-  gg_cl_mm <- gg_cl_mm + geom_point(data=pts_cl, aes(x=x_1, y=x_2), color=colors_hex[i], alpha=0.1, size=4) +
-    geom_text_repel(data=pts_cl, aes(x=x_1, y=x_2, label=cluster), color=colors_hex[i], size=3, point.padding = NA)
-    #geom_text(data=pts_cl, aes(x=x_1, y=x_2, label=cluster), color=colors_hex[i], size=3, position=position_nudge(x=-0.5))
-    #geom_text(data=pts_cl, aes(x=x_1, y=x_2, label=cluster), color=colors_hex[i], size=3, position=position_jitter())
-}
-gg_cl_mm <- gg_cl_mm + theme_bw()
-```
-
-
-```{r, echo=FALSE}
-gg_cl_lf <- ggplot(X, aes(x=x_1, y=x_2))
-lmks <- lmks_lf
-cluster_list_lf = list()
-for( i in seq_along(lmks$landmark) ){
-  cover_set <- lmks$cover_set[[i]]
-  pts <- X[cover_set,]
-  d <- dist(as.matrix(pts))
-  hc <- hclust(d, method="single")
-  clusters <- cutree(hc, h=2)
-  
-  pts_cl <- mutate(pts, cluster = clusters)
-  cluster_list_lf[[i]] <- pts_cl
-  gg_cl_lf <- gg_cl_lf + geom_point(data=pts_cl, aes(x=x_1, y=x_2), color=colors_hex[i], alpha=0.1, size=4) +
-  # geom_text_repel(data=pts_cl, aes(x=x_1, y=x_2, label=cluster), color=colors_hex[i], size=3, fontface="bold",
-  #   nudge_x      = 0.15,
-  #   direction    = "y",
-  #   hjust        = 0,
-  #   segment.size = 0.2
-  # )
-    geom_text_repel(data=pts_cl, aes(x=x_1, y=x_2, label=cluster), color=colors_hex[i], size=3, point.padding = NA)
 }
 
-gg_cl_lf <- gg_cl_lf + theme_bw()
 ```
 
-
-```{r, echo=FALSE}
-plot_grid(gg_cl_mm, gg_cl_lf, ncol=2, scale=0.9,
-          labels=c("maxmin clusters", "lastfirst clusters"),
-          label_size = 10)
-```
-
-## Generate Nerve
-Construct a _simplicial complex_ from clusters and their overlaps-- Each cluster genertes by the previous step becomes a vertex (0-simplex). Edges (1-simplices) are inserted between clusters with non-empty overlap.
 
 ```{r, echo=FALSE, fig.height=4}
 nerve_mm <- get_nerve(cluster_list_mm)
@@ -310,24 +364,18 @@ plot_grid(nerve_mm, nerve_lf, ncol=2, scale=0.9,
 ## Mapper
 This process is roughly equivalent to building the following mappers on this data.
 
-```{r}
+```{r, eval=FALSE}
 m <- MapperRef$new(as.matrix(X))$
   use_filter(filter = as.matrix(X[,1,drop=FALSE]))$
   use_cover(cover="landmark_ball", num_sets=5L)$
-   use_distance_measure(measure="euclidean")$
-   construct_k_skeleton(k=1L)
-   
-plot(m$simplicial_complex) 
+  construct_k_skeleton(k=1L)
 ```
 
 ```{r, eval=FALSE}
 m <- MapperRef$new(as.matrix(X))$
   use_filter(filter = as.matrix(X[,1,drop=FALSE]))$
   use_cover(cover="neighborhood", num_sets=5L)$
-   use_distance_measure(measure="euclidean")$
-   construct_k_skeleton(k=1L)
-
-plot(m$simplicial_complex)
+  construct_k_skeleton(k=1L)
 ```
 
 
