@@ -10,12 +10,12 @@ using namespace std;
 using std::size_t;
 
 // Description:
-//   Lastfirst procedure to choose 'num_sets' landmarks for neighborhoods of
+//   Lastfirst procedure to choose 'num' landmarks for neighborhoods of
 //   size at least 'cardinality' (supports euclidean distance only)
 //
 // Parameters:
 //   - x : a data matrix
-//   - num_sets : desired number of landmark points, or number of sets, in a
+//   - num : desired number of landmark points, or number of sets, in a
 //     neighborhood cover (should be a positive integer)
 //   - cardinality : desired cardinality (number of point inside) of each
 //     landmark neighborhood (should be a positive integer)
@@ -24,20 +24,20 @@ using std::size_t;
 //     the landmark points
 //
 // [[Rcpp::export]]
-List landmarks_lastfirst_cpp(const NumericMatrix& x, int num_sets = 0, int cardinality = 0, const int seed_index = 1, const bool cover = false) {
+List landmarks_lastfirst_cpp(const NumericMatrix& x, int num = 0, int cardinality = 0, const int seed_index = 1, const bool cover = false) {
     int num_pts = x.nrow();
 
     // additional parameter handling
-    if(num_sets > num_pts){
-        warning("Warning: parameter 'num_sets' was > max allowable value. Setting num_sets = number of data points.");
-        num_sets = num_pts;
+    if(num > num_pts){
+        warning("Warning: parameter 'num' was > max allowable value. Setting num = number of data points.");
+        num = num_pts;
     }
-    if(num_sets == 0 && cardinality == 0){num_sets = std::min(num_pts,24);}
+    if(num == 0 && cardinality == 0){num = std::min(num_pts,24);}
     if(cardinality == 0){cardinality = num_pts;} // default value to accomodate exit condition
 
     // error handling
     if(cardinality < 0 || cardinality > num_pts){stop("Parameter 'cardinality' must be >= 1 and <= number of data points.");}
-    if(num_sets < 0){stop("Parameter 'num_sets' must be >= 1.");}
+    if(num < 0){stop("Parameter 'num' must be >= 1.");}
     if(seed_index < 1 || seed_index > num_pts){stop("Parameter 'seed_index' must be >=1 and <= number of data points.");}
 
     map<int, vector<double>> landmarks; // landmark set L
@@ -88,7 +88,7 @@ List landmarks_lastfirst_cpp(const NumericMatrix& x, int num_sets = 0, int cardi
         }
 
         // exit if all points in X are covered and enough landmarks have been chosen
-        if( (min_k <= cardinality && landmarks.size() >= num_sets) || pts_left.size() <= 0 ){ break; }
+        if( (min_k <= cardinality && landmarks.size() >= num) || pts_left.size() <= 0 ){ break; }
         l_i = next_l; // otherwise continue with the next landmark
     }
 
@@ -114,21 +114,21 @@ List landmarks_lastfirst_cpp(const NumericMatrix& x, int num_sets = 0, int cardi
 }
 
 // original (more definitional, but slow) function to calculate lastfirst landmarks
-List landmarks_lastfirst_cpp_deprecated(const NumericMatrix& x, int num_sets = 0, int cardinality = 0, const int seed_index = 1, const bool cover = false) {
+List landmarks_lastfirst_cpp_deprecated(const NumericMatrix& x, int num = 0, int cardinality = 0, const int seed_index = 1, const bool cover = false) {
     int num_pts = x.nrow();
 
     // additional parameter handling
-    if(num_sets > num_pts){
-        warning("Warning: parameter 'num_sets' was > max allowable value. Setting num_sets = number of data points.");
-        num_sets = num_pts;
+    if(num > num_pts){
+        warning("Warning: parameter 'num' was > max allowable value. Setting num = number of data points.");
+        num = num_pts;
     }
-    if(num_sets == 0 && cardinality == 0){num_sets = std::min(num_pts,24);}
+    if(num == 0 && cardinality == 0){num = std::min(num_pts,24);}
     if(cardinality == 0){cardinality = 1;}
-    if(num_sets == 0){num_sets = num_pts;}
+    if(num == 0){num = num_pts;}
 
     // error handling
     if(cardinality < 1 || cardinality > num_pts){stop("Parameter 'cardinality' must be >= 1 and <= number of data points.");}
-    if(num_sets < 0){stop("Parameter 'num_sets' must be >= 1.");}
+    if(num < 0){stop("Parameter 'num' must be >= 1.");}
     if(seed_index < 1 || seed_index > num_pts){stop("Parameter 'seed_index' must be >=1 and <= number of data points.");}
 
     map<int, vector<double>> Y_all; // whole space Y
@@ -169,7 +169,7 @@ List landmarks_lastfirst_cpp_deprecated(const NumericMatrix& x, int num_sets = 0
         nhds.emplace(l_i.first, new_nhd);
 
         // exit if all points in X are covered and enough landmarks have been chosen
-        if(covered.size() >= num_pts || landmarks.size() >= num_sets){break;}
+        if(covered.size() >= num_pts || landmarks.size() >= num){break;}
 
         // compute lf(L), then choose li from lf(L) and add it to L
         map<int, vector<double>> lf = lastfirst(landmarks, Y_all);
