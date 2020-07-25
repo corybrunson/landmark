@@ -18,8 +18,10 @@ landmarks_maxmin(
   radius = NULL,
   frac = FALSE,
   seed_index = 1L,
+  engine = NULL,
   cover = FALSE,
-  engine = NULL
+  extend_num = extension(mult = 0, add = 0),
+  extend_radius = extension(mult = 0, add = 0)
 )
 }
 \arguments{
@@ -36,11 +38,11 @@ package is supported.}
 among indistinguishable points, either \code{"first"} (the default), \code{"last"},
 or \code{"random"}.}
 
-\item{num}{a positive integer; the desired number of landmark points, or
-of sets in a ball cover.}
+\item{num}{a positive integer; the desired number of landmark points, or of
+sets in a ball cover.}
 
-\item{radius}{a positive number; the desired radius of each
-landmark ball, or of each set in a ball cover.}
+\item{radius}{a positive number; the desired radius of each landmark ball, or
+of each set in a ball cover.}
 
 \item{frac}{logical; whether to treat \code{radius} as a fraction of the diameter
 of \code{x}.}
@@ -49,11 +51,14 @@ of \code{x}.}
 one of the character strings \code{"random"} (to select a seed uniformly at
 random) and \code{"minmax"} (to select a seed from the minmax set).}
 
+\item{engine}{character string specifying the implementation to use; one of
+\code{"original"}, \code{"C++"}, or \code{"R"}. When not specified, the R engine is used.}
+
 \item{cover}{logical; whether to return a data frame of landmark indices and
 cover sets (by member index) rather than only a vector of landmark indices.}
 
-\item{engine}{character string specifying the implementation to use; one of
-\code{"original"}, \code{"C++"}, or \code{"R"}. When not specified, the R engine is used.}
+\item{extend_num, extend_radius}{length-two numeric vectors used to extend
+landmark parameters for cover set construction. See \code{\link[=extension]{extension()}}.}
 }
 \description{
 Compute landmark sets based on fixed-radius balls.
@@ -65,8 +70,8 @@ that is relatively efficient, but it has a tendency to pick out extremal
 points.
 
 One, both, or neither of \code{num} and \code{radius} may be passed values. If
-neither is specified, then \code{num} is defaulted to \code{24L}. If the values
-yield balls that do not cover \code{x}, then their number is increased until the
+neither is specified, then \code{num} is defaulted to \code{24L}. If the values yield
+balls that do not cover \code{x}, then their number is increased until the
 radius necessary to cover \code{x} is at most \code{radius}. To generte a complete
 landmark set, use \code{radius = 0L}.
 }

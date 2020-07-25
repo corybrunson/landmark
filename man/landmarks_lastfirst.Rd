@@ -19,8 +19,10 @@ landmarks_lastfirst(
   cardinality = NULL,
   frac = FALSE,
   seed_index = 1L,
+  engine = NULL,
   cover = FALSE,
-  engine = NULL
+  extend_num = extension(mult = 0, add = 0),
+  extend_cardinality = extension(mult = 0, add = 0)
 )
 }
 \arguments{
@@ -54,11 +56,14 @@ cardinality of \code{x}.}
 one of the character strings \code{"random"} (to select a seed uniformly at
 random) and \code{"firstlast"} (to select a seed from the firstlast set).}
 
+\item{engine}{character string specifying the implementation to use; one of
+\code{"C++"} or \code{"R"}. When not specified, the R engine is used.}
+
 \item{cover}{logical; whether to return a data frame of landmark indices and
 cover sets (by member index) rather than only a vector of landmark indices.}
 
-\item{engine}{character string specifying the implementation to use; one of
-\code{"C++"} or \code{"R"}. When not specified, the R engine is used.}
+\item{extend_num, extend_cardinality}{length-two numeric vectors used to
+extend landmark parameters for cover set construction. See \code{\link[=extension]{extension()}}.}
 }
 \description{
 Compute landmark sets based on nearest neighborhoods.
