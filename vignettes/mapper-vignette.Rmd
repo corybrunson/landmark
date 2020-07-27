@@ -17,7 +17,8 @@ library(cowplot)
 library(RColorBrewer)
 library(ggrepel)
 library(tidyverse)
-library(landmark) # installed version of landmark package
+#library(landmark) # installed version of landmark package
+devtools::load_all()
 library(Mapper) # installed version of Mapper package
 knitr::opts_chunk$set(echo = TRUE, fig.width = 7)
 ```
@@ -68,24 +69,22 @@ f_X <- data.frame("f_x" = X$x_1, "y" = rep(0L, length(X$x_1)))
 gg_X <- ggplot(X, aes(x=x_1, y=x_2)) +
   geom_point(aes(col=x_1), size=3) +
   theme_minimal() +
-  theme(legend.position="none",
-        axis.line = element_line(color = "gray"),
-        axis.text = element_text(color="gray", size=8),
-        axis.title=element_text(size=8, color = "gray") )
+  theme(legend.position="none") +
+  coord_cartesian(xlim = c(0, 10))
 
 # plot filtered data f_X
 gg_fX <- ggplot(f_X, aes(x=f_x, y=y)) +
   geom_hline(yintercept=0, color="gray") +
   geom_point(aes(col=f_x), size=3) +
-  labs(x = "", y = "") +
+  labs(x = "", y = "", color = "f(x)") +
   theme_minimal() +
   theme(axis.text=element_blank(),
     panel.grid = element_blank(),
-    legend.position="bottom") +
+    legend.position="none") +
   coord_cartesian(ylim=c(0,0), xlim=c(0,10)) +
   scale_x_continuous()
 
-plot_grid(gg_X, gg_fX, ncol=1, rel_heights=c(4,1), labels=c("X", "f(X)"), scale = 0.9)
+plot_grid(gg_X, gg_fX, ncol=1, rel_heights=c(4,1), labels=c("X", "f(X)"), scale = 0.9, align = "v")
 ```
 
 
@@ -121,6 +120,51 @@ The `cover_set` column stores indices of points within each cover set:
 lmks_mm$cover_set
 ```
 
+```{r}
+# combine landmark and cover set data
+bind_rows(
+  mutate(lmks_mm, procedure = "maxmin"),
+  mutate(lmks_lf, procedure = "lastfirst")
+) %>%
+  # unnest row indices
+  tidyr::unnest(c(cover_set)) %>%
+  # rename data row and define cover set names
+  rename(xid = cover_set) %>%
+  group_by(procedure) %>%
+  mutate(cover_set = match(landmark, unique(landmark))) %>%
+  ungroup() %>%
+  # factorize procedure variable
+  mutate(procedure = factor(procedure, levels = unique(procedure))) %>%
+  # join coordinates
+  mutate(x1 = X$x_1[xid], x2 = X$x_2[xid]) %>%
+  # calculate cover set centroids
+  group_by(procedure, cover_set) %>%
+  mutate(m1 = mean(x1)) %>%
+  # sort by x-centroid
+  group_by(procedure) %>%
+  arrange(procedure, m1, x1) %>%
+  mutate(cover_set = match(cover_set, unique(cover_set))) %>%
+  # shift cover sets to minimize overlap
+  mutate(shift = ((cover_set + 1L) %% 2L) + 1L) %>%
+  # flag landmark points
+  ungroup() %>%
+  mutate(cover_set = as.factor(cover_set)) %>%
+  mutate(is_landmark = (landmark == xid)) %>%
+  # cluster pullbacks
+  group_by(procedure, cover_set) %>%
+  tidyr::nest() %>%
+  mutate(dist = purrr::map(data, ~ dist(as.matrix(select(.x, x1, x2))))) %>%
+  mutate(clust = purrr::map(dist, hclust, method = "single")) %>%
+  mutate(data = purrr::map2(data, clust,
+                            ~ mutate(.x, cluster = cutree(.y, h = 2)))) %>%
+  select(-dist, -clust) %>%
+  unnest(c(data)) %>%
+  # calculate cluster centroids
+  group_by(procedure, cover_set, cluster) %>%
+  mutate(c1 = mean(x1), c2 = mean(x2)) %>%
+  ungroup() %>%
+  print() -> lmks_data
+```
 
 ```{r, echo=FALSE, include=FALSE}
 # set up data structure
@@ -146,6 +190,9 @@ get_clusters <- function(lmk_row, X_ids){
   pts_cl %>% rename(pt_idx=id)
 }
 
+lmks_mm %>%
+  apply(1, get_clusters, X_ids)
+
 mm_cl <- apply(lmks_mm, 1, get_clusters, X_ids)
 mm_cl <- mm_cl %>% reduce(full_join) %>% mutate(procedure="maxmin")
 lf_cl <- apply(lmks_lf, 1, get_clusters, X_ids)
@@ -167,6 +214,21 @@ lf_data$shift <- rank(as.numeric(as.character(lf_data$pid)), ties.method = "min"
 ```
 
 The following plots visualize the two different covers of $f(X)$:
+
+```{r}
+ggplot(lmks_data, aes(x = x1)) +
+  facet_grid(. ~ procedure) +
+  geom_point(aes(y = 0, size = is_landmark), color = "black", alpha = .5) +
+  geom_line(aes(y = shift, color = cover_set)) +
+  geom_point(aes(y = shift, size = is_landmark, color = cover_set)) +
+  geom_text(data = filter(lmks_data, is_landmark),
+            aes(y = shift, color = cover_set, label = landmark), nudge_y = .5) +
+  scale_size_manual(values = c(1, 3)) +
+  scale_y_continuous(limits = c(0, 10)) +
+  labs(x = "x_1", y = "x_2", color = "cover set") +
+  guides(size = FALSE, color = FALSE) +
+  theme_minimal()
+```
 
 ```{r cover plot, echo=FALSE, fig.height=4}
 pick <- function(condition){function(d) d %>% filter_(condition)}
@@ -208,6 +270,23 @@ Notice that the area of $f(X)$ with greater point density (near 7) is handled di
 
 Compute the _pullback_ of the cover by identifying the points in $x \in X$ mapping into each cover set under $f$. The preimages of the landmark points are highlighted for reference in the figure below, but note that the positions of landmark preimages in $X$ have no significance on clustering or in the remainder of the Mapper algorithm at all-- their only purpose is to generate cover sets in $f(X)$.
 
+```{r}
+ggplot(lmks_data, aes(x = x1, alpha = is_landmark)) +
+  facet_grid(. ~ procedure) +
+  geom_point(y = 0, color = "black", alpha = .5) +
+  geom_point(aes(y = x2, color = cover_set, shape = cover_set,
+                 size = is_landmark)) +
+  geom_text(data = filter(lmks_data, is_landmark),
+            aes(y = x2, color = cover_set, label = landmark), nudge_y = .5) +
+  scale_size_manual(values = c(3, 4)) +
+  scale_shape_manual(values = c(15L:18L, 8L)) +
+  scale_alpha_manual(values = c(.5, .9)) +
+  scale_y_continuous(limits = c(0, 10)) +
+  labs(x = "x_1", y = "x_2", color = "cover set") +
+  guides(size = FALSE, shape = FALSE, alpha = FALSE, color = FALSE) +
+  theme_minimal()
+```
+
 ```{r pullback plot, echo=FALSE, fig.height=4}
 mm <- ggplot(mm_data, aes(x = x_1, alpha = is_landmark)) +
   facet_wrap(~ procedure) +
@@ -232,6 +311,21 @@ gridExtra::grid.arrange(mm, lf, ncol=2)
 
 ### Cluster
 Next, perform single linkage clustering within each pullback set.
+
+```{r}
+ggplot(lmks_data, aes(x = x1)) +
+  facet_grid(. ~ procedure) +
+  geom_point(y = 0, color = "black", alpha = .5) +
+  geom_point(aes(y = x2, color = cover_set, shape = cover_set),
+             size = 3, alpha = .25) +
+  geom_text_repel(aes(y = x2, color = cover_set, label = cluster),
+                  box.padding = 0, point.padding = 0, min.segment.length = 0) +
+  scale_shape_manual(values = c(15L:18L, 8L)) +
+  scale_y_continuous(limits = c(0, 10)) +
+  labs(x = "x_1", y = "x_2", color = "cover set") +
+  guides(shape = FALSE, color = FALSE) +
+  theme_minimal()
+```
 
 ```{r cluster plot, echo=FALSE, fig.height=4}
 mm <- ggplot(mm_data, aes(x = x_1)) +
@@ -259,6 +353,22 @@ gridExtra::grid.arrange(mm, lf, ncol=2)
 Construct a _simplicial complex_ from clusters and their overlaps-- Each cluster genertes by the previous step becomes a vertex (0-simplex). Edges (1-simplices) are inserted between clusters with non-empty overlap.
 
 First, generate vertices from clusters:
+
+```{r}
+lmks_data %>%
+  select(procedure, cover_set, landmark, c1, c2, cluster) %>%
+  distinct() %>%
+  ggplot(aes(x = c1)) +
+  facet_grid(. ~ procedure) +
+  geom_point(aes(y = c2, color = cover_set, shape = cover_set),
+             size = 8, alpha = .25) +
+  geom_text(aes(y = c2, color = cover_set, label = cluster), size = 3) +
+  scale_shape_manual(values = c(15L:18L, 8L)) +
+  scale_y_continuous(limits = c(0, 10)) +
+  labs(x = "x_1", y = "x_2", color = "cover set") +
+  guides(shape = FALSE, color = FALSE) +
+  theme_minimal()
+```
 
 ```{r nerve plot, echo=FALSE, fig.height=4}
 mm_clusters <- mm_data[ !duplicated( mm_data[,c("pid", "cluster")] ), ]
@@ -288,6 +398,51 @@ gridExtra::grid.arrange(mm, lf, ncol=2)
 
 
 Then add edges between overlapping clusters:
+
+```{r}
+lmks_data %>%
+  select(procedure, cover_set, landmark, c1, c2, cluster) %>%
+  distinct() %>%
+  print() -> lmks_vertices
+# edges from pairwise overlaps
+lmks_data %>%
+  tidyr::unite(col = "cc", cover_set, cluster) %>%
+  select(procedure, xid, cc) %>%
+  { inner_join(., ., by = "xid", suffix = c("_1", "_2")) } %>%
+  filter(procedure_1 == procedure_2 & cc_1 < cc_2) %>%
+  select(xid, procedure = procedure_1, cc_1, cc_2) %>%
+  tidyr::separate(cc_1, into = c("cover_set_1", "cluster_1"), sep = "_") %>%
+  tidyr::separate(cc_2, into = c("cover_set_2", "cluster_2"), sep = "_") %>%
+  mutate_at(vars(matches("\\_[12]$")), as.integer) %>%
+  mutate_at(vars(starts_with("cover_set_")), as.factor) %>%
+  left_join(lmks_vertices,
+            by = c("procedure",
+                   cover_set_1 = "cover_set", cluster_1 = "cluster")) %>%
+  rename_at(vars(matches("^c[12]$")), ~ paste(., "1", sep = "_")) %>%
+  select(-landmark) %>%
+  left_join(lmks_vertices,
+            by = c("procedure",
+                   cover_set_2 = "cover_set", cluster_2 = "cluster")) %>%
+  rename_at(vars(matches("^c[12]$")), ~ paste(., "2", sep = "_")) %>%
+  select(-landmark) %>%
+  print() -> lmks_edges
+lmks_vertices %>%
+  ggplot(aes(x = c1)) +
+  facet_grid(. ~ procedure) +
+  geom_segment(data = lmks_edges,
+               aes(x = c1_1, y = c2_1, xend = c1_2, yend = c2_2),
+               size = 1, alpha = .75) +
+  geom_point(aes(y = c2, color = cover_set, shape = cover_set),
+             size = 5, alpha = .5) +
+  #geom_text(aes(y = c2, color = cover_set, label = cluster), size = 2) +
+  geom_text_repel(aes(y = c2, color = cover_set, label = cluster), size = 3,
+                  box.padding = 0, point.padding = 0, min.segment.length = 0) +
+  scale_shape_manual(values = c(15L:18L, 8L)) +
+  scale_y_continuous(limits = c(0, 10)) +
+  labs(x = "x_1", y = "x_2", color = "cover set") +
+  guides(shape = FALSE, color = FALSE) +
+  theme_minimal()
+```
 
 ```{r, echo=FALSE}
 
