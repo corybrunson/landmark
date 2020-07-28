@@ -105,8 +105,8 @@ Choose the first $5$ landmarks and associated cover sets using both procedures. 
 The "extend" parameters (`extend_radius` / `extend_cardinality`) provide a way to force increased overlap of cover sets without affecting the chosen landmarks, which serves to increase the number of edges in the resulting nerve without changing the vertices. The landmark set is still selected based on the passed values of `num`, `radius`, and/or `cardinality` parameters; but after all landmark points have been chosen, the "size" of each cover set is increased by the extension, i.e. given extended value `extended_size = (1+mult) * size + add`. Note that the meaning of "size" differs between the two procedures-- it is interpreted as distance-based radius for maxmin, but cardinality (neighborhood size) for lastfirst.
 
 ```{r}
-lmks_mm <- landmarks_maxmin(matrix(f_X$f_x), num = 5L, cover=TRUE, extend_radius=extension(mult=0.25))
-lmks_lf <- landmarks_lastfirst(matrix(f_X$f_x), num = 5L, cover=TRUE, extend_cardinality=extension(mult=0.25))
+lmks_mm <- landmarks_maxmin(matrix(f_X$f_x), num = 5L, cover=TRUE, extend_radius=extension(mult=1))
+lmks_lf <- landmarks_lastfirst(matrix(f_X$f_x), num = 5L, cover=TRUE, extend_cardinality=extension(mult=1))
 ```
 
 Both landmark functions return data frames with two columns.
@@ -158,8 +158,13 @@ bind_rows(
   mutate(dist = purrr::map(data, ~ dist(as.matrix(select(.x, x1, x2))))) %>%
   mutate(clust = purrr::map(dist, hclust, method = "single")) %>%
   mutate(data = purrr::map2(data, clust,
-                            ~ mutate(.x, cluster = cutree(.y, h = 2)))) %>%
+                            ~ mutate(.x, cluster = cutree(.y, h = 2.2)))) %>%
   select(-dist, -clust) %>%
+  #mutate(h = purrr::map_dbl(clust, Mapper::cutoff_first_threshold,
+  #                          threshold = 1)) %>%
+  #mutate(data = purrr::pmap(list(data, clust, h),
+  #                          ~ mutate(..1, cluster = cutree(..2, h = ..3)))) %>%
+  #select(-dist, -clust, -h) %>%
   unnest(c(data)) %>%
   # calculate cluster centroids
   group_by(procedure, cover_set, cluster) %>%
