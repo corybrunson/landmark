@@ -102,9 +102,11 @@ In this example, we will cover $f(X)$ by 5 sets in two different ways:
 
 Choose the first $5$ landmarks and associated cover sets using both procedures. By default, both methods will use the first point in $f(X)$ as the initial landmark point to seed the algorithm. The `cover=TRUE` parameter specifies that cover sets should be returned as well as the landmark set.
 
+The "extend" parameters (`extend_radius` / `extend_cardinality`) provide a way to force increased overlap of cover sets without affecting the chosen landmarks, which serves to increase the number of edges in the resulting nerve without changing the vertices. The landmark set is still selected based on the passed values of `num`, `radius`, and/or `cardinality` parameters; but after all landmark points have been chosen, the "size" of each cover set is increased by the extension, i.e. given extended value `extended_size = (1+mult) * size + add`. Note that the meaning of "size" differs between the two procedures-- it is interpreted as distance-based radius for maxmin, but cardinality (neighborhood size) for lastfirst.
+
 ```{r}
-lmks_mm <- landmarks_maxmin(matrix(f_X$f_x), num_sets = 5L, cover=TRUE)
-lmks_lf <- landmarks_lastfirst(matrix(f_X$f_x), num_sets = 5L, cover=TRUE)
+lmks_mm <- landmarks_maxmin(matrix(f_X$f_x), num = 5L, cover=TRUE, extend_radius=extension(mult=0.25))
+lmks_lf <- landmarks_lastfirst(matrix(f_X$f_x), num = 5L, cover=TRUE, extend_cardinality=extension(mult=0.25))
 ```
 
 Both landmark functions return data frames with two columns.
