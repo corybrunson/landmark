@@ -25,29 +25,29 @@ knitr::opts_chunk$set(echo = TRUE, fig.width = 7)
 ## Benchmarking R versus C++ implementations
 
 These two functions automate the benchmarking process for different engines of the same procedure.
-`maxmin_benchmark()` requires a list `xs` of data sets (intended to be of a common type and of increasing size). It accepts a distance `dist_method` as passed to any of the functions, either one or `length(xs)` assignments to `num_sets` (as a vector), and an assignment to `radius`.
-`lastfirst_benchmark()` also requires `xs` and accepts the same type of argument to `num_sets` and an integer assignment to `cardinality`. (Only the R implementation calls the proxy package to handle non-Euclidean distances, so benchmarking is only performed for the Euclidean case.)
+`maxmin_benchmark()` requires a list `xs` of data sets (intended to be of a common type and of increasing size). It accepts a distance `dist_method` as passed to any of the functions, either one or `length(xs)` assignments to `num` (as a vector), and an assignment to `radius`.
+`lastfirst_benchmark()` also requires `xs` and accepts the same type of argument to `num` and an integer assignment to `cardinality`. (Only the R implementation calls the proxy package to handle non-Euclidean distances, so benchmarking is only performed for the Euclidean case.)
 
 ```{r maxmin benchmark function}
 # print both numerical results and plots
 maxmin_benchmark <- function(
-  datasets, dist_method = "euclidean", num_sets = NULL, radius = NULL
+  datasets, dist_method = "euclidean", num = NULL, radius = NULL
 ) {
-  if (! is.null(num_sets) && length(num_sets) == 1L) {
-    num_sets <- rep(num_sets, 3L)
+  if (! is.null(num) && length(num) == 1L) {
+    num <- rep(num, 3L)
   }
   marks <- NULL
   for (i in seq_along(datasets)) {
     x <- xs[[i]]
     mark <- mark(
       original = landmarks_maxmin(
-        x, num_sets = num_sets[i], radius = radius, engine = "original"
+        x, num = num[i], radius = radius, engine = "original"
       ),
       `C++` = landmarks_maxmin(
-        x, num_sets = num_sets[i], radius = radius, engine = "C++"
+        x, num = num[i], radius = radius, engine = "C++"
       ),
       R = landmarks_maxmin(
-        x, num_sets = num_sets[i], radius = radius, engine = "R"
+        x, num = num[i], radius = radius, engine = "R"
       ),
       check = FALSE
     )
@@ -80,20 +80,20 @@ maxmin_benchmark <- function(
 ```{r lastfirst benchmark function}
 # print both numerical results and plots
 lastfirst_benchmark <- function(
-  datasets, num_sets = NULL, cardinality = NULL
+  datasets, num = NULL, cardinality = NULL
 ) {
-  if (! is.null(num_sets) && length(num_sets) == 1L) {
-    num_sets <- rep(num_sets, 3L)
+  if (! is.null(num) && length(num) == 1L) {
+    num <- rep(num, 3L)
   }
   marks <- NULL
   for (i in seq_along(datasets)) {
     x <- xs[[i]]
     mark <- mark(
       `C++` = landmarks_lastfirst(
-        x, num_sets = num_sets[i], cardinality = cardinality, engine = "C++"
+        x, num = num[i], cardinality = cardinality, engine = "C++"
       ),
       R = landmarks_lastfirst(
-        x, num_sets = num_sets[i], cardinality = cardinality, engine = "R"
+        x, num = num[i], cardinality = cardinality, engine = "R"
       )
     )
     mark <- mutate(
@@ -133,10 +133,10 @@ maxmin_benchmark(xs, dist_method = "euclidean")
 maxmin_benchmark(xs, dist_method = "cosine")
 # euclidean, twice binary log
 maxmin_benchmark(xs, dist_method = "euclidean",
-                 num_sets = 2 * log(vapply(xs, nrow, 1L), 2))
+                 num = 2 * log(vapply(xs, nrow, 1L), 2))
 # cosine, twice binary log
 maxmin_benchmark(xs, dist_method = "cosine",
-                 num_sets = 2 * log(vapply(xs, nrow, 1L), 2))
+                 num = 2 * log(vapply(xs, nrow, 1L), 2))
 ```
 
 The following benchmark compares the several maxmin procedures on artificial integer samples of varying sizes and multiplicities.
@@ -155,10 +155,10 @@ maxmin_benchmark(xs, dist_method = "euclidean")
 maxmin_benchmark(xs, dist_method = "cosine")
 # euclidean, twice binary log
 maxmin_benchmark(xs, dist_method = "euclidean",
-                 num_sets = 2 * log(vapply(xs, nrow, 1L), 2))
+                 num = 2 * log(vapply(xs, nrow, 1L), 2))
 # cosine, twice binary log
 maxmin_benchmark(xs, dist_method = "cosine",
-                 num_sets = 2 * log(vapply(xs, nrow, 1L), 2))
+                 num = 2 * log(vapply(xs, nrow, 1L), 2))
 ```
 
 The following benchmark compares both lastfirst procedures on artificial integer samples of varying sizes and multiplicities.
@@ -174,7 +174,7 @@ xs <- lapply(c(12L, 36L, 60L), replacement_sample)
 # euclidean, defaults
 lastfirst_benchmark(xs)
 # euclidean, twice binary log
-lastfirst_benchmark(xs, num_sets = 2 * log(vapply(xs, nrow, 1L), 2))
+lastfirst_benchmark(xs, num = 2 * log(vapply(xs, nrow, 1L), 2))
 ```
 
 ## Benchmarking lastfirst against maxmin
@@ -184,17 +184,17 @@ This function automates a benchmarking comparison of the similarly-implemented R
 ```{r procedure benchmark function}
 # print both numerical results and plots
 procedure_benchmark <- function(
-  datasets, num_sets = NULL
+  datasets, num = NULL
 ) {
-  if (! is.null(num_sets) && length(num_sets) == 1L) {
-    num_sets <- rep(num_sets, 3L)
+  if (! is.null(num) && length(num) == 1L) {
+    num <- rep(num, 3L)
   }
   marks <- NULL
   for (i in seq_along(datasets)) {
     x <- xs[[i]]
     mark <- mark(
-      maxmin = landmarks_maxmin(x, num_sets = num_sets[i], engine = "R"),
-      lastfirst = landmarks_lastfirst(x, num_sets = num_sets[i], engine = "R"),
+      maxmin = landmarks_maxmin(x, num = num[i], engine = "R"),
+      lastfirst = landmarks_lastfirst(x, num = num[i], engine = "R"),
       check = FALSE
     )
     mark <- mutate(
@@ -234,5 +234,5 @@ xs <- lapply(c(12L, 36L, 60L, 180L), replacement_sample)
 # euclidean, defaults
 procedure_benchmark(xs)
 # euclidean, twice binary log
-procedure_benchmark(xs, num_sets = 2 * log(vapply(xs, nrow, 1L), 2))
+procedure_benchmark(xs, num = 2 * log(vapply(xs, nrow, 1L), 2))
 ```

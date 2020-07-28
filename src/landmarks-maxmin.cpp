@@ -18,34 +18,33 @@ inline double sq_dist(const NumericVector& x, const NumericVector& y){
 }
 
 // Description:
-//   Maxmin procedure to choose 'num_sets' landmarks for balls of fixed radius
+//   Maxmin procedure to choose 'num' landmarks for balls of fixed radius
 //   (supports euclidean distance only)
 //
 // Parameters:
 //   - x : a data matrix
-//   - num_sets : desired number of landmark points, or number of sets, in a
+//   - num : desired number of landmark points, or number of sets, in a
 //     ball cover (should be a positive integer)
 //   - radius : desired radius of a cover set (should be a positive real number)
 //   - seed_index : index of the first landmark used to seed the algorithm
 //   - cover : boolean specifying whether to return cover sets in addition to
 //     the landmark points
 //
-//' @export
 // [[Rcpp::export]]
-List landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, float radius = -1, const int seed_index = 1, const bool cover = false) {
+List landmarks_maxmin_cpp(const NumericMatrix& x, int num = 0, float radius = -1, const int seed_index = 1, const bool cover = false) {
     int num_pts = x.nrow();
 
     // error handling
     if(radius < 0 && radius != -1){stop("Parameter 'radius' must be a positive number.");}
-    if(num_sets < 0){stop("Parameter 'num_sets' must be >= 1.");}
+    if(num < 0){stop("Parameter 'num' must be >= 1.");}
     if(seed_index < 1 || seed_index > num_pts){stop("Parameter 'seed_index' must be >=1 and <= number of data points.");}
 
     // additional parameter handling
-    if(num_sets > num_pts){
-        warning("Warning: parameter 'num_sets' was > max allowable value. Setting num_sets = number of data points.");
-        num_sets = num_pts;
+    if(num > num_pts){
+        warning("Warning: parameter 'num' was > max allowable value. Setting num = number of data points.");
+        num = num_pts;
     }
-    if(num_sets == 0 && radius == -1){num_sets = std::min(num_pts,24);} // no parameters passed -> default behavior
+    if(num == 0 && radius == -1){num = std::min(num_pts,24);} // no parameters passed -> default behavior
     if(radius == -1){radius = FLT_MAX;} // Rcpp does now allow use of c++ constants (e.g. FLT_MAX) in parameters
 
     // store indices and values of X\L
@@ -95,7 +94,7 @@ List landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, float radius
             }
         }
         // done if farthest point is within radius and we have enough landmarks
-        if(d_max <= radius && landmarks.size() >= num_sets){
+        if(d_max <= radius && landmarks.size() >= num){
             if(radius == FLT_MAX){ radius = d_max; }
             break;
         }
@@ -140,7 +139,6 @@ List landmarks_maxmin_cpp(const NumericMatrix& x, int num_sets = 0, float radius
 // Original function to use the euclidean maxmin procedure to choose n landmarks
 // (written by Matt Piekenbrock)
 //
-//' @export
 // [[Rcpp::export]]
 IntegerVector landmark_maxmin(const NumericMatrix& x, const int n, const int seed_index = 1) {
   const size_t n_pts = x.nrow();

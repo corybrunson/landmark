@@ -7,13 +7,15 @@
 #'   points dispersed according to the orders in which they are reached from
 #'   each other, rather than to their distances from each other. (Say more.)
 #'
-#'   One, both, or neither of `num_sets` and `cardinality` may be passed values.
-#'   If neither is specified, then `num_sets` is defaulted to the minimum of
+#'   One, both, or neither of `num` and `cardinality` may be passed values.
+#'   If neither is specified, then `num` is defaulted to the minimum of
 #'   `24L` and the number of distinct rows of `x`. If the values yield
-#'   neighborhoods that do not cover `x`, then, effectively, `num_sets` is
+#'   neighborhoods that do not cover `x`, then, effectively, `num` is
 #'   increased until the cardinality necessary to cover `x` is at most
 #'   `cardinality`. To generte a complete landmark set, use `cardinality = 1L`.
 #' @param x a data matrix.
+#' @param y a data matrix of the same dimension as `x`; if `NULL`, taken to be
+#'   `x`.
 #' @param dist_method a character string specifying the distance metric to use;
 #'   passed to `proxy::dist(method)`. Any distance measure in the \code{proxy}
 #'   package is supported.
@@ -23,7 +25,7 @@
 #' @param pick_method a character string specifying the method for selecting one
 #'   among indistinguishable points, either `"first"` (the default), `"last"`,
 #'   or `"random"`.
-#' @param num_sets a positive integer; the desired number of landmark points, or
+#' @param num a positive integer; the desired number of landmark points, or
 #'   of sets in a neighborhood cover.
 #' @param cardinality a positive integer; the desired cardinality of each
 #'   landmark neighborhood, or of each set in a landmark cover.
@@ -32,32 +34,37 @@
 #' @param seed_index an integer (the first landmark to seed the algorithm) or
 #'   one of the character strings `"random"` (to select a seed uniformly at
 #'   random) and `"firstlast"` (to select a seed from the firstlast set).
-#' @param cover logical; whether to return a data frame of landmark indices and
-#'   cover sets (by member index) rather than only a vector of landmark indices.
 #' @param engine character string specifying the implementation to use; one of
 #'   `"C++"` or `"R"`. When not specified, the R engine is used.
+#' @param cover logical; whether to return a data frame of landmark indices and
+#'   cover sets (by member index) rather than only a vector of landmark indices.
+#' @param extend_num,extend_cardinality length-two numeric vectors used to
+#'   extend landmark parameters for cover set construction. See [extension()].
 #' @example inst/examples/ex-landmarks-lastfirst.r
 NULL
 
 #' @rdname landmarks_lastfirst
 #' @export
 firstlast <- function(
-  x,
+  x, y = NULL,
   dist_method = "euclidean", ties_method = "min"
 ) {
+
+  # use distances from `x` if `y` is not specified
+  if (is.null(y)) y <- x
+
   # update if/when C++ implementation is available
-  firstlast_R(x = x, dist_method = dist_method, ties_method = ties_method)
+  firstlast_R(x = x, y = y,
+              dist_method = dist_method, ties_method = ties_method)
 }
 
-#' @rdname landmarks_lastfirst
-#' @export
 firstlast_R <- function(
-  x,
+  x, y,
   dist_method = "euclidean", ties_method = "min"
 ) {
 
-  # initialize colex-minimum out-rank-distance sequence
-  seq_min <- rep(nrow(x), nrow(x))
+  # initialize colex-minimum rank-out-distance sequence
+  seq_min <- rep(nrow(y), nrow(y))
   # initialize firstlast set
   fl_idx <- integer(0)
 
@@ -65,9 +72,11 @@ firstlast_R <- function(
   for (idx in seq(nrow(x))) {
 
     # out-rank-distance sequence
-    seq_idx <- sort(rank(proxy::dist(x[idx, , drop = FALSE], x,
-                                     method = dist_method),
-                         ties.method = ties_method))
+    seq_idx <- sort(rank(proxy::dist(
+      x[idx, , drop = FALSE],
+      y,
+      method = dist_method
+    ), ties.method = ties_method))
     # latest rank at which it disagrees with the reigning minimum sequence
     diff_last <- suppressWarnings(max(which(seq_idx != seq_min)))
 
@@ -88,12 +97,77 @@ firstlast_R <- function(
 
 #' @rdname landmarks_lastfirst
 #' @export
+lastfirst <- function(
+  x, y = NULL,
+  dist_method = "euclidean", ties_method = "min"
+) {
+
+  # use distances from `x` if `y` is not specified
+  if (is.null(y)) {
+    y <- x
+    self <- TRUE
+  } else {
+    self <- FALSE
+  }
+
+  # update if/when C++ implementation is available
+  lastfirst_R(x = x, y = y, self = self,
+              dist_method = dist_method, ties_method = ties_method)
+}
+
+lastfirst_R <- function(
+  x, y, self,
+  dist_method = "euclidean", ties_method = "min"
+) {
+
+  # initialize revlex-maximum rank-in-distance sequence
+  seq_max <- rep(nrow(y), nrow(y))
+  # initialize lastfirst set
+  lf_idx <- integer(0)
+
+  # distance matrix
+  dist_mat <- proxy::dist(
+    x,
+    y,
+    method = dist_method
+  )
+  if (self) {
+    # exclude diagonal
+    dist_mat <- t(matrix(
+      dist_mat[seq(nrow(x) * nrow(y)) %% (nrow(y) + 1L) != 1L],
+      nrow = nrow(y) - 1L
+    ))
+  }
+  # all in-rank-distance sequences
+  rank_mat <- t(apply(
+    t(apply(dist_mat, 1L, rank, ties.method = ties_method)),
+    1L, sort
+  ))
+  # obtain the lastfirst subset
+  lf_idx <- seq(nrow(rank_mat))
+  for (j in seq(ncol(rank_mat))) {
+    # points with maximum revlex rank-in-distance counts
+    # = points with minimum lex rank-in-distance counts
+    # = points with maximum lex rank-in-distance sequence
+    lf_idx <- lf_idx[rank_mat[lf_idx, j] == max(rank_mat[lf_idx, j])]
+    if (length(lf_idx) == 1L) break
+  }
+
+  # return firstlast subset
+  lf_idx
+}
+
+#' @rdname landmarks_lastfirst
+#' @export
 landmarks_lastfirst <- function(
   x,
   dist_method = "euclidean", ties_method = "min", pick_method = "first",
-  num_sets = NULL, cardinality = NULL, frac = FALSE,
-  seed_index = 1L, cover = FALSE,
-  engine = NULL
+  num = NULL, cardinality = NULL, frac = FALSE,
+  seed_index = 1L,
+  engine = NULL,
+  cover = FALSE,
+  extend_num = extension(mult = 0, add = 0),
+  extend_cardinality = extension(mult = 0, add = 0)
 ) {
   # validate inputs
   stopifnot(is.matrix(x))
@@ -107,18 +181,18 @@ landmarks_lastfirst <- function(
             "using R engine instead.")
 
   # if neither parameter is specified, limit the set to 24 landmarks
-  if (is.null(num_sets) && is.null(cardinality)) {
-    num_sets <- min(nrow(unique(x)), 24L)
+  if (is.null(num) && is.null(cardinality)) {
+    num <- min(nrow(unique(x)), 24L)
   }
   # apply `frac` to `cardinality`
   if (frac) {
     cardinality <- as.integer(max(1, cardinality * nrow(x)))
   }
   # validate parameters
-  if (! is.null(num_sets)) {
-    num_sets <- as.integer(num_sets)
-    if (is.na(num_sets) || num_sets < 1L || num_sets > nrow(x))
-      stop("`num_sets` must be a positive integer and at most `nrow(x)`.")
+  if (! is.null(num)) {
+    num <- as.integer(num)
+    if (is.na(num) || num < 1L || num > nrow(x))
+      stop("`num` must be a positive integer and at most `nrow(x)`.")
   }
   if (! is.null(cardinality)) {
     cardinality <- as.integer(cardinality)
@@ -159,14 +233,14 @@ landmarks_lastfirst <- function(
       )
     }
   }
-  stopifnot(seed_index >= 1L && seed_index <= nrow(x))
+  stopifnot(seed_index >= 1L, seed_index <= nrow(x))
 
   # dispatch to implementations
   res <- switch (
     engine,
     `C++` = landmarks_lastfirst_cpp(
       x = x,
-      num_sets = if (is.null(num_sets)) 0L else num_sets,
+      num = if (is.null(num)) 0L else num,
       cardinality = if (is.null(cardinality)) 0L else cardinality,
       seed_index = seed_index, cover = cover
     ),
@@ -174,8 +248,11 @@ landmarks_lastfirst <- function(
       x = x,
       dist_method = dist_method,
       ties_method = ties_method,
-      num_sets = num_sets, cardinality = cardinality,
-      seed_index = seed_index, cover = cover
+      num = num, cardinality = cardinality,
+      seed_index = seed_index, cover = cover,
+      mult_num = extend_num[[1L]], add_num = extend_num[[2L]],
+      mult_cardinality = extend_cardinality[[1L]],
+      add_cardinality = extend_cardinality[[2L]]
     )
   )
 
@@ -197,14 +274,15 @@ landmarks_lastfirst <- function(
   }
 
   # print warnings if a parameter was adjusted
-  if (! is.null(num_sets)) {
-    if (NROW(res) > num_sets) {
+  ext_num <- num * (1 + extend_num[[1L]]) + extend_num[[2L]]
+  if (! is.null(num)) {
+    if (NROW(res) > ext_num) {
       warning("Required ", NROW(res),
-              " (> num_sets = ", num_sets, ") ",
+              " (> num = ", ext_num, ") ",
               "sets of cardinality ", cardinality, ".")
-    } else if (NROW(res) < num_sets) {
+    } else if (NROW(res) < ext_num) {
       warning("Only ", NROW(res),
-              " (< num_sets = ", num_sets, ") ",
+              " (< num = ", ext_num, ") ",
               "distinct landmark points were found.")
     }
   }
@@ -213,13 +291,12 @@ landmarks_lastfirst <- function(
   res
 }
 
-#' @rdname landmarks_lastfirst
-#' @export
 landmarks_lastfirst_R <- function(
   x,
   dist_method = "euclidean", ties_method = "min",
-  num_sets = NULL, cardinality = NULL,
-  seed_index = 1L, cover = FALSE
+  num = NULL, cardinality = NULL,
+  seed_index = 1L, cover = FALSE,
+  mult_num = 0, add_num = 0, mult_cardinality = 0, add_cardinality = 0
 ) {
 
   # initialize lastfirst, free, and landmark index sets
@@ -232,7 +309,9 @@ landmarks_lastfirst_R <- function(
   free_idx[perm_idx[duplicated(x[perm_idx, , drop = FALSE])]] <- 0L
   # initialize rank matrix and membership list
   lmk_rank <- matrix(NA, nrow = nrow(x), ncol = 0)
-  min_card <- nrow(x)
+  # initialize minimum cardinality and associated number of sets to cover `x`
+  cover_card <- nrow(x)
+  cover_num <- 0L
   if (cover) cover_idx <- list()
 
   # recursively construct landmark set
@@ -252,32 +331,43 @@ landmarks_lastfirst_R <- function(
       # each row contains the in-ranks from previous landmark points
       lmk_rank,
       # in-ranks of all points from newest landmark point
-      rank(proxy::dist(x[lmk_idx[[i]], , drop = FALSE], x,
-                       method = dist_method),
-           ties.method = ties_method)
+      rank(proxy::dist(
+        x[lmk_idx[[i]], , drop = FALSE],
+        x,
+        method = dist_method), ties.method = ties_method)
     )
 
-    # refresh the minimum cardinality necessary to cover `x`
-    min_card <- max(pmin(lmk_rank[c(free_idx, lmk_idx), 1L],
+    # minimum in-rank from landmarks to `x`
+    min_rank <- max(pmin(lmk_rank[c(free_idx, lmk_idx), 1L],
                          lmk_rank[c(free_idx, lmk_idx), ncol(lmk_rank)]))
+    # update the minimum cardinality necessary to cover `x`
+    if (is.null(cardinality) && ! is.null(num) && i <= num)
+      cover_card <- min_rank
     # update membership list
     if (cover) {
       cover_idx <- if (is.null(cardinality)) {
         # -+- will need to parse later -+-
-        wh_idx <- which(lmk_rank[, ncol(lmk_rank)] <= min_card)
+        wh_idx <- which(lmk_rank[, ncol(lmk_rank)] <=
+                          cover_card * (1 + mult_cardinality) + add_cardinality)
         c(cover_idx,
           list(cbind(idx = wh_idx, rank = lmk_rank[wh_idx, ncol(lmk_rank)])))
       } else {
         # -+- will not need to parse later -+-
-        c(cover_idx, list(which(lmk_rank[, ncol(lmk_rank)] <= cardinality)))
+        c(cover_idx, list(which(lmk_rank[, ncol(lmk_rank)] <=
+                                  cardinality * (1 + mult_cardinality) +
+                                  add_cardinality)))
       }
     }
 
     # exhaustion breaks
     if (all(free_idx == 0L)) break
+    # update the minimum number of sets necessary to cover `x`
+    if (is.null(num) && ! is.null(cardinality) && min_rank > cardinality)
+      cover_num <- i + 1L
     # parameter breaks
-    if ((is.null(num_sets) || i >= num_sets) &&
-        (is.null(cardinality) || min_card <= cardinality)) break
+    if ((is.null(num) || i >= num * (1L + mult_num) + add_num) &&
+        (cover_num == 0L || i >= cover_num * (1L + mult_num) + add_num) &&
+        (is.null(cardinality) || min_rank <= cardinality)) break
 
     # sort each available point's in-ranks to the landmark points
     lmk_rank[] <- t(apply(lmk_rank, 1L, sort))
@@ -300,7 +390,9 @@ landmarks_lastfirst_R <- function(
     if (is.null(cardinality)) {
       # parse extraneous members
       cover_idx <- lapply(cover_idx, function(mat) {
-        unname(mat[mat[, "rank"] <= min_card, "idx"])
+        unname(mat[mat[, "rank"] <=
+                     cover_card * (1 + mult_cardinality) +
+                     add_cardinality, "idx"])
       })
     }
     # return list of landmark indices and cover membership vectors
