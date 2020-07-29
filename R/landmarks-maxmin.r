@@ -428,7 +428,7 @@ landmarks_maxmin_R <- function(
     lmk_dist <- pmin(lmk_dist[, 1L], lmk_dist[, 2L])
     # obtain the maxmin subset
     mm_idx <- free_idx[free_idx != 0L]
-    mm_idx <- mm_idx[lmk_dist[mm_idx] == max(lmk_dist)]
+    mm_idx <- mm_idx[lmk_dist[mm_idx] == max(lmk_dist[mm_idx])]
 
   }
 
