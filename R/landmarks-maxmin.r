@@ -167,9 +167,11 @@ landmarks_maxmin <- function(
   pick_method <- match.arg(pick_method, c("first", "last", "random"))
   if (is.null(engine)) engine <- "R"
   engine <- match.arg(engine, c("original", "C++", "R"))
-  if (engine == "C++" && dist_method != "euclidean")
+  if (engine == "C++" && dist_method != "euclidean") {
     warning("C++ engine is available only for Euclidean distances; ",
             "using R engine instead.")
+    engine <- "R"
+  }
 
   # if neither parameter is specified, limit the set to 24 landmarks
   if (is.null(num) && is.null(radius)) {
@@ -363,7 +365,7 @@ landmarks_maxmin_R <- function(
   free_idx <- seq(nrow(x))
   # strike seed and (other) duplicates index from free indices
   perm_idx <- c(mm_idx, free_idx[-mm_idx])
-  free_idx[perm_idx[duplicated(x[perm_idx])]] <- 0L
+  free_idx[perm_idx[duplicated(x[perm_idx, , drop = FALSE])]] <- 0L
   # initialize distance vector and membership list
   lmk_dist <- rep(Inf, times = nrow(x))
   # initialize minimum radius and associated number of sets to cover `x`
