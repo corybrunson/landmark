@@ -1,9 +1,14 @@
 context("interval with different densities close to endpoints")
 
+bin <- matrix(c(0L, 0L, 0L, 1L), nrow = 2L)
 peg <- matrix(c(1, 2, 4, 4))
 bar <- matrix(c(-1, -.5, 0, .75, .875, 1))
 
 # maxmin
+
+test_that("landmark calculation does not degenerate", {
+  expect_identical(landmarks_maxmin(bin), sort(seq(2)))
+})
 
 test_that("minmax and maxmin procedures work on a single data matrix", {
   # both singleton points are centers because they are not the double-point
@@ -115,6 +120,10 @@ test_that("'radius' extensions preserve numbers and extend cover sets", {
 })
 
 # firstlast
+
+test_that("landmark calculation does not degenerate", {
+  expect_identical(landmarks_lastfirst(bin), sort(seq(2)))
+})
 
 test_that("firstlast procedure prefers marginalizes multiple-points", {
   # both singleton points are centers because they are not the double-point

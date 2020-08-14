@@ -176,9 +176,11 @@ landmarks_lastfirst <- function(
   pick_method <- match.arg(pick_method, c("first", "last", "random"))
   if (is.null(engine)) engine <- "R"
   engine <- match.arg(engine, c("C++", "R"))
-  if (engine == "C++" && dist_method != "euclidean")
+  if (engine == "C++" && dist_method != "euclidean") {
     warning("C++ engine is available only for Euclidean distances; ",
             "using R engine instead.")
+    engine <- "R"
+  }
 
   # if neither parameter is specified, limit the set to 24 landmarks
   if (is.null(num) && is.null(cardinality)) {
