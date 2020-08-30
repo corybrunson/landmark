@@ -181,6 +181,12 @@ landmarks_lastfirst <- function(
             "using R engine instead.")
     engine <- "R"
   }
+  if (engine == "R") {
+    mult_num <- extend_num[[1L]]
+    add_num <- extend_num[[2L]]
+    mult_cardinality <- extend_cardinality[[1L]]
+    add_cardinality <- extend_cardinality[[2L]]
+  }
 
   # if neither parameter is specified, limit the set to 24 landmarks
   if (is.null(num) && is.null(cardinality)) {
@@ -252,9 +258,9 @@ landmarks_lastfirst <- function(
       ties_method = ties_method,
       num = num, cardinality = cardinality,
       seed_index = seed_index, cover = cover,
-      mult_num = extend_num[[1L]], add_num = extend_num[[2L]],
-      mult_cardinality = extend_cardinality[[1L]],
-      add_cardinality = extend_cardinality[[2L]]
+      mult_num = mult_num, add_num = add_num,
+      mult_cardinality = mult_cardinality,
+      add_cardinality = add_cardinality
     )
   )
 

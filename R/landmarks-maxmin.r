@@ -172,6 +172,12 @@ landmarks_maxmin <- function(
             "using R engine instead.")
     engine <- "R"
   }
+  if (engine == "R") {
+    mult_num <- extend_num[[1L]]
+    add_num <- extend_num[[2L]]
+    mult_radius <- extend_radius[[1L]]
+    add_radius <- extend_radius[[2L]]
+  }
 
   # if neither parameter is specified, limit the set to 24 landmarks
   if (is.null(num) && is.null(radius)) {
@@ -246,8 +252,8 @@ landmarks_maxmin <- function(
       dist_method = dist_method,
       num = num, radius = radius,
       seed_index = seed_index, cover = cover,
-      mult_num = extend_num[[1L]], add_num = extend_num[[2L]],
-      mult_radius = extend_radius[[1L]], add_radius = extend_radius[[2L]]
+      mult_num = mult_num, add_num = add_num,
+      mult_radius = mult_radius, add_radius = add_radius
     )
   )
 

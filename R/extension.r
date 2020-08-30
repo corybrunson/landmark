@@ -15,6 +15,7 @@
 #'   the parameter.
 #' @param add additive extension factor; added to parameter after
 #'   multiplication.
+#' @export
 extension <- function(mult = 0, add = 0) {
   if (! (is.numeric(mult) && (length(mult) == 1L) && mult >= 0 &&
          is.numeric(add) && (length(add) == 1L) && add >= 0)) {
