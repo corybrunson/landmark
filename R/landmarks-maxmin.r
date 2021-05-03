@@ -45,15 +45,32 @@
 #' @example inst/examples/ex-landmarks-maxmin.r
 NULL
 
-#' @rdname landmarks_maxmin
-#' @export
-minmax <- function(
-  x, y = NULL,
+minmax.dist <- function(
+  x, subset = NULL,
+  na.rm = FALSE
+) {
+  # -+- find an efficient way to do this without coercion to 'matrix'? -+-
+  x <- as.matrix(x)
+  # diameters (maximum distances to a column) across rows
+  maxs <- apply(x, 2L, max, na.rm = na.rm)
+  # return indices of minimum diameters
+  which(maxs == min(maxs, na.rm = na.rm))
+}
+
+# don't use symmetry to guess; treat all matrices as coordinate matrices
+minmax.matrix <- function(
+  x, y = NULL, subset = NULL,
   dist_method = "euclidean"
 ) {
 
   # use distances from `x` if `y` is not specified
-  if (is.null(y)) y <- x
+  if (is.null(y)) {
+    if (is.null(subset)) {
+      y <- x
+    } else {
+      y <- x[subset, , drop = FALSE]
+    }
+  }
 
   # update if/when C++ implementation is available
   minmax_R(x = x, y = y, dist_method = dist_method)
@@ -90,21 +107,44 @@ minmax_R <- function(
 
   }
 
+  # annotate with row names
+  names(mm_idx) <- rownames(x)[mm_idx]
   # return minmax subset
   mm_idx
 }
 
 #' @rdname landmarks_maxmin
 #' @export
-maxmin <- function(
-  x, y = NULL,
+minmax <- function(x, ...) {
+  UseMethod("minmax")
+}
+
+maxmin.dist <- function(
+  x, subset = NULL,
+  na.rm = FALSE
+) {
+  # -+- find an efficient way to do this without coercion to 'matrix'? -+-
+  x <- as.matrix(x)
+  # minimum distances to a column across rows
+  mins <- apply(x, 2L, min, na.rm = na.rm)
+  # return indices of minimum diameters
+  which(mins == min(mins, na.rm = na.rm))
+}
+
+# don't use symmetry to guess; treat all matrices as coordinate matrices
+maxmin.matrix <- function(
+  x, y = NULL, subset = NULL,
   dist_method = "euclidean"
 ) {
 
   # use distances from `x` if `y` is not specified
   if (is.null(y)) {
-    y <- x
-    self <- TRUE
+    if (is.null(subset)) {
+      y <- x
+      self <- TRUE
+    } else {
+      y <- x[subset, , drop = FALSE]
+    }
   } else {
     self <- FALSE
   }
@@ -144,13 +184,129 @@ maxmin_R <- function(
 
   }
 
-  # return minmax subset
+  # annotate with row names
+  names(mm_idx) <- rownames(x)[mm_idx]
+  # return maxmin subset
   mm_idx
 }
 
 #' @rdname landmarks_maxmin
 #' @export
-landmarks_maxmin <- function(
+maxmin <- function(x, ...) {
+  UseMethod("maxmin")
+}
+
+landmarks_maxmin.dist <- function(
+  x,
+  pick_method,
+  num = NULL, radius = NULL, frac = FALSE,
+  seed_index = 1L,
+  cover = FALSE,
+  extend_num = extension(mult = 0, add = 0),
+  extend_radius = extension(mult = 0, add = 0)
+) {
+
+  # diameter of data set
+  diam <- max(x)
+  # -+- find an efficient way to do this without coercion to 'matrix'? -+-
+  x <- as.matrix(x)
+  # number of distinguishable points (support)
+  n_supp <- apply(x != 0, 1L, sum) + 1L
+
+  # if neither parameter is specified, limit the set to 24 landmarks
+  if (is.null(num) && is.null(radius)) {
+    num <- min(n_supp, 24L)
+  }
+  # apply `frac` to `radius`
+  if (frac) {
+    radius <- radius * diam
+  }
+  # validate parameters
+  if (! is.null(num)) {
+    num <- as.integer(num)
+    if (is.na(num) || num < 1L || num > nrow(x))
+      stop("`num` must be a positive integer and at most `nrow(x)`.")
+  }
+  if (! is.null(radius)) {
+    if (is.na(radius) || radius <= 0 || radius == Inf)
+      stop("`radius` must be a finite non-negative number.")
+  }
+
+  # permute rows of `x` according to `pick_method`
+  if (pick_method != "first") {
+    shuffle_idx <- switch (
+      pick_method,
+      first = seq(nrow(x)),
+      last = seq(nrow(x), 1L),
+      random = sample(nrow(x))
+    )
+    x <- x[shuffle_idx, shuffle_idx, drop = FALSE]
+  }
+  # handle seed selection
+  if (is.character(seed_index)) {
+    seed_index <- switch (
+      match.arg(seed_index, c("random", "minmax")),
+      random = sample(nrow(x), size = 1L),
+      minmax = {
+        # convert `x` back to a 'dist' object; might differ from original
+        mm_idx <- minmax(as.dist(x),
+                         dist_method = dist_method)
+        mm_idx[[1L]]
+      }
+    )
+  } else {
+    # reset input seed index accordingly
+    if (pick_method != "first") {
+      seed_index <- switch (
+        pick_method,
+        first = seed_index,
+        last = nrow(x) + 1L - seed_index,
+        random = which(shuffle_idx == seed_index)
+      )
+    }
+  }
+  stopifnot(seed_index >= 1L, seed_index <= nrow(x))
+
+  stop("Adapt `landmarks_maxmin_R()` here.")
+
+  # format list as a data frame
+  stopifnot(is.list(res))
+  if (length(res) == 1L) {
+    res <- res[[1]]
+    names(res) <- rownames(x)[res]
+  } else {
+    res <- data.frame(landmark = res[[1]], cover_set = I(res[[2]]))
+    rownames(res) <- rownames(x)[res]
+  }
+  # correct for permutation
+  if (pick_method != "first") {
+    if (is.list(res)) {
+      res[[1]] <- shuffle_idx[res[[1]]]
+      res[[2]] <- lapply(res[[2]], function(set) shuffle_idx[set])
+    } else {
+      res <- shuffle_idx[res]
+    }
+  }
+
+  # print warnings if a parameter was adjusted
+  ext_num <- num * (1 + extend_num[[1L]]) + extend_num[[2L]]
+  if (! is.null(num)) {
+    if (NROW(res) > ext_num) {
+      warning("Required ", NROW(res),
+              " (> num = ", ext_num, ") ",
+              "sets of radius ", radius, ".")
+    } else if (NROW(res) < ext_num) {
+      warning("Only ", NROW(res),
+              " (< num = ", ext_num, ") ",
+              "distinct landmark points were found.")
+    }
+  }
+
+  # return landmarks
+  res
+}
+
+landmarks_maxmin.matrix <- function(
   x,
   dist_method = "euclidean", pick_method = "first",
   num = NULL, radius = NULL, frac = FALSE,
@@ -261,8 +417,10 @@ landmarks_maxmin <- function(
   stopifnot(is.list(res))
   if (length(res) == 1L) {
     res <- res[[1]]
+    names(res) <- rownames(x)[res]
   } else {
     res <- data.frame(landmark = res[[1]], cover_set = I(res[[2]]))
+    rownames(res) <- rownames(x)[res]
   }
   # correct for permutation
   if (pick_method != "first") {
@@ -457,4 +615,19 @@ landmarks_maxmin_R <- function(
     # return vector of landmark indices
     list(lmk_idx)
   }
+}
+
+#' @rdname landmarks_maxmin
+#' @export
+landmarks_maxmin <- function(
+  x,
+  pick_method,
+  num = NULL, radius = NULL, frac = FALSE,
+  seed_index = 1L,
+  cover = FALSE,
+  extend_num = extension(mult = 0, add = 0),
+  extend_radius = extension(mult = 0, add = 0),
+  ...
+) {
+  UseMethod("landmarks_maxmin")
 }
