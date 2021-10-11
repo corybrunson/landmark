@@ -458,3 +458,262 @@ landmarks_maxmin_R <- function(
     list(lmk_idx)
   }
 }
+
+#' @rdname landmarks_maxmin
+#' @export
+landmarks_minmaxmin <- function(
+  x,
+  dist_method = "euclidean", pick_method = "first",
+  num = NULL, radius = NULL, frac = FALSE,
+  seed_index = 1L,
+  engine = NULL,
+  cover = FALSE,
+  extend_num = extension(mult = 0, add = 0),
+  extend_radius = extension(mult = 0, add = 0)
+) {
+  # validate inputs
+  stopifnot(is.matrix(x))
+  dist_method <- tolower(dist_method)
+  stopifnot(dist_method %in% tolower(proxy::pr_DB$get_entry_names()))
+  pick_method <- match.arg(pick_method, c("first", "last", "random"))
+  if (is.null(engine)) engine <- "R"
+  engine <- match.arg(engine, c("original", "C++", "R"))
+  if (engine == "C++" && dist_method != "euclidean") {
+    warning("C++ engine is available only for Euclidean distances; ",
+            "using R engine instead.")
+    engine <- "R"
+  }
+  if (engine == "R") {
+    mult_num <- extend_num[[1L]]
+    add_num <- extend_num[[2L]]
+    mult_radius <- extend_radius[[1L]]
+    add_radius <- extend_radius[[2L]]
+  }
+
+  # if neither parameter is specified, limit the set to 24 landmarks
+  if (is.null(num) && is.null(radius)) {
+    num <- min(nrow(unique(x)), 24L)
+  }
+  # apply `frac` to `radius`
+  if (frac) {
+    radius <- max(1, radius * nrow(x))
+  }
+  # validate parameters
+  if (! is.null(num)) {
+    num <- as.integer(num)
+    if (is.na(num) || num < 1L || num > nrow(x))
+      stop("`num` must be a positive integer and at most `nrow(x)`.")
+  }
+  if (! is.null(radius)) {
+    if (is.na(radius) || radius <= 0 || radius == Inf)
+      stop("`radius` must be a finite non-negative number.")
+  }
+
+  # permute rows of `x` according to `pick_method`
+  if (pick_method != "first") {
+    shuffle_idx <- switch (
+      pick_method,
+      first = seq(nrow(x)),
+      last = seq(nrow(x), 1L),
+      random = sample(nrow(x))
+    )
+    x <- x[shuffle_idx, , drop = FALSE]
+  }
+  # handle seed selection
+  if (is.character(seed_index)) {
+    seed_index <- switch (
+      match.arg(seed_index, c("random", "minmax")),
+      random = sample(nrow(x), size = 1L),
+      minmax = {
+        mm_idx <- minmax(x,
+                         dist_method = dist_method)
+        mm_idx[[1L]]
+      }
+    )
+  } else {
+    # reset input seed index accordingly
+    if (pick_method != "first") {
+      seed_index <- switch (
+        pick_method,
+        first = seed_index,
+        last = nrow(x) + 1L - seed_index,
+        random = which(shuffle_idx == seed_index)
+      )
+    }
+  }
+  stopifnot(seed_index >= 1L, seed_index <= nrow(x))
+
+  # dispatch to implementations
+  res <- landmarks_minmaxmin_R(
+    x = x,
+    dist_method = dist_method,
+    num = num, radius = radius,
+    cover = cover,
+    mult_num = mult_num, add_num = add_num,
+    mult_radius = mult_radius, add_radius = add_radius
+  )
+
+  # format list as a data frame
+  stopifnot(is.list(res))
+  if (length(res) == 1L) {
+    res <- res[[1]]
+  } else {
+    res <- data.frame(landmark = res[[1]], cover_set = I(res[[2]]))
+  }
+  # correct for permutation
+  if (pick_method != "first") {
+    if (is.list(res)) {
+      res[[1]] <- shuffle_idx[res[[1]]]
+      res[[2]] <- lapply(res[[2]], function(set) shuffle_idx[set])
+    } else {
+      res <- shuffle_idx[res]
+    }
+  }
+
+  # print warnings if a parameter was adjusted
+  ext_num <- num * (1 + extend_num[[1L]]) + extend_num[[2L]]
+  if (! is.null(num)) {
+    if (NROW(res) > ext_num) {
+      warning("Required ", NROW(res),
+              " (> num = ", ext_num, ") ",
+              "sets of radius ", radius, ".")
+    } else if (NROW(res) < ext_num) {
+      warning("Only ", NROW(res),
+              " (< num = ", ext_num, ") ",
+              "distinct landmark points were found.")
+    }
+  }
+
+  # return landmarks
+  res
+}
+
+landmarks_minmaxmin_R <- function(
+  x,
+  dist_method = "euclidean", pick_method = "first",
+  num = NULL, radius = NULL, frac = FALSE,
+  cover = FALSE,
+  mult_num = 0, add_num = 0, mult_radius = 0, add_radius = 0
+) {
+
+  # initialize free and landmark index sets
+  free_idx <- seq(nrow(x))
+  lmk_idx <- vector(mode = "integer", nrow(x))
+  # strike any duplicate indices from free indices
+  # -+- assumes `x` has already been permuted according to `pick_method` -+-
+  free_idx[duplicated(x[free_idx, , drop = FALSE])] <- 0L
+  # initialize distance vector and membership list
+  lmk_dist <- rep(Inf, times = nrow(x))
+  # initialize minimum radius and associated number of sets to cover `x`
+  cover_rad <- Inf
+  cover_num <- 0L
+  if (cover) cover_idx <- list()
+
+  # first minmaxmin set
+  mmm_idx <- minmax(x, dist_method = dist_method)
+  mmm_idx <- mmm_idx[free_idx[mmm_idx] != 0]
+
+  for (i in seq(nrow(x))) {
+
+    # update vector of landmark points
+    lmk_idx[[i]] <- mmm_idx[[1L]]
+
+    # update vector of free points
+    if (free_idx[[lmk_idx[[i]]]] == 0L)
+      stop("A duplicate landmark point was selected, in error.")
+    free_idx[[lmk_idx[[i]]]] <- 0L
+
+    # update landmark distances with distances from new landmark point
+    lmk_dist <- cbind(
+      # minimum distances from previous landmark points
+      lmk_dist,
+      # distances of all points from newest landmark point
+      proxy::dist(
+        x[lmk_idx[[i]], , drop = FALSE],
+        x,
+        method = dist_method
+      )[1, ]
+    )
+
+    # distance from landmarks to `x`
+    min_dist <- max(pmin(lmk_dist[, 1L], lmk_dist[, 2L]))
+    # update the minimum radius necessary to cover `x`
+    if (is.null(radius) && ! is.null(num) && i <= num)
+      cover_rad <- min_dist
+    # update membership list
+    if (cover) {
+      cover_idx <- if (is.null(radius)) {
+        # -+- will need to parse later -+-
+        wh_idx <- which(lmk_dist[, 2L] <=
+                          cover_rad * (1 + mult_radius) + add_radius)
+        c(cover_idx,
+          list(cbind(idx = wh_idx, dist = lmk_dist[wh_idx, 2L])))
+      } else {
+        # -+- will not need to parse later -+-
+        c(cover_idx, list(which(lmk_dist[, 2L] <=
+                                  radius * (1 + mult_radius) + add_radius)))
+      }
+    }
+
+    # exhaustion breaks
+    if (all(free_idx == 0L)) break
+    # update the minimum number of sets necessary to cover `x`
+    if (is.null(num) && ! is.null(radius) && min_dist > radius)
+      cover_num <- i + 1L
+    # parameter breaks
+    if ((is.null(num) || i >= num * (1L + mult_num) + add_num) &&
+        (cover_num == 0L || i >= cover_num * (1L + mult_num) + add_num) &&
+        (is.null(radius) || min_dist <= radius)) break
+
+    # collapse distances to the minimum to each point
+    lmk_dist <- pmin(lmk_dist[, 1L], lmk_dist[, 2L])
+    # obtain candidate minmaxmin points:
+    # minimize the maximum distance from the augmented landmark set
+    aug_dist_min <- max(lmk_dist)
+    aug_idx <- integer(0)
+    for (j in free_idx[free_idx != 0L]) {
+
+      # maximum distance from the augmented landmark set
+      aug_dist_idx <- max(pmin(
+        lmk_dist[-lmk_idx],
+        proxy::dist(
+          x[j, , drop = FALSE],
+          x[-lmk_idx, , drop = FALSE],
+          method = dist_method
+        )
+      ))
+
+      if (aug_dist_idx == aug_dist_min) {
+        # if equal to reigning minimum distance, append to minmax set
+        aug_idx <- c(aug_idx, j)
+      } else if (aug_dist_idx < aug_dist_min) {
+        # if less than reigning minimum distance, replace and reinitialize
+        aug_dist_min <- aug_dist_idx
+        aug_idx <- c(j)
+      }
+
+    }
+    # among candidates, select for greatest distance from existing landmarks
+    mmm_idx <- aug_idx[lmk_dist[aug_idx] == max(lmk_dist[aug_idx])]
+
+  }
+
+  # restrict to selected landmarks
+  lmk_idx <- lmk_idx[seq(i)]
+  # return data
+  if (cover) {
+    if (is.null(radius)) {
+      # parse extraneous members
+      cover_idx <- lapply(cover_idx, function(mat) {
+        unname(mat[mat[, "dist"] <=
+                     cover_rad * (1 + mult_radius) + add_radius, "idx"])
+      })
+    }
+    # return list of landmark indices and cover membership vectors
+    list(lmk_idx, cover_idx)
+  } else {
+    # return vector of landmark indices
+    list(lmk_idx)
+  }
+
+}
