@@ -5,6 +5,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // landmarks_lastfirst_cpp
 List landmarks_lastfirst_cpp(const NumericMatrix& x, int num, int cardinality, const int seed_index, const bool cover);
 RcppExport SEXP _landmark_landmarks_lastfirst_cpp(SEXP xSEXP, SEXP numSEXP, SEXP cardinalitySEXP, SEXP seed_indexSEXP, SEXP coverSEXP) {
