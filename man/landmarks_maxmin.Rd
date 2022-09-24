@@ -20,6 +20,7 @@ landmarks_maxmin(
   seed_index = 1L,
   engine = NULL,
   cover = FALSE,
+  tower = FALSE,
   extend_num = extension(mult = 0, add = 0),
   extend_radius = extension(mult = 0, add = 0)
 )
@@ -54,8 +55,13 @@ random) and \code{"minmax"} (to select a seed from the minmax set).}
 \item{engine}{character string specifying the implementation to use; one of
 \code{"original"}, \code{"C++"}, or \code{"R"}. When not specified, the R engine is used.}
 
-\item{cover}{logical; whether to return a data frame of landmark indices and
-cover sets (by member index) rather than only a vector of landmark indices.}
+\item{cover}{logical; whether to include a column of cover sets (by member
+index) alongside columns of landmark indices and of minimum ball radii in a
+data frame.}
+
+\item{tower}{logical; whether to include a column of covers (stored as
+maximal simplices of their nerves) alongside columns of landmark indices
+and of minimum ball radii in a data frame.}
 
 \item{extend_num, extend_radius}{length-two numeric vectors used to extend
 landmark parameters for cover set construction. See \code{\link[=extension]{extension()}}.}

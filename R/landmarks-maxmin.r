@@ -38,8 +38,12 @@
 #'   random) and `"minmax"` (to select a seed from the minmax set).
 #' @param engine character string specifying the implementation to use; one of
 #'   `"original"`, `"C++"`, or `"R"`. When not specified, the R engine is used.
-#' @param cover logical; whether to return a data frame of landmark indices and
-#'   cover sets (by member index) rather than only a vector of landmark indices.
+#' @param cover logical; whether to include a column of cover sets (by member
+#'   index) alongside columns of landmark indices and of minimum ball radii in a
+#'   data frame.
+#' @param tower logical; whether to include a column of covers (stored as
+#'   maximal simplices of their nerves) alongside columns of landmark indices
+#'   and of minimum ball radii in a data frame.
 #' @param extend_num,extend_radius length-two numeric vectors used to extend
 #'   landmark parameters for cover set construction. See [extension()].
 #' @example inst/examples/ex-landmarks-maxmin.r
@@ -48,37 +52,37 @@ NULL
 #' @rdname landmarks_maxmin
 #' @export
 minmax <- function(
-  x, y = NULL,
-  dist_method = "euclidean"
+    x, y = NULL,
+    dist_method = "euclidean"
 ) {
-
+  
   # use distances from `x` if `y` is not specified
   if (is.null(y)) y <- x
-
+  
   # update if/when C++ implementation is available
   minmax_R(x = x, y = y, dist_method = dist_method)
 }
 
 minmax_R <- function(
-  x, y,
-  dist_method = "euclidean"
+    x, y,
+    dist_method = "euclidean"
 ) {
-
+  
   # initialize minimum distance
   dist_min <- Inf
   # initialize minmax set
   mm_idx <- integer(0)
-
+  
   # across all points
   for (idx in seq(nrow(x))) {
-
+    
     # maximum distance from point
     dist_idx <- max(proxy::dist(
       x[idx, , drop = FALSE],
       y,
       method = dist_method)
     )
-
+    
     if (dist_idx == dist_min) {
       # if equal to reigning minimum distance, append to minmax set
       mm_idx <- c(mm_idx, idx)
@@ -87,9 +91,9 @@ minmax_R <- function(
       dist_min <- dist_idx
       mm_idx <- c(idx)
     }
-
+    
   }
-
+  
   # return minmax subset
   mm_idx
 }
@@ -97,10 +101,10 @@ minmax_R <- function(
 #' @rdname landmarks_maxmin
 #' @export
 maxmin <- function(
-  x, y = NULL,
-  dist_method = "euclidean"
+    x, y = NULL,
+    dist_method = "euclidean"
 ) {
-
+  
   # use distances from `x` if `y` is not specified
   if (is.null(y)) {
     y <- x
@@ -108,31 +112,31 @@ maxmin <- function(
   } else {
     self <- FALSE
   }
-
+  
   # update if/when C++ implementation is available
   maxmin_R(x = x, y = y, self = self, dist_method = dist_method)
 }
 
 maxmin_R <- function(
-  x, y, self,
-  dist_method = "euclidean"
+    x, y, self,
+    dist_method = "euclidean"
 ) {
-
+  
   # initialize minimum distance
   dist_max <- 0
   # initialize maxmin set
   mm_idx <- integer(0)
-
+  
   # across all points
   for (idx in seq(nrow(x))) {
-
+    
     # minimum distance from point
     dist_idx <- min(proxy::dist(
       x[idx, , drop = FALSE],
       if (self) x[-idx, , drop = FALSE] else y,
       method = dist_method)
     )
-
+    
     if (dist_idx == dist_max) {
       # if equal to reigning maximum distance, append to maxmin set
       mm_idx <- c(mm_idx, idx)
@@ -141,9 +145,9 @@ maxmin_R <- function(
       dist_max <- dist_idx
       mm_idx <- c(idx)
     }
-
+    
   }
-
+  
   # return minmax subset
   mm_idx
 }
@@ -151,14 +155,14 @@ maxmin_R <- function(
 #' @rdname landmarks_maxmin
 #' @export
 landmarks_maxmin <- function(
-  x,
-  dist_method = "euclidean", pick_method = "first",
-  num = NULL, radius = NULL, frac = FALSE,
-  seed_index = 1L,
-  engine = NULL,
-  cover = FALSE,
-  extend_num = extension(mult = 0, add = 0),
-  extend_radius = extension(mult = 0, add = 0)
+    x,
+    dist_method = "euclidean", pick_method = "first",
+    num = NULL, radius = NULL, frac = FALSE,
+    seed_index = 1L,
+    engine = NULL,
+    cover = FALSE, tower = FALSE,
+    extend_num = extension(mult = 0, add = 0),
+    extend_radius = extension(mult = 0, add = 0)
 ) {
   # validate inputs
   stopifnot(is.matrix(x))
@@ -178,7 +182,7 @@ landmarks_maxmin <- function(
     mult_radius <- extend_radius[[1L]]
     add_radius <- extend_radius[[2L]]
   }
-
+  
   # if neither parameter is specified, limit the set to 24 landmarks
   if (is.null(num) && is.null(radius)) {
     num <- min(nrow(unique(x)), 24L)
@@ -197,7 +201,7 @@ landmarks_maxmin <- function(
     if (is.na(radius) || radius <= 0 || radius == Inf)
       stop("`radius` must be a finite non-negative number.")
   }
-
+  
   # permute rows of `x` according to `pick_method`
   if (pick_method != "first") {
     shuffle_idx <- switch (
@@ -231,7 +235,7 @@ landmarks_maxmin <- function(
     }
   }
   stopifnot(seed_index >= 1L, seed_index <= nrow(x))
-
+  
   # dispatch to implementations
   res <- switch (
     engine,
@@ -251,29 +255,50 @@ landmarks_maxmin <- function(
       x = x,
       dist_method = dist_method,
       num = num, radius = radius,
-      seed_index = seed_index, cover = cover,
+      seed_index = seed_index, cover = cover, tower = tower,
       mult_num = mult_num, add_num = add_num,
       mult_radius = mult_radius, add_radius = add_radius
     )
   )
-
-  # format list as a data frame
+  
+  # format list as a vector or a data frame
+  # TODO: Be readier for edits to C++ implementations.
   stopifnot(is.list(res))
   if (length(res) == 1L) {
-    res <- res[[1]]
+    res <- res[[1L]]
   } else {
-    res <- data.frame(landmark = res[[1]], cover_set = I(res[[2]]))
+    names(res) <- if (length(res) == 2L) {
+      c("landmark", "cover_set")
+    } else {
+      c("landmark", "radius", "cover_set", "tower_max")
+    }
+    res <- res[! vapply(res, is.null, TRUE)]
+    list_cols <- which(vapply(res, is.list, TRUE))
+    for (list_col in list_cols) res[[list_col]] <- I(res[[list_col]])
+    res <- as.data.frame(res)
   }
+  
   # correct for permutation
   if (pick_method != "first") {
     if (is.list(res)) {
-      res[[1]] <- shuffle_idx[res[[1]]]
-      res[[2]] <- lapply(res[[2]], function(set) shuffle_idx[set])
+      res[["landmark"]] <- shuffle_idx[res[["landmark"]]]
+      if (! is.null(res[["cover_set"]])) res[["cover_set"]] <- lapply(
+        res[["cover_set"]],
+        function(set) shuffle_idx[set]
+      )
+      if (! is.null(res[["tower_max"]])) {
+        for (tower_i in seq_along(res[["tower_max"]])) {
+          res[["tower_max"]][[tower_i]] <- lapply(
+            res[["tower_max"]][[tower_i]],
+            function(set) shuffle_idx[set]
+          )
+        }
+      }
     } else {
       res <- shuffle_idx[res]
     }
   }
-
+  
   # print warnings if a parameter was adjusted
   ext_num <- num * (1 + extend_num[[1L]]) + extend_num[[2L]]
   if (! is.null(num)) {
@@ -287,29 +312,29 @@ landmarks_maxmin <- function(
               "distinct landmark points were found.")
     }
   }
-
+  
   # return landmarks
   res
 }
 
 landmarks_maxmin_orig <- function(
-  x,
-  dist_method = "euclidean", pick_method = "first",
-  num = NULL, radius = NULL,
-  seed_index = 1L
+    x,
+    dist_method = "euclidean", pick_method = "first",
+    num = NULL, radius = NULL,
+    seed_index = 1L
 ) {
   stopifnot(is.matrix(x),
             seed_index >= 1L, seed_index <= nrow(x),
             # must specify a number of balls or a radius
             ! is.null(num) || ! is.null(radius))
-
+  
   shuffle_idx <- switch (
     pick_method,
     first = NA,
     last = rev(seq(nrow(x))),
     random = sample(seq(nrow(x)))
   )
-
+  
   if (!is.null(num)) {
     if (missing(dist_method) || toupper(dist_method) == "EUCLIDEAN") {
       lmk_idx <- landmark_maxmin(x, num, seed_index)
@@ -321,7 +346,7 @@ landmarks_maxmin_orig <- function(
       lmk_min_dist <- rep(Inf, nrow(x))
       for (i in 2L:num) {
         lmk_dist <- proxy::dist(x, x[lmk_idx[i - 1L], , drop = FALSE],
-                                     method = dist_method)
+                                method = dist_method)
         lmk_min_dist <- pmin(lmk_dist, lmk_min_dist)
         potential_idx <- setdiff(seq(nrow(x)), lmk_idx[c(1:i)])
         lmk_idx[i] <- potential_idx[which.max(lmk_min_dist[potential_idx])]
@@ -333,17 +358,17 @@ landmarks_maxmin_orig <- function(
     stopifnot(toupper(dist_method) %in% toupper(proxy::pr_DB$get_entry_names()))
     f_dim <- ncol(x)
     f_size <- nrow(x)
-
+    
     # algorithm and variable names as specified in Dlotko paper
     C = c() # create a list to store indices of centers/landmarks
     next_pt = seed_index # first landmark should be the seed point
     while(TRUE){
       C = append(C, next_pt) # add new point to list of landmarks
-
+      
       # compute distance between landmark set and each point in the space
       dists = proxy::dist(matrix(x[C, ], ncol = f_dim), x, method = dist_method)
       sortedDists = matrix(apply(dists, 2, sort), ncol = f_size)
-
+      
       # the next landmark is the point with greatest distance from the current
       # landmark set
       next_pt = which.max(sortedDists[1, ])
@@ -358,13 +383,13 @@ landmarks_maxmin_orig <- function(
 }
 
 landmarks_maxmin_R <- function(
-  x,
-  dist_method = "euclidean", pick_method = "first",
-  num = NULL, radius = NULL, frac = FALSE,
-  seed_index = 1L, cover = FALSE,
-  mult_num = 0, add_num = 0, mult_radius = 0, add_radius = 0
+    x,
+    dist_method = "euclidean", pick_method = "first",
+    num = NULL, radius = NULL, frac = FALSE,
+    seed_index = 1L, cover = FALSE, tower = FALSE,
+    mult_num = 0, add_num = 0, mult_radius = 0, add_radius = 0
 ) {
-
+  
   # initialize maxmin, free, and landmark index sets
   mm_idx <- seed_index
   lmk_idx <- vector(mode = "integer", nrow(x))
@@ -377,19 +402,21 @@ landmarks_maxmin_R <- function(
   # initialize minimum radius and associated number of sets to cover `x`
   cover_rad <- Inf
   cover_num <- 0L
-  if (cover) cover_idx <- list()
-
+  rad_idx <- vector(mode = "double", nrow(x))
+  if (cover || tower) cover_idx <- list()
+  if (tower) tower_idx <- list()
+  
   for (i in seq_along(free_idx)) {
-
+    
     # update vector of landmark points
     # -+- assumes data have been permuted according to `pick_method` -+-
     lmk_idx[[i]] <- mm_idx[[1L]]
-
+    
     # update vector of free points
     if (free_idx[[lmk_idx[[i]]]] == 0L)
       stop("A duplicate landmark point was selected, in error.")
     free_idx[[lmk_idx[[i]]]] <- 0L
-
+    
     # update landmark distances with distances from new landmark point
     lmk_dist <- cbind(
       # minimum distances from previous landmark points
@@ -401,14 +428,16 @@ landmarks_maxmin_R <- function(
         method = dist_method
       )[1, ]
     )
-
-    # minimum distance from landmarks to `x`
+    
+    # minimum distance from (all) landmarks to `x`
     min_dist <- max(pmin(lmk_dist[, 1L], lmk_dist[, 2L]))
     # update the minimum radius necessary to cover `x`
     if (is.null(radius) && ! is.null(num) && i <= num)
       cover_rad <- min_dist
+    # update radius vector
+    rad_idx[[i]] <- cover_rad
     # update membership list
-    if (cover) {
+    if (cover || tower) {
       cover_idx <- if (is.null(radius)) {
         # -+- will need to parse later -+-
         wh_idx <- which(lmk_dist[, 2L] <=
@@ -421,7 +450,20 @@ landmarks_maxmin_R <- function(
                                   radius * (1 + mult_radius) + add_radius)))
       }
     }
-
+    # update nerve list (stored as lists of maximal simplices)
+    if (tower) {
+      cover_sets <- lapply(cover_idx, function(mat) {
+        unname(mat[mat[, "dist"] <=
+                     cover_rad * (1 + mult_radius) + add_radius, "idx"])
+      })
+      cover_mems <- transpose_list(cover_sets)
+      nerve <-
+        simplextree::nerve(simplextree::simplex_tree(), cover_mems, k = 2L)
+      nerve <-
+        simplextree::ltraverse(simplextree::maximal(nerve), f = as.integer)
+      tower_idx <- c(tower_idx, list(nerve))
+    }
+    
     # exhaustion breaks
     if (all(free_idx == 0L)) break
     # update the minimum number of sets necessary to cover `x`
@@ -431,30 +473,26 @@ landmarks_maxmin_R <- function(
     if ((is.null(num) || i >= num * (1L + mult_num) + add_num) &&
         (cover_num == 0L || i >= cover_num * (1L + mult_num) + add_num) &&
         (is.null(radius) || min_dist <= radius)) break
-
+    
     # collapse distances to the minimum to each point
     lmk_dist <- pmin(lmk_dist[, 1L], lmk_dist[, 2L])
     # obtain the maxmin subset
     mm_idx <- free_idx[free_idx != 0L]
     mm_idx <- mm_idx[lmk_dist[mm_idx] == max(lmk_dist[mm_idx])]
-
+    
   }
-
-  # restrict to selected landmarks
-  lmk_idx <- lmk_idx[seq(i)]
+  
   # return data
-  if (cover) {
-    if (is.null(radius)) {
+  list(
+    # restrict to selected landmarks
+    lmk_idx[seq(i)], rad_idx[seq(i)],
+    if (cover) {
       # parse extraneous members
-      cover_idx <- lapply(cover_idx, function(mat) {
+      lapply(cover_idx, function(mat) {
         unname(mat[mat[, "dist"] <=
                      cover_rad * (1 + mult_radius) + add_radius, "idx"])
       })
-    }
-    # return list of landmark indices and cover membership vectors
-    list(lmk_idx, cover_idx)
-  } else {
-    # return vector of landmark indices
-    list(lmk_idx)
-  }
+    },
+    if (tower) tower_idx
+  )
 }

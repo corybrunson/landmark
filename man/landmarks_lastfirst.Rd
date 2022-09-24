@@ -21,6 +21,7 @@ landmarks_lastfirst(
   seed_index = 1L,
   engine = NULL,
   cover = FALSE,
+  tower = FALSE,
   extend_num = extension(mult = 0, add = 0),
   extend_cardinality = extension(mult = 0, add = 0)
 )
@@ -43,8 +44,8 @@ tested and are recommended.}
 among indistinguishable points, either \code{"first"} (the default), \code{"last"},
 or \code{"random"}.}
 
-\item{num}{a positive integer; the desired number of landmark points, or
-of sets in a neighborhood cover.}
+\item{num}{a positive integer; the desired number of landmark points, or of
+sets in a neighborhood cover.}
 
 \item{cardinality}{a positive integer; the desired cardinality of each
 landmark neighborhood, or of each set in a landmark cover.}
@@ -59,8 +60,13 @@ random) and \code{"firstlast"} (to select a seed from the firstlast set).}
 \item{engine}{character string specifying the implementation to use; one of
 \code{"C++"} or \code{"R"}. When not specified, the R engine is used.}
 
-\item{cover}{logical; whether to return a data frame of landmark indices and
-cover sets (by member index) rather than only a vector of landmark indices.}
+\item{cover}{logical; whether to include a column of cover sets (by member
+index) alongside columns of landmark indices and of minimum neighborhood
+cardinalities in a data frame.}
+
+\item{tower}{logical; whether to include a column of covers (stored as
+maximal simplices of their nerves) alongside columns of landmark indices
+and of minimum neighborhood cardinalities in a data frame.}
 
 \item{extend_num, extend_cardinality}{length-two numeric vectors used to
 extend landmark parameters for cover set construction. See \code{\link[=extension]{extension()}}.}
@@ -73,12 +79,12 @@ These functions adapt the maxmin procedure to produce landmark
 points dispersed according to the orders in which they are reached from
 each other, rather than to their distances from each other. (Say more.)
 
-One, both, or neither of \code{num} and \code{cardinality} may be passed values.
-If neither is specified, then \code{num} is defaulted to the minimum of
-\code{24L} and the number of distinct rows of \code{x}. If the values yield
-neighborhoods that do not cover \code{x}, then, effectively, \code{num} is
-increased until the cardinality necessary to cover \code{x} is at most
-\code{cardinality}. To generte a complete landmark set, use \code{cardinality = 1L}.
+One, both, or neither of \code{num} and \code{cardinality} may be passed values. If
+neither is specified, then \code{num} is defaulted to the minimum of \code{24L} and
+the number of distinct rows of \code{x}. If the values yield neighborhoods that
+do not cover \code{x}, then, effectively, \code{num} is increased until the
+cardinality necessary to cover \code{x} is at most \code{cardinality}. To generte a
+complete landmark set, use \code{cardinality = 1L}.
 }
 \examples{
 set.seed(4)
