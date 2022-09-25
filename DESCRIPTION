@@ -28,6 +28,7 @@ Imports:
 Suggests:
     testthat,
     tdaunif,
+    simplextree (>= 1.0.1),
     knitr,
     bench,
     cowplot,
