@@ -263,7 +263,10 @@ landmarks_maxmin <- function(
   
   # format list as a vector or a data frame
   # TODO: Be readier for edits to C++ implementations.
-  stopifnot(is.list(res))
+  if (! is.list(res)) {
+    stopifnot(is.vector(res))
+    res <- data.frame(landmark = res)
+  }
   if (length(res) == 1L) {
     res <- res[[1L]]
   } else {
@@ -280,22 +283,18 @@ landmarks_maxmin <- function(
   
   # correct for permutation
   if (pick_method != "first") {
-    if (is.list(res)) {
-      res[["landmark"]] <- shuffle_idx[res[["landmark"]]]
-      if (! is.null(res[["cover_set"]])) res[["cover_set"]] <- lapply(
-        res[["cover_set"]],
-        function(set) shuffle_idx[set]
-      )
-      if (! is.null(res[["tower_max"]])) {
-        for (tower_i in seq_along(res[["tower_max"]])) {
-          res[["tower_max"]][[tower_i]] <- lapply(
-            res[["tower_max"]][[tower_i]],
-            function(set) shuffle_idx[set]
-          )
-        }
+    res[["landmark"]] <- shuffle_idx[res[["landmark"]]]
+    if (! is.null(res[["cover_set"]])) res[["cover_set"]] <- lapply(
+      res[["cover_set"]],
+      function(set) shuffle_idx[set]
+    )
+    if (! is.null(res[["tower_max"]])) {
+      for (tower_i in seq_along(res[["tower_max"]])) {
+        res[["tower_max"]][[tower_i]] <- lapply(
+          res[["tower_max"]][[tower_i]],
+          function(set) shuffle_idx[set]
+        )
       }
-    } else {
-      res <- shuffle_idx[res]
     }
   }
   
@@ -487,11 +486,13 @@ landmarks_maxmin_R <- function(
     # restrict to selected landmarks
     lmk_idx[seq(i)], rad_idx[seq(i)],
     if (cover) {
-      # parse extraneous members
-      lapply(cover_idx, function(mat) {
-        unname(mat[mat[, "dist"] <=
-                     cover_rad * (1 + mult_radius) + add_radius, "idx"])
-      })
+      if (is.null(radius)) {
+        # parse extraneous members
+        lapply(cover_idx, function(mat) {
+          unname(mat[mat[, "dist"] <=
+                       cover_rad * (1 + mult_radius) + add_radius, "idx"])
+        })
+      } else cover_idx
     },
     if (tower) tower_idx
   )

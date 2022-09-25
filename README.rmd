@@ -58,10 +58,14 @@ An adaptation of `maxmin` to ranked distances will produce a landmark set for co
 Cardinality is only exact up to ties, which may be handled different ways and will result in cover sets of different cardinalities.
 
 ```{r lastfirst landmark sets using R engine}
-x[landmarks_lastfirst(x, cardinality = 3L, seed_index = 6L), , drop = FALSE]
-x[landmarks_lastfirst(x, cardinality = 2L, seed_index = 6L), , drop = FALSE]
-x[landmarks_lastfirst(x, num = 4L, seed_index = 6L), , drop = FALSE]
-x[landmarks_lastfirst(x, cardinality = 1L, seed_index = 6L), , drop = FALSE]
+x[landmarks_lastfirst(x, cardinality = 3L, seed_index = 6L)$landmark, ,
+  drop = FALSE]
+x[landmarks_lastfirst(x, cardinality = 2L, seed_index = 6L)$landmark, ,
+  drop = FALSE]
+x[landmarks_lastfirst(x, num = 4L, seed_index = 6L)$landmark, ,
+  drop = FALSE]
+x[landmarks_lastfirst(x, cardinality = 1L, seed_index = 6L)$landmark, ,
+  drop = FALSE]
 ```
 
 ```{r neighborhood covers using C++ engine}
