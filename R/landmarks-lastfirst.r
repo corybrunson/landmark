@@ -377,7 +377,7 @@ landmarks_lastfirst_R <- function(
     # update the minimum cardinality necessary to cover `x`
     if (is.null(cardinality) && ! is.null(num) && i <= num)
       cover_card <- min_rank
-    # update radius vector
+    # update cardinality vector
     card_idx[[i]] <- cover_card
     # update membership list
     if (cover || tower) {
@@ -438,7 +438,7 @@ landmarks_lastfirst_R <- function(
     # restrict to selected landmarks
     lmk_idx[seq(i)], card_idx[seq(i)],
     if (cover) {
-      if (is.null(radius)) {
+      if (is.null(cardinality)) {
         # parse extraneous members
         lapply(cover_idx, function(mat) {
           unname(mat[mat[, "rank"] <=

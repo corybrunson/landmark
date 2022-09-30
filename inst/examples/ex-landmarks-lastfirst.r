@@ -13,3 +13,8 @@ X <- rbind(X, X[sample(nrow(X), 6, replace = TRUE), , drop = FALSE])
 # plot landmark order at point positions
 plot(X, asp = 1, pch = NA)
 text(X + .1 * cbind(floor((1:12 - 1) / 6) - .5, 0), labels = order(l$landmark))
+
+# record covers
+landmarks_lastfirst(X, cover = TRUE)
+# record tower (of nerves)
+landmarks_lastfirst(X, tower = TRUE)

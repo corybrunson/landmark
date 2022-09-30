@@ -11,3 +11,8 @@ text(X, labels = order(l$landmark))
 # plot landmark order at point positions
 plot(X, asp = 1, pch = NA)
 text(X, labels = order(l$landmark))
+
+# record covers
+landmarks_maxmin(X, cover = TRUE)
+# record tower (of nerves)
+landmarks_maxmin(X, tower = TRUE)
