@@ -5,6 +5,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // landmarks_lastfirst_cpp
 List landmarks_lastfirst_cpp(const NumericMatrix& x, int num, int cardinality, const int seed_index, const bool cover);
 RcppExport SEXP _landmark_landmarks_lastfirst_cpp(SEXP xSEXP, SEXP numSEXP, SEXP cardinalitySEXP, SEXP seed_indexSEXP, SEXP coverSEXP) {
@@ -17,6 +22,19 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const int >::type seed_index(seed_indexSEXP);
     Rcpp::traits::input_parameter< const bool >::type cover(coverSEXP);
     rcpp_result_gen = Rcpp::wrap(landmarks_lastfirst_cpp(x, num, cardinality, seed_index, cover));
+    return rcpp_result_gen;
+END_RCPP
+}
+// landmark_maxmin
+IntegerVector landmark_maxmin(const NumericMatrix& x, const int num, const int seed_index);
+RcppExport SEXP _landmark_landmark_maxmin(SEXP xSEXP, SEXP numSEXP, SEXP seed_indexSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const int >::type num(numSEXP);
+    Rcpp::traits::input_parameter< const int >::type seed_index(seed_indexSEXP);
+    rcpp_result_gen = Rcpp::wrap(landmark_maxmin(x, num, seed_index));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -35,24 +53,11 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// landmark_maxmin
-IntegerVector landmark_maxmin(const NumericMatrix& x, const int n, const int seed_index);
-RcppExport SEXP _landmark_landmark_maxmin(SEXP xSEXP, SEXP nSEXP, SEXP seed_indexSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const int >::type n(nSEXP);
-    Rcpp::traits::input_parameter< const int >::type seed_index(seed_indexSEXP);
-    rcpp_result_gen = Rcpp::wrap(landmark_maxmin(x, n, seed_index));
-    return rcpp_result_gen;
-END_RCPP
-}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_landmark_landmarks_lastfirst_cpp", (DL_FUNC) &_landmark_landmarks_lastfirst_cpp, 5},
-    {"_landmark_landmarks_maxmin_cpp", (DL_FUNC) &_landmark_landmarks_maxmin_cpp, 5},
     {"_landmark_landmark_maxmin", (DL_FUNC) &_landmark_landmark_maxmin, 3},
+    {"_landmark_landmarks_maxmin_cpp", (DL_FUNC) &_landmark_landmarks_maxmin_cpp, 5},
     {NULL, NULL, 0}
 };
 

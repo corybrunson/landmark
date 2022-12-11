@@ -5,11 +5,31 @@ landmarks_lastfirst_cpp <- function(x, num = 0L, cardinality = 0L, seed_index = 
     .Call('_landmark_landmarks_lastfirst_cpp', PACKAGE = 'landmark', x, num, cardinality, seed_index, cover)
 }
 
-landmarks_maxmin_cpp <- function(x, num = 0L, radius = -1, seed_index = 1L, cover = FALSE) {
-    .Call('_landmark_landmarks_maxmin_cpp', PACKAGE = 'landmark', x, num, radius, seed_index, cover)
+#' @title Maxmin in C++ (original)
+#' @author Matt Piekenbrock
+#' @description Use the Euclidean maxmin procedure to choose landmarks
+#' @description Maxmin procedure to choose 'num' landmarks for balls of fixed
+#' radius (supports euclidean distance only)
+#' @param x a data matrix
+#' @param num desired number of landmark points, or number of sets, in a ball
+#'   cover (should be a positive integer)
+#' @param seed_index index of the first landmark used to seed the algorithm
+landmark_maxmin <- function(x, num, seed_index = 1L) {
+    .Call('_landmark_landmark_maxmin', PACKAGE = 'landmark', x, num, seed_index)
 }
 
-landmark_maxmin <- function(x, n, seed_index = 1L) {
-    .Call('_landmark_landmark_maxmin', PACKAGE = 'landmark', x, n, seed_index)
+#' @title Maxmin in C++ (extended)
+#' @author Jason Cory Brunson
+#' @author Yara Skaf
+#' @description Maxmin procedure to choose landmarks for balls of fixed radius
+#'   (supports Euclidean distance only)
+#' @inheritParams landmark_maxmin
+#' @param num desired number of landmark points, or number of sets, in a ball
+#'   cover (should be a positive integer)
+#' @param radius desired radius of a cover set (should be a positive real number)
+#' @param cover boolean specifying whether to return cover sets in addition to
+#'   the landmark points
+landmarks_maxmin_cpp <- function(x, num = 0L, radius = -1, seed_index = 1L, cover = FALSE) {
+    .Call('_landmark_landmarks_maxmin_cpp', PACKAGE = 'landmark', x, num, radius, seed_index, cover)
 }
 

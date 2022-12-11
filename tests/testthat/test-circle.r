@@ -11,9 +11,9 @@ plot(s, asp = 1, pch = 1)
 test_that("landmarks are generated", {
   # maxmin landmarks in C++
   expect_silent(landmarks_maxmin(s, num = nrow(s), engine = "C++"))
-  expect_silent(landmark_maxmin(s, n = nrow(s)))
+  expect_silent(landmark_maxmin(s, num = nrow(s)))
   # maxmin landmarks in R
-  expect_silent(landmarks_maxmin(s, n = nrow(s), engine = "original"))
+  expect_silent(landmarks_maxmin(s, num = nrow(s), engine = "original"))
   expect_silent(landmarks_maxmin(s, num = nrow(s), engine = "R"))
 })
 
