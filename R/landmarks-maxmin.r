@@ -244,7 +244,7 @@ landmarks_maxmin <- function(
     `C++` = landmarks_maxmin_cpp(
       x = x,
       num = if (is.null(num)) 0L else num,
-      radius = if (is.null(radius)) -1L else radius,
+      radius = if (is.null(radius)) -1 else radius,
       seed_index = seed_index, cover = cover
     ),
     R = landmarks_maxmin_R(

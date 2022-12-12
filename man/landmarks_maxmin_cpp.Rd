@@ -2,8 +2,11 @@
 % Please edit documentation in R/RcppExports.R
 \name{landmarks_maxmin_cpp}
 \alias{landmarks_maxmin_cpp}
-\title{Maxmin in C++ (extended)}
+\alias{landmark_maxmin}
+\title{Maxmin in C++}
 \usage{
+landmark_maxmin(x, num, seed_index = 1L)
+
 landmarks_maxmin_cpp(x, num = 0L, radius = -1, seed_index = 1L, cover = FALSE)
 }
 \arguments{
@@ -12,18 +15,29 @@ landmarks_maxmin_cpp(x, num = 0L, radius = -1, seed_index = 1L, cover = FALSE)
 \item{num}{desired number of landmark points, or number of sets, in a ball
 cover (should be a positive integer)}
 
-\item{radius}{desired radius of a cover set (should be a positive real number)}
-
 \item{seed_index}{index of the first landmark used to seed the algorithm}
+
+\item{radius}{desired radius of a cover set (should be a positive real number)}
 
 \item{cover}{boolean specifying whether to return cover sets in addition to
 the landmark points}
 }
 \description{
-Maxmin procedure to choose landmarks for balls of fixed radius
-(supports Euclidean distance only)
+Use the Euclidean maxmin procedure to choose landmarks.
+}
+\details{
+\code{landmark_maxmin()} is a minimal implementation of the maxmin
+procedure to choose a given number landmarks.
+
+\code{landmarks_maxmin_cpp()} allows specification of the fixed radius of the
+balls about the landmarks rather than their number and provides an option
+to collect covers.
+
+Both functions support Euclidean distances only.
 }
 \author{
+Matt Piekenbrock
+
 Jason Cory Brunson
 
 Yara Skaf
