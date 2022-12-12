@@ -20,8 +20,8 @@ inline double sq_dist(const NumericVector& x, const NumericVector& y) {
 //' @author Jason Cory Brunson
 //' @author Yara Skaf
 //' @description Use the Euclidean maxmin procedure to choose landmarks.
-//' @details `landmark_maxmin()` is a minimal implementation of the maxmin
-//'   procedure to choose a given number landmarks.
+//' @details `landmark_maxmin()` is a minimal implementation of the [maxmin
+//'   procedure][landmarks_maxmin] to choose a given number landmarks.
 //'
 //'   `landmarks_maxmin_cpp()` allows specification of the fixed radius of the
 //'   balls about the landmarks rather than their number and provides an option
@@ -35,6 +35,10 @@ inline double sq_dist(const NumericVector& x, const NumericVector& y) {
 //' @param seed_index index of the first landmark used to seed the algorithm
 //' @param cover boolean specifying whether to return cover sets in addition to
 //'   the landmark points
+//' @returns `landmark_maxmin()` returns an integer vector of indices of
+//'   landmarks. `landmarks_maxmin_cpp()` returns a list of one or two members,
+//'   depending on `cover`: a vector of landmarks, and a list of cover sets,
+//'   represented as integer vcetors of indices.
 
 //' @rdname landmarks_maxmin_cpp
 // [[Rcpp::export]]

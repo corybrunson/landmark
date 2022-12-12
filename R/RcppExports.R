@@ -6,10 +6,10 @@
 #' @author Yara Skaf
 #' @author Jason Cory Brunson
 #' @description Use the Euclidean lastfirst procedure to choose landmarks.
-#' @details `landmark_lastfirst()` performs the lastfirst procedure to choose a
-#'   given number landmarks for neighborhoods of at least a fixed cardinality.
-#'   It supports Euclidean distances only and provides an option to collect
-#'   covers.
+#' @details `landmark_lastfirst()` performs the
+#'   [lastfirst procedure][landmarks_lastfirst] to choose a given number
+#'   landmarks for neighborhoods of at least a fixed cardinality. It supports
+#'   Euclidean distances only and provides an option to collect covers.
 #' @param x a data matrix
 #' @param num desired number of landmark points, or number of sets, in a ball
 #'   cover (should be a positive integer)
@@ -18,6 +18,9 @@
 #' @param seed_index index of the first landmark used to seed the algorithm
 #' @param cover boolean specifying whether to return cover sets in addition to
 #'   the landmark points
+#' @returns `landmarks_lastfirst_cpp()` returns a list of one or two members,
+#'   depending on `cover`: an integer vector of indices of landmarks, and a
+#'   list of cover sets, represented as integer vcetors of indices.
 NULL
 
 #' @rdname landmarks_lastfirst_cpp
@@ -31,8 +34,8 @@ landmarks_lastfirst_cpp <- function(x, num = 0L, cardinality = 0L, seed_index = 
 #' @author Jason Cory Brunson
 #' @author Yara Skaf
 #' @description Use the Euclidean maxmin procedure to choose landmarks.
-#' @details `landmark_maxmin()` is a minimal implementation of the maxmin
-#'   procedure to choose a given number landmarks.
+#' @details `landmark_maxmin()` is a minimal implementation of the [maxmin
+#'   procedure][landmarks_maxmin] to choose a given number landmarks.
 #'
 #'   `landmarks_maxmin_cpp()` allows specification of the fixed radius of the
 #'   balls about the landmarks rather than their number and provides an option
@@ -46,6 +49,10 @@ landmarks_lastfirst_cpp <- function(x, num = 0L, cardinality = 0L, seed_index = 
 #' @param seed_index index of the first landmark used to seed the algorithm
 #' @param cover boolean specifying whether to return cover sets in addition to
 #'   the landmark points
+#' @returns `landmark_maxmin()` returns an integer vector of indices of
+#'   landmarks. `landmarks_maxmin_cpp()` returns a list of one or two members,
+#'   depending on `cover`: a vector of landmarks, and a list of cover sets,
+#'   represented as integer vcetors of indices.
 NULL
 
 #' @rdname landmarks_maxmin_cpp

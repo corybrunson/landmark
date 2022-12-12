@@ -26,14 +26,19 @@ integer)}
 \item{cover}{boolean specifying whether to return cover sets in addition to
 the landmark points}
 }
+\value{
+\code{landmarks_lastfirst_cpp()} returns a list of one or two members,
+depending on \code{cover}: an integer vector of indices of landmarks, and a
+list of cover sets, represented as integer vcetors of indices.
+}
 \description{
 Use the Euclidean lastfirst procedure to choose landmarks.
 }
 \details{
-\code{landmark_lastfirst()} performs the lastfirst procedure to choose a
-given number landmarks for neighborhoods of at least a fixed cardinality.
-It supports Euclidean distances only and provides an option to collect
-covers.
+\code{landmark_lastfirst()} performs the
+\link[=landmarks_lastfirst]{lastfirst procedure} to choose a given number
+landmarks for neighborhoods of at least a fixed cardinality. It supports
+Euclidean distances only and provides an option to collect covers.
 }
 \author{
 Yara Skaf

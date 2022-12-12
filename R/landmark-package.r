@@ -1,4 +1,4 @@
-#' @title procedures to generate landmark sets from finite metric spaces
+#' @title Generate Landmark Sets from Finite Metric Spaces
 #' @author Matt Piekenbrock
 #' @author Jason Cory Brunson
 #' @author Yara Skaf

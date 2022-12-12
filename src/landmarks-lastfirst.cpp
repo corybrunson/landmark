@@ -14,10 +14,10 @@ using std::size_t;
 //' @author Yara Skaf
 //' @author Jason Cory Brunson
 //' @description Use the Euclidean lastfirst procedure to choose landmarks.
-//' @details `landmark_lastfirst()` performs the lastfirst procedure to choose a
-//'   given number landmarks for neighborhoods of at least a fixed cardinality.
-//'   It supports Euclidean distances only and provides an option to collect
-//'   covers.
+//' @details `landmark_lastfirst()` performs the
+//'   [lastfirst procedure][landmarks_lastfirst] to choose a given number
+//'   landmarks for neighborhoods of at least a fixed cardinality. It supports
+//'   Euclidean distances only and provides an option to collect covers.
 //' @param x a data matrix
 //' @param num desired number of landmark points, or number of sets, in a ball
 //'   cover (should be a positive integer)
@@ -26,6 +26,9 @@ using std::size_t;
 //' @param seed_index index of the first landmark used to seed the algorithm
 //' @param cover boolean specifying whether to return cover sets in addition to
 //'   the landmark points
+//' @returns `landmarks_lastfirst_cpp()` returns a list of one or two members,
+//'   depending on `cover`: an integer vector of indices of landmarks, and a
+//'   list of cover sets, represented as integer vcetors of indices.
 
 //' @rdname landmarks_lastfirst_cpp
 // [[Rcpp::export]]
@@ -35,8 +38,6 @@ List landmarks_lastfirst_cpp(const NumericMatrix& x,
                              const bool cover = false) {
     int num_pts = x.nrow();
 
-    // default value to accomodate exit condition, without warning
-    if (cardinality == 0 || cardinality > num_pts) { cardinality = num_pts; }
     // error handling
     if (cardinality < 0) { stop("Parameter `cardinality` must be non-negative."); }
     if (num < 0) { stop("Parameter `num` must be non-negative."); }
@@ -48,7 +49,10 @@ List landmarks_lastfirst_cpp(const NumericMatrix& x,
         warning("Parameter `num` is too large; using `num = nrow(x)`.");
         num = num_pts;
     }
+    // no parameters passed -> default behavior
     if (num == 0 && cardinality == 0) { num = std::min(num_pts, 24); }
+    // default value to accomodate exit condition, without warning
+    if (cardinality == 0 || cardinality > num_pts) { cardinality = num_pts; }
 
     // landmark set L
     map<int, vector<double>> landmarks;

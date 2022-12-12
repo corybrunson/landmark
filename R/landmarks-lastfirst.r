@@ -1,26 +1,33 @@
 #' @name landmarks_lastfirst
-#' @title Neighborhood-based Landmark Sets
+#' @title Lastfirst Landmark Sets and Neighborhood Covers
 #' @author Jason Cory Brunson
 #' @author Yara Skaf
 #' @description Compute landmark sets based on nearest neighborhoods.
-#' @details These functions adapt the maxmin procedure to produce landmark
-#'   points dispersed according to the orders in which they are reached from
-#'   each other, rather than to their distances from each other. (Say more.)
+
+#' @details The lastfirst procedure adapts the maxmin procedure to generate
+#'   landmarks dispersed according to the orders in which they are reached from
+#'   each other, rather than to their distances from each other. Whereas each
+#'   new landmark in the maxmin procedure is (among) the last to be covered by
+#'   the union of common-radius balls centered at existing landmarks, each new
+#'   landmark in the lastfirst procedure is (among) the last to be covered by
+#'   the union of common-cardinality neighborhoods centered at existing
+#'   landmarks.
 #'
-#'   One, both, or neither of `num` and `cardinality` may be passed values.
-#'   If neither is specified, then `num` is defaulted to the minimum of
-#'   `24L` and the number of distinct rows of `x`. If the values yield
-#'   neighborhoods that do not cover `x`, then, effectively, `num` is
-#'   increased until the cardinality necessary to cover `x` is at most
-#'   `cardinality`. To generte a complete landmark set, use `cardinality = 1L`.
+#'   One, both, or neither of `num` and `cardinality` may be passed values. If
+#'   neither is specified, then `num` is defaulted to the minimum of `24L` and
+#'   the number of distinct rows of `x`. If the values yield neighborhoods that
+#'   do not cover `x`, then, effectively, `num` is increased until the
+#'   cardinality necessary to cover `x` is at most `cardinality`. To generte a
+#'   complete landmark set, use `cardinality = 1L`.
+
 #' @param x a data matrix.
 #' @param y a data matrix of the same dimension as `x`; if `NULL`, taken to be
 #'   `x`.
 #' @param dist_method a character string specifying the distance metric to use;
-#'   passed to `proxy::dist(method)`. Any distance measure in the \code{proxy}
-#'   package is supported.
+#'   passed to `proxy::dist(method = )`. Any distance measure in the
+#'   \code{proxy} package is supported.
 #' @param ties_method a character string specifying the method for handling
-#'   ties; passed to `rank(ties.method)`. Only `"min"` and `"max"` have been
+#'   ties; passed to `rank(ties.method = )`. Only `"min"` and `"max"` have been
 #'   tested and are recommended.
 #' @param pick_method a character string specifying the method for selecting one
 #'   among indistinguishable points, either `"first"` (the default), `"last"`,

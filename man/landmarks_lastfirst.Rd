@@ -4,7 +4,7 @@
 \alias{landmarks_lastfirst}
 \alias{firstlast}
 \alias{lastfirst}
-\title{Neighborhood-based Landmark Sets}
+\title{Lastfirst Landmark Sets and Neighborhood Covers}
 \usage{
 firstlast(x, y = NULL, dist_method = "euclidean", ties_method = "min")
 
@@ -32,11 +32,11 @@ landmarks_lastfirst(
 \code{x}.}
 
 \item{dist_method}{a character string specifying the distance metric to use;
-passed to \code{proxy::dist(method)}. Any distance measure in the \code{proxy}
-package is supported.}
+passed to \code{proxy::dist(method = )}. Any distance measure in the
+\code{proxy} package is supported.}
 
 \item{ties_method}{a character string specifying the method for handling
-ties; passed to \code{rank(ties.method)}. Only \code{"min"} and \code{"max"} have been
+ties; passed to \code{rank(ties.method = )}. Only \code{"min"} and \code{"max"} have been
 tested and are recommended.}
 
 \item{pick_method}{a character string specifying the method for selecting one
@@ -69,16 +69,21 @@ extend landmark parameters for cover set construction. See \code{\link[=extensio
 Compute landmark sets based on nearest neighborhoods.
 }
 \details{
-These functions adapt the maxmin procedure to produce landmark
-points dispersed according to the orders in which they are reached from
-each other, rather than to their distances from each other. (Say more.)
+The lastfirst procedure adapts the maxmin procedure to generate
+landmarks dispersed according to the orders in which they are reached from
+each other, rather than to their distances from each other. Whereas each
+new landmark in the maxmin procedure is (among) the last to be covered by
+the union of common-radius balls centered at existing landmarks, each new
+landmark in the lastfirst procedure is (among) the last to be covered by
+the union of common-cardinality neighborhoods centered at existing
+landmarks.
 
-One, both, or neither of \code{num} and \code{cardinality} may be passed values.
-If neither is specified, then \code{num} is defaulted to the minimum of
-\code{24L} and the number of distinct rows of \code{x}. If the values yield
-neighborhoods that do not cover \code{x}, then, effectively, \code{num} is
-increased until the cardinality necessary to cover \code{x} is at most
-\code{cardinality}. To generte a complete landmark set, use \code{cardinality = 1L}.
+One, both, or neither of \code{num} and \code{cardinality} may be passed values. If
+neither is specified, then \code{num} is defaulted to the minimum of \code{24L} and
+the number of distinct rows of \code{x}. If the values yield neighborhoods that
+do not cover \code{x}, then, effectively, \code{num} is increased until the
+cardinality necessary to cover \code{x} is at most \code{cardinality}. To generte a
+complete landmark set, use \code{cardinality = 1L}.
 }
 \examples{
 set.seed(4)

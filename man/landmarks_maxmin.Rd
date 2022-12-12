@@ -4,7 +4,7 @@
 \alias{landmarks_maxmin}
 \alias{minmax}
 \alias{maxmin}
-\title{Ball-based Landmark Sets}
+\title{Maxmin Landmark Sets and Ball Covers}
 \usage{
 minmax(x, y = NULL, dist_method = "euclidean")
 
@@ -31,8 +31,8 @@ landmarks_maxmin(
 \code{x}.}
 
 \item{dist_method}{a character string specifying the distance metric to use;
-passed to \code{proxy::dist(method)}. Any distance measure in the \code{proxy}
-package is supported.}
+passed to \code{proxy::dist(method = )}. Any distance measure in the
+\code{proxy} package is supported.}
 
 \item{pick_method}{a character string specifying the method for selecting one
 among indistinguishable points, either \code{"first"} (the default), \code{"last"},
@@ -64,8 +64,10 @@ landmark parameters for cover set construction. See \code{\link[=extension]{exte
 Compute landmark sets based on fixed-radius balls.
 }
 \details{
-This function uses the maxmin procedure to produce a set of evenly
-spaced landmark points from a data set. Maxmin is a simple greedy algorithm
+This function uses the maxmin procedure to produce a set of mutually
+remote landmark points from a data set. Each new landmark in the maxmin
+procedure is (among) the last to be covered by the union of common-radius
+balls centered at existing landmarks. Maxmin is a simple greedy algorithm
 that is relatively efficient, but it has a tendency to pick out extremal
 points.
 

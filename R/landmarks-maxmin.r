@@ -1,11 +1,14 @@
 #' @name landmarks_maxmin
-#' @title Ball-based Landmark Sets
+#' @title Maxmin Landmark Sets and Ball Covers
 #' @author Matt Piekenbrock
 #' @author Jason Cory Brunson
 #' @author Yara Skaf
 #' @description Compute landmark sets based on fixed-radius balls.
-#' @details This function uses the maxmin procedure to produce a set of evenly
-#'   spaced landmark points from a data set. Maxmin is a simple greedy algorithm
+
+#' @details This function uses the maxmin procedure to produce a set of mutually
+#'   remote landmark points from a data set. Each new landmark in the maxmin
+#'   procedure is (among) the last to be covered by the union of common-radius
+#'   balls centered at existing landmarks. Maxmin is a simple greedy algorithm
 #'   that is relatively efficient, but it has a tendency to pick out extremal
 #'   points.
 #'
@@ -14,6 +17,7 @@
 #'   balls that do not cover `x`, then their number is increased until the
 #'   radius necessary to cover `x` is at most `radius`. To generte a complete
 #'   landmark set, use `radius = 0L`.
+
 #' @references De Silva, Vin, and Gunnar E. Carlsson. "Topological estimation
 #'   using witness complexes." SPBG 4 (2004): 157-166.
 #' @references Dłotko, Paweł. "Ball Mapper: A Shape Summary for Topological Data
@@ -22,8 +26,8 @@
 #' @param y a data matrix of the same dimension as `x`; if `NULL`, taken to be
 #'   `x`.
 #' @param dist_method a character string specifying the distance metric to use;
-#'   passed to `proxy::dist(method)`. Any distance measure in the \code{proxy}
-#'   package is supported.
+#'   passed to `proxy::dist(method = )`. Any distance measure in the
+#'   \code{proxy} package is supported.
 #' @param pick_method a character string specifying the method for selecting one
 #'   among indistinguishable points, either `"first"` (the default), `"last"`,
 #'   or `"random"`.
@@ -329,7 +333,7 @@ landmarks_maxmin_orig <- function(
     } else {
       stop(sprintf("Unsupported distance method passed: %s\n", dist_method))
     }
-  } else if(! is.null(radius)) {
+  } else if (! is.null(radius)) {
     stopifnot(toupper(dist_method) %in% toupper(proxy::pr_DB$get_entry_names()))
     f_dim <- ncol(x)
     f_size <- nrow(x)
@@ -337,7 +341,7 @@ landmarks_maxmin_orig <- function(
     # algorithm and variable names as specified in Dlotko paper
     C = c() # create a list to store indices of centers/landmarks
     next_pt = seed_index # first landmark should be the seed point
-    while(TRUE){
+    while (TRUE) {
       C = append(C, next_pt) # add new point to list of landmarks
 
       # compute distance between landmark set and each point in the space

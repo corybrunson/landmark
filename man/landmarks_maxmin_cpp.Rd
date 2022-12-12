@@ -22,12 +22,17 @@ cover (should be a positive integer)}
 \item{cover}{boolean specifying whether to return cover sets in addition to
 the landmark points}
 }
+\value{
+\code{landmark_maxmin()} returns an integer vector of indices of
+landmarks. \code{landmarks_maxmin_cpp()} returns a list of one or two members,
+depending on \code{cover}: a vector of landmarks, and a list of cover sets,
+represented as integer vcetors of indices.
+}
 \description{
 Use the Euclidean maxmin procedure to choose landmarks.
 }
 \details{
-\code{landmark_maxmin()} is a minimal implementation of the maxmin
-procedure to choose a given number landmarks.
+\code{landmark_maxmin()} is a minimal implementation of the \link[=landmarks_maxmin]{maxmin procedure} to choose a given number landmarks.
 
 \code{landmarks_maxmin_cpp()} allows specification of the fixed radius of the
 balls about the landmarks rather than their number and provides an option
